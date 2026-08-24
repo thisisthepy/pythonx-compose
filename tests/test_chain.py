@@ -203,7 +203,14 @@ class ValueClasses(AdapterCase):
         self.assertEqual("padding(16.0)", self.describe(self.empty().padding(16)))
 
     def test_a_dp_proxy_reaches_the_same_parameter(self):
-        result = self.empty().padding(self.pythonx.dp(16))
+        # `pythonx.dp(...)` used to exist, defined in the binder itself -- which meant the language
+        # boundary shipped a Compose spelling and any other library's value class needed a core
+        # edit to get one. The binder now offers only the general form, and `dp` is a name this
+        # package owes on top of it. Written the general way until there is somewhere to put the
+        # short one: the disk modules under `pythonx/compose/` are never loaded (the adapter's
+        # finder answers those imports), so a hand-written `dp` needs a home this package does not
+        # have yet.
+        result = self.empty().padding(self.pythonx.value_of("androidx.compose.ui.unit.Dp", 16))
         self.assertEqual("padding(16.0)", self.describe(result))
 
     def test_a_plain_float_parameter_is_not_treated_as_a_value_class(self):

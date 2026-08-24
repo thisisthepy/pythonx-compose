@@ -1,0 +1,47 @@
+# Which Kotlin package each `pythonx.compose.*` module wraps, and which value classes may be
+# written as their raw primitive.
+#
+# **This file is the reason the binder does not have to know Compose exists.**
+# `python-multiplatform` used to carry `register_package('pythonx.compose', 'androidx.compose')` in
+# its own `commonMain`, which made the language boundary know a UI library by name and put every
+# other library one core edit away. It carries nothing now: an embedder installs this map, and the
+# `.pyi` generator reads the same file, so the name an IDE completes and the name the interpreter
+# resolves cannot drift apart.
+#
+# The mapping is not inferable from any artefact, which is why it is written down rather than
+# derived: `pythonx.compose.layout` wraps `androidx.compose.foundation.layout` and drops
+# `foundation.`, and nothing in the jar says so. `UI.ipynb` -- this project's user-facing
+# specification -- is what settles the spelling; every module below is one it imports, or a package
+# those imports resolve through.
+
+[modules]
+# The four `UI.ipynb` imports by name.
+"pythonx.compose.layout"    = "androidx.compose.foundation.layout"
+"pythonx.compose.material3" = "androidx.compose.material3"
+"pythonx.compose.runtime"   = "androidx.compose.runtime"
+"pythonx.compose.ui"        = "androidx.compose.ui"
+
+# Reached through the four above rather than imported directly: a `Modifier` chain returns into
+# `ui.unit` and `ui.graphics`, and `ui.text` is where `TextStyle` lives.
+"pythonx.compose.ui.unit"     = "androidx.compose.ui.unit"
+"pythonx.compose.ui.text"     = "androidx.compose.ui.text"
+"pythonx.compose.ui.graphics" = "androidx.compose.ui.graphics"
+
+# The long spelling, kept beside the short one because both are real: the generated stubs use
+# `pythonx.compose.layout`, and the render fixtures in `python-multiplatform` were written against
+# the fully-qualified form. Mapping both means neither is wrong while the spelling settles.
+"pythonx.compose.foundation.layout" = "androidx.compose.foundation.layout"
+"pythonx.compose.foundation"        = "androidx.compose.foundation"
+"pythonx.compose"                   = "androidx.compose"
+
+[value-classes]
+# A value class here may be written as the primitive it wraps: `padding(16)` for `padding(Dp(16f))`.
+#
+# `Dp`'s public constructor is the identity on its float, so the two spellings mean the same thing.
+# `Color` and `TextUnit` are deliberately absent even though they look like numbers: both pack
+# several fields into one `packedValue`, so a raw number decodes as something else entirely rather
+# than as the value the caller meant. Adding one here is this package's decision to make, which is
+# the point of the section being in this file rather than in the binder.
+raw-primitive-allowed = [
+    "androidx.compose.ui.unit.Dp",
+]

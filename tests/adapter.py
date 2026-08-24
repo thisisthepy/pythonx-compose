@@ -16,6 +16,7 @@ tests exercise the changed source on the next run, so the two cannot drift.
 from __future__ import annotations
 
 import os
+import pathlib
 import sys
 import types
 from pathlib import Path
@@ -89,17 +90,41 @@ def read_adapter_source() -> str:
     return trim_indent(text[start:end]).replace(_DOLLAR_ESCAPE, "$")
 
 
+def read_manifest() -> dict:
+    """This package's own `pythonx-map.toml`, parsed.
+
+    The binder carries no mapping at all any more -- `pythonx.compose` means
+    `androidx.compose.*` because *this* package says so, and nothing else does. Reading the real
+    file rather than restating it means these tests fail if the manifest stops covering what they
+    exercise, which is the only way the map and its users stay in step.
+    """
+    import tomllib
+
+    path = pathlib.Path(__file__).resolve().parents[1] / "pythonx-map.toml"
+    with path.open("rb") as handle:
+        return tomllib.load(handle)
+
+
 def install(source: str | None = None) -> types.ModuleType:
     """Reproduce `PythonxAdapter.DELIVERY`: build the `pythonx` module and exec the source into it.
 
     Deliberately unconditional, unlike the Kotlin, which guards on `sys.modules`. A test wants a
     fresh layer per case; a running interpreter wants one per process.
+
+    The manifest is applied here because an embedder applies it there: `PythonxAdapter.install`
+    takes the map as an argument and registers nothing without one. A fake host that skipped this
+    step would be testing a layer no real caller runs.
     """
     uninstall()
     module = types.ModuleType("pythonx")
     module.__path__ = []
     sys.modules["pythonx"] = module
     exec(compile(source or read_adapter_source(), "pythonx/__init__.py", "exec"), module.__dict__)
+    manifest = read_manifest()
+    for python_name, kotlin_package in manifest["modules"].items():
+        module.register_package(python_name, kotlin_package)
+    for kotlin_type in manifest["value-classes"]["raw-primitive-allowed"]:
+        module.allow_raw_primitive(kotlin_type)
     return module
 
 
