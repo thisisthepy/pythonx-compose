@@ -160,3 +160,6 @@ cython_debug/
 .idea/
 .DS_Store
 __pycache__/
+
+# The specification notebook is the user's working file, not a repository artefact.
+UI.ipynb
