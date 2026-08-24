@@ -3,7 +3,7 @@ requires = ["setuptools>=42", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "pycomposeui"
+name = "pythonx-compose"
 version = "0.0.1"
 dependencies = [
 ]
@@ -12,6 +12,15 @@ dependencies = [
 #]
 requires-python = ">= 3.8"
 #requires-kotlin = ">= 1.4.32"
+
+[tool.setuptools.packages.find]
+include = ["pythonx.compose*"]
+
+[tool.setuptools.package-data]
+# Every package, not just `pythonx.compose` itself: a package-data key names one package and does
+# not descend, so `"pythonx.compose"` alone would ship `pythonx/compose/*.pyi` and drop
+# `pythonx/compose/ui/*.pyi` -- which is where most of the generated stubs land.
+"*" = ["*.pyi", "py.typed", "pythonx-map.toml"]
 #authors = [
 #    {name = "Pradyun Gedam", email = "irack000@gmail.com"},
 #    {name = "Tzu-Ping Chung", email = "tzu-ping@example.com"}

@@ -1,4 +1,4 @@
-# pythonx - pycomposeui
+# pythonx-compose
 
 > pythonx is a python extension for kotlin integration
 
@@ -31,9 +31,9 @@ ___
 
 ## Usage
 ```python
-from pycomposeui.runtime import Composable, EmptyComposable, remember_saveable
-from pycomposeui.material3 import Text, Column, Row, Button
-from pycomposeui.ui import modifier, Alignment
+from pythonx.compose.runtime import Composable, EmptyComposable, remember_saveable
+from pythonx.compose.material3 import Text, Column, Row, Button
+from pythonx.compose.ui import modifier, Alignment
 
 
 @Composable
