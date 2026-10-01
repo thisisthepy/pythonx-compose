@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Modifiers · pythonx-compose</title>
+<meta name="description" content="pythonx-compose: write Compose user interfaces in Python, with Compose's own widgets and Pythonic names.">
+<script>(function(){var r=document.documentElement,l=null,t=null;
+try{l=localStorage.getItem('pxc-lang');t=localStorage.getItem('pxc-theme');}catch(e){}
+if(l!=='en'&&l!=='ko'){l=((navigator.language||'en').toLowerCase().indexOf('ko')===0)?'ko':'en';}
+r.lang=l;if(t==='dark'||t==='light'){r.setAttribute('data-theme',t);}})();</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&amp;family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap">
+<link rel="stylesheet" href="assets/style.css">
+<script src="assets/site.js" defer></script>
+</head>
+<body data-title-en="Modifiers" data-title-ko="모디파이어">
+<header class="site-header">
+<div class="wrap bar">
+<a class="brand" href="index.html"><svg class="mark" viewBox="0 0 24 24" aria-hidden="true"><rect x="1.5" y="1.5" width="21" height="21" rx="6" fill="none" stroke="var(--accent)" stroke-width="1.6"/><path d="M7 8.5h6M7 12h10M7 15.5h4" stroke="var(--fg)" stroke-width="1.6" stroke-linecap="round"/></svg>pythonx-compose</a>
+<nav class="nav" aria-label="Guide"><a href="index.html"><span data-lang="en">Home</span><span data-lang="ko">홈</span></a><a href="getting-started.html"><span data-lang="en">Getting started</span><span data-lang="ko">시작하기</span></a><a href="concepts.html"><span data-lang="en">Concepts</span><span data-lang="ko">개념</span></a><a href="guide-composables.html"><span data-lang="en">Composables</span><span data-lang="ko">컴포저블</span></a><a href="guide-modifiers.html" aria-current="page"><span data-lang="en">Modifiers</span><span data-lang="ko">모디파이어</span></a><a href="guide-manifest.html"><span data-lang="en">Manifest</span><span data-lang="ko">매니페스트</span></a><a href="ecosystem.html"><span data-lang="en">Ecosystem</span><span data-lang="ko">생태계</span></a><a href="status.html"><span data-lang="en">Status & FAQ</span><span data-lang="ko">현황 · FAQ</span></a></nav>
+<div class="tools">
+<button class="btn-ghost" id="lang-toggle" type="button"><span data-lang="en">한국어</span><span data-lang="ko">English</span></button>
+<button class="btn-ghost" id="theme-toggle" type="button" aria-label="Toggle colour theme"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M12 3a9 9 0 1 0 9 9 7 7 0 0 1-9-9z"/></svg></button>
+</div>
+</div>
+</header>
+<main>
+<header class="page-head wrap"><p class="kicker"><span data-lang="en">Guide</span><span data-lang="ko">가이드</span></p><h1><span data-lang="en">Modifier chains</span><span data-lang="ko">Modifier 체인</span></h1><p class="lead"><span data-lang="en">Kotlin extension functions, as Python methods.</span><span data-lang="ko">Kotlin 확장 함수를 파이썬 메서드로.</span></p></header>
+
+<div class="wrap doc narrow">
+<section class="flush">
+<p><span class="chip partial"><span data-lang="en">partial</span><span data-lang="ko">부분</span></span></p>
+<p data-lang="en" class="muted">The behaviour below is specified and tested against the binder's adaptation layer. Those tests are currently failing while this package's runtime side is wired up.</p><p data-lang="ko" class="muted">아래 동작은 사양으로 정해져 있고 바인더의 적응 계층을 대상으로 테스트됩니다. 이 패키지 쪽 런타임을 연결하는 동안 해당 테스트는 실패 중입니다.</p>
+</section>
+
+<section>
+<h2><span data-lang="en">Chaining</span><span data-lang="ko">체이닝</span></h2>
+<pre><code class="language-python">from pythonx.compose.ui import Modifier
+
+m = Modifier.padding(16).size(24).fill_max_width()</code></pre>
+<p data-lang="en">Each link returns a new receiver; nothing is mutated. A name that is not bound raises <code>AttributeError</code> naming the type it looked on.</p><p data-lang="ko">각 단계는 새 수신 객체를 돌려주며, 아무것도 변경하지 않습니다. 바인딩되지 않은 이름은 어느 타입에서 찾았는지 밝히는 <code>AttributeError</code> 를 냅니다.</p>
+</section>
+
+<section>
+<h2><span data-lang="en">Overloads</span><span data-lang="ko">오버로드</span></h2>
+<p data-lang="en">Compose declares several <code>padding</code> functions. A call picks one by keyword names, then argument count, then declared type; if none matches, the error lists the candidates.</p><p data-lang="ko">Compose 는 <code>padding</code> 함수를 여러 개 선언합니다. 호출은 키워드 이름, 인자 개수, 선언 타입 순으로 하나를 고르며, 맞는 것이 없으면 후보를 나열한 오류를 냅니다.</p>
+<pre><code class="language-python">m.padding(16)                          # all sides
+m.padding(horizontal=8, vertical=4)    # selected by keyword names</code></pre>
+</section>
+
+<section>
+<h2><span data-lang="en">The empty Modifier</span><span data-lang="ko">빈 Modifier</span></h2>
+<p data-lang="en">In Kotlin, <code>Modifier</code> as an expression is an object, and bindings are functions — so there is no bound name for the empty modifier a chain starts from. <code>pythonx/compose/ui/modifier.py</code> is the seam: an application registers a one-line Kotlin factory.</p><p data-lang="ko">Kotlin 에서 식으로 쓰인 <code>Modifier</code> 는 객체이고 바인딩은 함수이므로, 체인이 시작하는 빈 모디파이어에는 바인딩된 이름이 없습니다. <code>pythonx/compose/ui/modifier.py</code> 가 그 접점이며, 앱이 한 줄짜리 Kotlin 팩토리를 등록합니다.</p>
+<pre><code class="language-kotlin">// in the application&#x27;s Kotlin
+fun emptyModifier(): Modifier = Modifier</code></pre>
+<pre><code class="language-python">modifier.install(&quot;com.example.emptyModifier&quot;)   # then Modifier.padding(16) works</code></pre>
+<div class="pager"><a href="guide-composables.html">← <span data-lang="en">Composables</span><span data-lang="ko">컴포저블</span></a><a href="guide-manifest.html"><span data-lang="en">Manifest</span><span data-lang="ko">매니페스트</span> →</a></div>
+</section>
+</div>
+
+</main>
+<footer>
+<div class="wrap">
+<span><span data-lang="en">pythonx-compose — Compose, restructured for Python.</span><span data-lang="ko">pythonx-compose — 파이썬을 위해 재구성한 Compose.</span></span>
+<span><a href="https://github.com/thisisthepy/pythonx-compose">GitHub</a> · <span data-lang="en">MIT License</span><span data-lang="ko">MIT 라이선스</span></span>
+</div>
+</footer>
+</body>
+</html>

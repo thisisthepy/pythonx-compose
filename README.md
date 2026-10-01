@@ -1,77 +1,163 @@
+English | [한국어](docs/locale/README_ko.md)
+
+<div align="center">
+
 # pythonx-compose
 
-> pythonx is a python extension for kotlin integration
+**Write Compose user interfaces in Python — with Compose's own widgets, spelled the Python way.**
 
-### Description
+[![License: MIT](https://img.shields.io/badge/license-MIT-7c4dff.svg)](LICENSE)
+[![Python](https://img.shields.io/badge/python-3.8%2B-7c4dff.svg)](pyproject.toml)
+[![pip](https://img.shields.io/badge/pip-pythonx--compose-7c4dff.svg)](pyproject.toml)
+[![Status](https://img.shields.io/badge/status-pre--alpha-lightgrey.svg)](#-status)
 
-Python Wrapper for Kotlin Compose Multiplatform.
+[Guide](docs/guide/index.html) · [Getting started](docs/guide/getting-started.html) · [Concepts](docs/guide/concepts.html) · [Status](docs/guide/status.html)
 
-
-#### Maintainer
-| Name                                       | Detailed Part       | Period     |
-|--------------------------------------------|---------------------|------------|
-| [@b-re-w](https://github.com/b-re-w)       | Composable Runtime  | 2023 ~ now |
-| [@rnoro5122](https://github.com/rnoro5122) | Material3           | 2024 ~ now |
-
-
-
-### Template ToDo list
-- [x] Composable Runtime
-- [ ] Material3 Wrapper
-  - [x] Adaptation layer generated components (24 files verified by upstream render tests; 0-byte placeholders on disk as no wrappers are needed)
-  - [x] Hand-written fallback wrappers (`icon.py`, `color_scheme.py`)
-  - [ ] Unreachable declarations (3 files: `typography.py` & `shape.py` due to data class constructor omission in walker; `dynamic_color.py` due to Android-only API)
-
-
-___
-
-## Integration
+</div>
 
 ---
 
-## Usage
+## Why
+
+Jetpack Compose and Compose Multiplatform are a superb way to build UI — if you write Kotlin.
+`pythonx-compose` is for people who write Python. It does not reimplement Compose and it does not
+invent a new widget set: it takes the real `androidx.compose.*` API, which
+[python-multiplatform](https://github.com/thisisthepy/python-multiplatform) exposes to Python under
+its Kotlin names, and restructures it into a Pythonic package, `pythonx.compose`.
+
 ```python
-from pythonx.compose.runtime import Composable, EmptyComposable, remember_saveable
-from pythonx.compose.material3 import Text, Column, Row, Button
-from pythonx.compose.ui import modifier, Alignment
-
+from pythonx.compose.runtime import Composable
+from pythonx.compose.material3 import Text, Button
 
 @Composable
-def UiTestCase(text: str = "UiTestCase"):
-    """ Simple way to create a Composable """
-    Text(text)
-
-
-@Composable
-class UiTest:
-    """ Class-based Composable """
-    def compose(self, content: Composable = EmptyComposable):
-        Column(modifier, content=lambda: {
-            UiTestCase(text="UiTestCase in UiTest"),
-            content()
-        })
-
-
-@Composable
-class BasicText:
-    """ Class-based Composable 2 """
-    @classmethod
-    def compose(cls, text: str = "BasicText"):
-        Text(text)
-
-
-@Composable
-class RichText(Composable):
-    """ Inheritance-based Composable """
-    @staticmethod
-    def compose(content: Composable = EmptyComposable):
-        Column(modifier, content=Composable(lambda: {
-            Text("Basic Text inside of Rich Text"),
-            Row(lambda: {  # Unlike Kotlin Compose, pycompose does not require Composable functions as content parameters
-                Text("Row Left Side  "),
-                Text("Row Right Side")
-            }),
-            content()
-        }))
-
+def Greeting():
+    Button(on_click=lambda: print("hi"), content=lambda: Text("Hello from Python"))
 ```
+
+<sub>This is the target surface. See [Status](#-status) for what runs today.</sub>
+
+## ✨ Principles
+
+- **The original API, Pythonic names.** Every parameter is Compose's own parameter, in
+  `snake_case`: `onClick` → `on_click`, `horizontalAlignment` → `horizontal_alignment`.
+- **Extension functions are methods.** `Modifier.padding(16).size(24)` chains exactly as it does in
+  Kotlin.
+- **`@Composable` stays.** Screens are decorated Python functions.
+- **A real package.** `pythonx/` is ordinary Python source that imports `androidx.compose.*` and
+  reshapes it. The binder never renames anything — renaming is this package's job.
+- **One manifest.** [`pythonx-map.toml`](pythonx-map.toml) says which `pythonx.compose.*` module
+  stands for which Kotlin package. The runtime and the `.pyi` generator read the same file, so what
+  your editor completes is what the interpreter resolves.
+
+## 🧩 Architecture at a glance
+
+```mermaid
+flowchart LR
+    app["Your Python UI<br/>@Composable def Screen()"] --> px["pythonx.compose<br/>(this package, real Python)"]
+    px --> ax["androidx.compose.*<br/>Kotlin names, exposed by python-multiplatform"]
+    ax --> compose["Jetpack / Compose Multiplatform"]
+    map["pythonx-map.toml"] -.-> px
+    map -.-> pyi[".pyi stubs<br/>(shipped in the wheel)"]
+```
+
+| Python module | Kotlin package |
+|---|---|
+| `pythonx.compose.runtime` | `androidx.compose.runtime` |
+| `pythonx.compose.ui` | `androidx.compose.ui` |
+| `pythonx.compose.layout` | `androidx.compose.foundation.layout` |
+| `pythonx.compose.material3` | `androidx.compose.material3` |
+
+## 🚀 Quick start
+
+> [!NOTE]
+> `pythonx-compose` is **pre-alpha** and not yet published to PyPI.
+
+```bash
+git clone https://github.com/thisisthepy/pythonx-compose
+cd pythonx-compose
+python3 -m pip install pytest      # inside a virtual environment
+python3 -m pytest tests -q
+```
+
+What runs today, from the repository root:
+
+```python
+from pythonx.compose.runtime import Composable
+
+@Composable                      # an identity decorator: the function stays a plain function
+def Screen():
+    """A screen."""
+    return "drawn"
+
+assert Screen() == "drawn" and Screen.__name__ == "Screen"
+```
+
+```python
+import tomllib                   # the manifest: the one place the mapping is written down
+
+with open("pythonx-map.toml", "rb") as f:
+    manifest = tomllib.load(f)
+
+manifest["modules"]["pythonx.compose.layout"]
+# 'androidx.compose.foundation.layout'
+manifest["value-classes"]["raw-primitive-allowed"]
+# ['androidx.compose.ui.unit.Dp']   ->  padding(16) means padding(16.dp)
+```
+
+The tests that drive a `Modifier` chain and overload dispatch read the binder's adaptation layer
+from a sibling [python-multiplatform](https://github.com/thisisthepy/python-multiplatform) checkout
+(or `PYTHONMULTIPLATFORM_HOME`); without one they are skipped.
+
+## 📦 Installation
+
+Distributed as the pip package **`pythonx-compose`**, providing the import package
+`pythonx.compose`, with `.pyi` stubs inside the wheel. It runs inside an app that embeds CPython
+through [python-multiplatform](https://github.com/thisisthepy/python-multiplatform); it is not a
+standalone desktop toolkit.
+
+## 🧪 Status
+
+| Area | State |
+|---|---|
+| Mapping manifest `pythonx-map.toml` | ✅ implemented and tested |
+| `@Composable` decorator | ✅ implemented and tested |
+| Distribution metadata (`pythonx-compose`) | 🟡 partial — configured; stubs not generated yet, manifest not yet inside the package |
+| `Modifier` chains, overload dispatch, `Dp` as a number | 🟡 partial — tested against the binder's layer; failing while the runtime side is rewired |
+| Material 3 widgets (`Text`, `Button`, `Card`, `TextField`, …) | 🟡 partial — proven to render in python-multiplatform, not yet re-exported here |
+| `pythonx` as a real on-disk package importing `androidx.compose.*` | ⏳ planned |
+| `remember_saveable`, `DefaultIcons`, coroutine scopes | ⏳ planned |
+
+The full list is on the guide's [Status page](docs/guide/status.html).
+
+## 📖 Documentation
+
+- **Guide** — [`docs/guide/`](docs/guide/index.html), bilingual (English / 한국어)
+- **Korean README** — [`docs/locale/README_ko.md`](docs/locale/README_ko.md)
+
+## 🔌 Ecosystem
+
+| Repository | Role |
+|---|---|
+| [python-multiplatform](https://github.com/thisisthepy/python-multiplatform) | The binder: CPython embedded in Kotlin Multiplatform, exposing Kotlin to Python under Kotlin names |
+| **pythonx-compose** | Compose, restructured for Python — this repository |
+| [toolchain](https://github.com/thisisthepy/toolchain) | Gradle build plugin for Python Multiplatform apps |
+| [pypackpack](https://github.com/thisisthepy/pypackpack) | Distributing Python projects across platforms |
+| [torchnative](https://github.com/thisisthepy/torchnative) | Run the real PyTorch ecosystem on device |
+| [Gemstone](https://github.com/LogitAI/Gemstone) | A Kotlin Multiplatform AI app built alongside the stack |
+
+## 🤝 Contributing
+
+Development is intent-first and test-first: a change starts as a specification change, then a
+failing test, then code. The [guide](docs/guide/status.html) lists what is open and where help is
+useful. Please open an issue before large changes.
+
+## Maintainers
+
+| Name | Area | Since |
+|---|---|---|
+| [@b-re-w](https://github.com/b-re-w) | Composable runtime | 2023 |
+| [@rnoro5122](https://github.com/rnoro5122) | Material 3 | 2024 |
+
+## License
+
+[MIT](LICENSE) © 2023–2024 BREW (b-re-w), Jong-uk Lee (rnoro5122)

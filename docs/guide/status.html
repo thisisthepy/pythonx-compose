@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Status &amp; FAQ · pythonx-compose</title>
+<meta name="description" content="pythonx-compose: write Compose user interfaces in Python, with Compose's own widgets and Pythonic names.">
+<script>(function(){var r=document.documentElement,l=null,t=null;
+try{l=localStorage.getItem('pxc-lang');t=localStorage.getItem('pxc-theme');}catch(e){}
+if(l!=='en'&&l!=='ko'){l=((navigator.language||'en').toLowerCase().indexOf('ko')===0)?'ko':'en';}
+r.lang=l;if(t==='dark'||t==='light'){r.setAttribute('data-theme',t);}})();</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&amp;family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap">
+<link rel="stylesheet" href="assets/style.css">
+<script src="assets/site.js" defer></script>
+</head>
+<body data-title-en="Status &amp; FAQ" data-title-ko="현황 · FAQ">
+<header class="site-header">
+<div class="wrap bar">
+<a class="brand" href="index.html"><svg class="mark" viewBox="0 0 24 24" aria-hidden="true"><rect x="1.5" y="1.5" width="21" height="21" rx="6" fill="none" stroke="var(--accent)" stroke-width="1.6"/><path d="M7 8.5h6M7 12h10M7 15.5h4" stroke="var(--fg)" stroke-width="1.6" stroke-linecap="round"/></svg>pythonx-compose</a>
+<nav class="nav" aria-label="Guide"><a href="index.html"><span data-lang="en">Home</span><span data-lang="ko">홈</span></a><a href="getting-started.html"><span data-lang="en">Getting started</span><span data-lang="ko">시작하기</span></a><a href="concepts.html"><span data-lang="en">Concepts</span><span data-lang="ko">개념</span></a><a href="guide-composables.html"><span data-lang="en">Composables</span><span data-lang="ko">컴포저블</span></a><a href="guide-modifiers.html"><span data-lang="en">Modifiers</span><span data-lang="ko">모디파이어</span></a><a href="guide-manifest.html"><span data-lang="en">Manifest</span><span data-lang="ko">매니페스트</span></a><a href="ecosystem.html"><span data-lang="en">Ecosystem</span><span data-lang="ko">생태계</span></a><a href="status.html" aria-current="page"><span data-lang="en">Status & FAQ</span><span data-lang="ko">현황 · FAQ</span></a></nav>
+<div class="tools">
+<button class="btn-ghost" id="lang-toggle" type="button"><span data-lang="en">한국어</span><span data-lang="ko">English</span></button>
+<button class="btn-ghost" id="theme-toggle" type="button" aria-label="Toggle colour theme"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M12 3a9 9 0 1 0 9 9 7 7 0 0 1-9-9z"/></svg></button>
+</div>
+</div>
+</header>
+<main>
+<header class="page-head wrap"><p class="kicker"><span data-lang="en">Status</span><span data-lang="ko">현황</span></p><h1><span data-lang="en">What works today</span><span data-lang="ko">지금 되는 것</span></h1><p class="lead"><span data-lang="en">Honest about partial things.</span><span data-lang="ko">부분적인 것은 부분적이라고 씁니다.</span></p></header>
+
+<div class="wrap doc narrow">
+<section class="flush">
+<p data-lang="en" class="muted"><strong>Implemented</strong> means code in this repository and a passing test that exercises it. Tests that only assert an absence are not counted.</p><p data-lang="ko" class="muted"><strong>구현</strong>은 이 저장소의 코드와 그것을 실행하는 통과 테스트가 함께 있다는 뜻입니다. 부재만 확인하는 테스트는 세지 않습니다.</p>
+<div class="table-wrap"><table>
+<thead><tr><th><span data-lang="en">State</span><span data-lang="ko">상태</span></th><th><span data-lang="en">Item</span><span data-lang="ko">항목</span></th></tr></thead>
+<tbody><tr><td><span class="chip ok"><span data-lang="en">implemented</span><span data-lang="ko">구현</span></span></td><td><span data-lang="en">Mapping manifest <code>pythonx-map.toml</code></span><span data-lang="ko">매핑 매니페스트 <code>pythonx-map.toml</code></span></td></tr><tr><td><span class="chip ok"><span data-lang="en">implemented</span><span data-lang="ko">구현</span></span></td><td><span data-lang="en"><code>@Composable</code> identity decorator</span><span data-lang="ko"><code>@Composable</code> 항등 데코레이터</span></td></tr><tr><td><span class="chip partial"><span data-lang="en">partial</span><span data-lang="ko">부분</span></span></td><td><span data-lang="en">Distribution as <code>pythonx-compose</code> — configured; no stubs yet, manifest outside the package directory</span><span data-lang="ko"><code>pythonx-compose</code> 배포 — 설정됨; 스텁 없음, 매니페스트가 패키지 디렉터리 밖</span></td></tr><tr><td><span class="chip partial"><span data-lang="en">partial</span><span data-lang="ko">부분</span></span></td><td><span data-lang="en"><code>Modifier</code> chains, overload dispatch, <code>Dp</code> as a number — tests failing while the runtime is rewired</span><span data-lang="ko"><code>Modifier</code> 체인, 오버로드 디스패치, 숫자 <code>Dp</code> — 런타임 재연결 중 테스트 실패</span></td></tr><tr><td><span class="chip partial"><span data-lang="en">partial</span><span data-lang="ko">부분</span></span></td><td><span data-lang="en">Snake-case naming rule — tested against the binder's layer only</span><span data-lang="ko">snake_case 이름 규칙 — 바인더 계층 대상으로만 테스트</span></td></tr><tr><td><span class="chip partial"><span data-lang="en">partial</span><span data-lang="ko">부분</span></span></td><td><span data-lang="en">Material 3 widgets — rendered in python-multiplatform, not yet re-exported here</span><span data-lang="ko">Material 3 위젯 — python-multiplatform 에서 렌더링, 여기서는 재노출 전</span></td></tr><tr><td><span class="chip partial"><span data-lang="en">partial</span><span data-lang="ko">부분</span></span></td><td><span data-lang="en"><code>Icon</code>, colour schemes — importable, not callable</span><span data-lang="ko"><code>Icon</code>, 색 스킴 — import 가능, 호출 불가</span></td></tr><tr><td><span class="chip partial"><span data-lang="en">partial</span><span data-lang="ko">부분</span></span></td><td><span data-lang="en"><code>Alignment</code> / <code>Arrangement</code> constants — names documented, spelling undecided</span><span data-lang="ko"><code>Alignment</code> / <code>Arrangement</code> 상수 — 이름 문서화, 표기 미정</span></td></tr><tr><td><span class="chip planned"><span data-lang="en">planned</span><span data-lang="ko">계획</span></span></td><td><span data-lang="en"><code>pythonx</code> as a real on-disk package importing <code>androidx.compose.*</code></span><span data-lang="ko"><code>androidx.compose.*</code> 를 import 하는 실제 디스크 패키지 <code>pythonx</code></span></td></tr><tr><td><span class="chip planned"><span data-lang="en">planned</span><span data-lang="ko">계획</span></span></td><td><span data-lang="en"><code>.pyi</code> stubs in the wheel</span><span data-lang="ko">wheel 안의 <code>.pyi</code> 스텁</span></td></tr><tr><td><span class="chip planned"><span data-lang="en">planned</span><span data-lang="ko">계획</span></span></td><td><span data-lang="en"><code>remember_saveable</code>, <code>DefaultIcons</code>, coroutine scopes</span><span data-lang="ko"><code>remember_saveable</code>, <code>DefaultIcons</code>, 코루틴 스코프</span></td></tr></tbody>
+</table></div>
+<p data-lang="en" class="muted">Test baseline: <code>39 passed, 37 skipped</code> without a python-multiplatform checkout; <code>39 passed, 37 failed</code> with one.</p><p data-lang="ko" class="muted">테스트 기준선: python-multiplatform 체크아웃이 없으면 <code>39 passed, 37 skipped</code>, 있으면 <code>39 passed, 37 failed</code>.</p>
+</section>
+<section>
+<h2>FAQ</h2>
+<details><summary><span data-lang="en">Can I pip install it?</span><span data-lang="ko">pip 으로 설치할 수 있나요?</span></summary><p data-lang="en">Not yet. It will ship as <code>pythonx-compose</code>; today, clone the repository.</p><p data-lang="ko">아직은 아닙니다. <code>pythonx-compose</code> 로 배포될 예정이며, 지금은 저장소를 클론하세요.</p></details><details><summary><span data-lang="en">Do I need to know Kotlin?</span><span data-lang="ko">Kotlin 을 알아야 하나요?</span></summary><p data-lang="en">No. The widgets and parameters are Compose's, so Compose documentation applies — read <code>onClick</code> as <code>on_click</code>.</p><p data-lang="ko">아니요. 위젯과 매개변수가 Compose 의 것이므로 Compose 문서가 그대로 적용됩니다 — <code>onClick</code> 을 <code>on_click</code> 으로 읽으면 됩니다.</p></details><details><summary><span data-lang="en">Does it run on its own?</span><span data-lang="ko">단독으로 실행되나요?</span></summary><p data-lang="en">No. It runs inside an app that embeds CPython through python-multiplatform.</p><p data-lang="ko">아니요. python-multiplatform 으로 CPython 을 임베딩한 앱 안에서 동작합니다.</p></details><details><summary><span data-lang="en">Why not look classes up at run time?</span><span data-lang="ko">왜 런타임에 클래스를 찾지 않나요?</span></summary><p data-lang="en">GraalVM native images and Kotlin/Native have no reflection, so bindings are generated at build time.</p><p data-lang="ko">GraalVM 네이티브 이미지와 Kotlin/Native 에는 리플렉션이 없으므로, 바인딩을 빌드 타임에 생성합니다.</p></details><details><summary><span data-lang="en">What is the <code>test/</code> directory?</span><span data-lang="ko"><code>test/</code> 디렉터리는 무엇인가요?</span></summary><p data-lang="en">A 2023–2024 Kotlin Multiplatform sample from the project's first generation. Whether it stays is an open decision.</p><p data-lang="ko">프로젝트 첫 세대의 2023–2024 Kotlin Multiplatform 샘플입니다. 유지 여부는 결정 전입니다.</p></details>
+<div class="pager"><a href="ecosystem.html">← <span data-lang="en">Ecosystem</span><span data-lang="ko">생태계</span></a><span></span></div>
+</section>
+</div>
+
+</main>
+<footer>
+<div class="wrap">
+<span><span data-lang="en">pythonx-compose — Compose, restructured for Python.</span><span data-lang="ko">pythonx-compose — 파이썬을 위해 재구성한 Compose.</span></span>
+<span><a href="https://github.com/thisisthepy/pythonx-compose">GitHub</a> · <span data-lang="en">MIT License</span><span data-lang="ko">MIT 라이선스</span></span>
+</div>
+</footer>
+</body>
+</html>

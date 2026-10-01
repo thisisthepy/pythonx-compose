@@ -163,3 +163,7 @@ __pycache__/
 
 # The specification notebook is the user's working file, not a repository artefact.
 UI.ipynb
+
+# Agent workspace (AGENTS.md rule 2): worktrees and scratch files stay inside the repository.
+.worktrees/
+.tmp/
