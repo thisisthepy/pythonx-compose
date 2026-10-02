@@ -123,14 +123,34 @@ types — even though the runtime resolves bindings on demand.
 
 These are recorded so that `docs/SPEC.md` does not settle them by accident.
 
-1. **`main.App` and `App.update`.** The notebook drives a live app object (`import main`,
-   `main.App.update(...)`). Whether that host object is part of this package, of an application
-   template, or of another repository is not stated.
-2. **Where `Column`, `Row`, `Spacer` are imported from.** The notebook imports them from
-   `pythonx.compose.material3`; in Kotlin they live in `androidx.compose.foundation.layout`
-   (mapped here as `pythonx.compose.layout`).
-3. **Convenience spellings** the notebook uses that Kotlin does not have: a module-level
+1. **Convenience spellings** the notebook uses that Kotlin does not have: a module-level
    `modifier` instance, `DefaultIcons`, `DefaultCoroutineScope` / `MainCoroutineScope`, numeric
    ARGB colours (`color=0xFFFF0000`), and `Spacer(start=..., top=...)`.
-4. **The `test/` directory** — a 2023–2024 Kotlin Multiplatform sample (`pycomposeui`). Whether it
+2. **The `test/` directory** — a 2023–2024 Kotlin Multiplatform sample (`pycomposeui`). Whether it
    is kept, moved, or removed is the maintainer's decision.
+
+## 5. Decided (2026-10-03)
+
+Settled by the maintainer, relayed through the ecosystem lead, and recorded here so the spec follows
+them.
+
+1. **A declared app root, no update function.** The notebook's `main.App.update(...)` and
+   `getValue()` / `setValue()` calls were the constraints of the implementation at the time, not the
+   specification. The maintainer, verbatim:
+
+   > "main.App.update() 말고 좀 더 선언형으로 갈 수 있는 API로 해줘. UI.ipynb에 그렇게 되어 있는건
+   > 어쩔 수 없는 구현이었고 내가 원한는건 좀 더 선언형 형식이었어. 업데이트 함수가 명시적으로
+   > 존재하면 안되는거잖아."
+
+   What the notebook shows is the intent: redefining the UI in a cell changes the screen, and the
+   notebook and the screen see the same state. So the public API has **no explicit refresh call**.
+   The root is *declared*; redefining it is what changes the screen. State follows Compose's state
+   model: a composable that reads a state object recomposes when it changes, and state is read and
+   written through Pythonic attributes rather than Java-style accessors. `main` itself is the
+   application's module, not this package; this package provides the mechanism.
+2. **`Column`, `Row`, `Spacer` are importable from `pythonx.compose.material3`** as the notebook
+   writes, and from their Kotlin home (`pythonx.compose.layout`) as well.
+3. **Alignment constants in both spellings:** Kotlin's flat `Alignment.End`, and the notebook's
+   grouping by type, `Alignment.Horizontal.End` (in Kotlin `Alignment.End` *is* an
+   `Alignment.Horizontal`).
+
