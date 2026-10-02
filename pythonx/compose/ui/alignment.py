@@ -20,14 +20,16 @@ declines would not be here.
 
 ## They are read, not called
 
-    from androidx.compose.ui import Alignment
+    from pythonx.compose.ui import Alignment
     Alignment.Center            # no parentheses
 
 `PythonMultiplatform`'s `46be0212` taught the layer to branch on the kind column: a static getter is
 evaluated on attribute access and handed back as a value, so `Alignment.Center()` -- the spelling
 this file used to prescribe -- now raises `TypeError` because the value is not callable.
 
-The import is the Kotlin name on purpose. The binder no longer re-exports anything under
-`pythonx.*`; giving these a `pythonx.compose.ui` spelling is this package's job, and until the
-adapter stops occupying `sys.modules['pythonx']` that re-export has nowhere to live.
+`pythonx.compose.ui.Alignment` is the Kotlin object `androidx.compose.ui.Alignment` seen through the
+re-export rule (`pythonx/compose/_reexport.py`, `KotlinObject`): constants keep their Kotlin
+spelling and are read again on every access, as the binder serves them. The notebook's grouped
+spelling, `Alignment.Horizontal.End` (INTENT section 5.3), waits for the binder to describe a
+constant's declared type without reading it (python-multiplatform #36).
 """

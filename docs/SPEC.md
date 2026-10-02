@@ -20,11 +20,11 @@ Run from a worktree with `python3 -m pytest tests -q` (pytest 8, CPython 3.13):
 
 | Environment | Result |
 |---|---|
-| No `PythonMultiplatform` checkout found | **51 passed, 47 skipped**, 66 subtests passed |
-| python-multiplatform `develop` at `ba4c6f49` or later (has `add_member_resolver`) | **98 passed**, 72 subtests passed |
+| No `PythonMultiplatform` checkout found | **51 passed, 53 skipped**, 66 subtests passed |
+| python-multiplatform `develop` at `ba4c6f49` or later (has `add_member_resolver`) | **104 passed**, 72 subtests passed |
 | an older checkout, without `add_member_resolver` | the same, with 5 of them skipped |
 
-Without a checkout, the 47 tests that install the binder's layers through `tests/adapter.py` skip.
+Without a checkout, the 53 tests that install the binder's layers through `tests/adapter.py` skip.
 Against a binder older than `ba4c6f49`, the 5 that call a snake_case method on a proxy the binder
 returned skip, because that needs its member resolver (python-multiplatform #17). A skip is not a
 pass.
@@ -220,17 +220,23 @@ its Kotlin handle. Evidence: `tests/test_chain.py::Laziness` (5 tests), `::Handl
 
 The bound constant names are documented in `pythonx/compose/ui/alignment.py` (15 `Alignment`
 names) and `pythonx/compose/layout/arrangement.py` (8 `Arrangement` names), checked by
-`tests/test_alignment_modules.py` (6 tests, passing). The modules contain no code; the constants
-come from the bindings.
+`tests/test_alignment_modules.py` (6 tests, passing), whose examples now import the `pythonx`
+spelling. The modules contain no code; the constants come from the bindings.
 
 A constant is **read, not called**: `Arrangement.Start`, `Alignment.Center`. The binder reads a
 bound static getter on attribute access (`PythonMultiplatform` `46be0212`), so `Alignment.Center()`
-raises `TypeError`; the notebook writes the same attribute form. Both modules show that form with
-`androidx.compose.*` imports, since nothing re-exports these under `pythonx.*` yet (§3), and the
-test checks the attribute form is shown and the call form is not prescribed.
+raises `TypeError`; the notebook writes the same attribute form.
 
-Decided (INTENT §5.3): the re-export serves both Kotlin's flat `Alignment.End` and the notebook's
-grouping by type, `Alignment.Horizontal.End`. Not built yet (issue #9).
+`pythonx.compose.ui.Alignment` and `pythonx.compose.layout.Arrangement` resolve: an upper-case name
+the Kotlin module does not list is tried as a Kotlin object sub-package and served as a
+`KotlinObject` namespace by the §3 rule. Constants keep their Kotlin spelling and are read again on
+every access; a function inside the object is snake_case (`Arrangement.spaced_by`). Evidence:
+`tests/test_chain.py::ObjectNamespaces` (6 tests); without the sub-package step 6 fail. The binder
+will list these objects itself (python-multiplatform #35).
+
+Decided (INTENT §5.3) and not built: the notebook's grouping by type, `Alignment.Horizontal.End`.
+It needs a constant's declared type without reading it, `python_multiplatform.describe(module,
+name)` (python-multiplatform #36; issue #9).
 
 ## 8. The notebook surface not yet covered — `planned`
 

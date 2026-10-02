@@ -28,15 +28,15 @@ Compose(`androidx.compose.*`)를 파이썬에서 쓰기 위한 pip 패키지 **`
 | 상태 | 항목 |
 |---|---|
 | 구현 | 매핑 매니페스트 `pythonx-map.toml`, `@Composable` 항등 데코레이터, 실제 디스크 패키지 `pythonx` 와 모듈 수준 규칙 기반 재노출(snake_case 이름·키워드·시그니처, 오버로드 디스패치, 값 클래스 허용 목록) |
-| 부분 | 배포 설정(스텁·`py.typed` 없음, 매니페스트가 패키지 밖), proxy 메서드의 키워드 인자는 아직 Kotlin 이름(`m.padding(paddingValues=...)`), Material 3 위젯(렌더 증거는 python-multiplatform 에만), `Icon`·색 스킴(import 만 됨), `Alignment`/`Arrangement` 상수(괄호 없이 읽음, 묶음 표기는 #9) |
+| 부분 | 배포 설정(스텁·`py.typed` 없음, 매니페스트가 패키지 밖), proxy 메서드의 키워드 인자는 아직 Kotlin 이름(`m.padding(paddingValues=...)`), Material 3 위젯(렌더 증거는 python-multiplatform 에만), `Icon`·색 스킴(import 만 됨), `Alignment`/`Arrangement` 상수(`pythonx` 에서 읽힘; 묶음 표기는 python-multiplatform #36 대기) |
 | 계획 | `.pyi` 동봉, 선언형 앱 루트(#11), `remember_saveable`·`DefaultIcons`·코루틴 스코프 |
 
 ### 테스트 기준선
 
 ```
 python3 -m pytest tests -q
-  PythonMultiplatform 체크아웃 없음       51 passed, 47 skipped
-  python-multiplatform develop ba4c6f49+    98 passed
+  PythonMultiplatform 체크아웃 없음       51 passed, 53 skipped
+  python-multiplatform develop ba4c6f49+    104 passed
   그보다 오래된 체크아웃                    같은 수, 그중 5 개 건너뜀  (member resolver 없음)
 ```
 

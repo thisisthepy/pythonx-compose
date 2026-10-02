@@ -116,13 +116,13 @@ class TheLayerSuppliesThemNow(unittest.TestCase):
                 self.assertFalse(any(call_form[name] in line for line in code),
                                  f"{name} still prescribes the call form in an example")
 
-    def test_examples_import_the_kotlin_names(self) -> None:
-        """The binder no longer re-exports under `pythonx.*`; an example importing that would not resolve."""
+    def test_examples_import_the_pythonx_names(self) -> None:
+        """The re-export serves these under `pythonx.compose.*`; that is the spelling to show."""
         for name, path in MODULES.items():
             with self.subTest(module=name):
                 text = path.read_text()
-                self.assertIn("from androidx.compose.", text)
-                self.assertNotRegex(text, r"(?m)^\s+from pythonx\.compose")
+                self.assertIn("from pythonx.compose.", text)
+                self.assertNotRegex(text, r"(?m)^\s+from androidx\.compose")
 
 if __name__ == "__main__":
     unittest.main()
