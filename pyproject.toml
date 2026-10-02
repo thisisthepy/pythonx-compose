@@ -10,7 +10,7 @@ dependencies = [
 #dependencies-kotlin = [
 #    "org.jetbrains.compose:compose-ui:0.4.0",
 #]
-requires-python = ">= 3.8"
+requires-python = ">= 3.11"  # tomllib, which reads the manifest at run time
 #requires-kotlin = ">= 1.4.32"
 
 [tool.setuptools.packages.find]

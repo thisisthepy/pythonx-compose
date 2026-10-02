@@ -35,13 +35,13 @@ Compose(`androidx.compose.*`)를 파이썬에서 쓰기 위한 pip 패키지 **`
 
 ```
 python3 -m pytest tests -q
-  PythonMultiplatform 체크아웃 없음       40 passed, 45 skipped
-  PYTHONMULTIPLATFORM_HOME 지정            81 passed, 4 skipped  (4 개는 python-multiplatform #17 대기)
+  PythonMultiplatform 체크아웃 없음       43 passed, 45 skipped
+  PYTHONMULTIPLATFORM_HOME 지정            84 passed, 4 skipped  (4 개는 python-multiplatform #17 대기)
 ```
 
 건너뛰는 4 개는 바인더가 돌려준 proxy 위의 camelCase 확장을 snake_case 이름으로 부르는 테스트다.
 바인더의 member resolver(python-multiplatform #17)가 들어오면 실행된다. 건너뜀은 통과가 아니다.
-체크아웃 없이 통과하는 40 개 중 다수는 *부재*(옛 토큰·삭제된 파일이 없음)를 확인하는 것이라 기능 진척으로 세지
+체크아웃 없이 통과하는 43 개 중 다수는 *부재*(옛 토큰·삭제된 파일이 없음)를 확인하는 것이라 기능 진척으로 세지
 않는다.
 
 ### 마일스톤
@@ -65,12 +65,13 @@ GitHub 마일스톤과 같은 내용이다. 날짜는 2026-10-03 에 정했고, 
 ```
 pythonx/compose/          import 패키지 (현재 대부분 독스트링만 있는 모듈)
   runtime/                @Composable
+  pythonx-map.toml        pythonx ↔ androidx 매핑 매니페스트 (wheel 에 함께 실림)
+  _reexport.py            매니페스트 모듈 전체에 적용되는 재노출 규칙 하나
   ui/                     modifier.py (빈 Modifier 등록 지점), alignment.py
   layout/                 arrangement.py
   material3/              icon.py, color_scheme.py (호출 불가 기록용), 빈 파일 28 개
   lite/                   2024 JPype 프로토타입 (은퇴, 바이너리 97 개 추적 중)
   native/                 서브모듈 → thisisthepy/swing-graalvm-demo
-pythonx-map.toml          pythonx ↔ androidx 매핑 매니페스트
 tests/                    pytest (unittest 스타일)
 test/                     2023–2024 Kotlin Multiplatform 샘플 (pycomposeui) — 처리 미정
 docs/INTENT.md  docs/SPEC.md  docs/locale/  docs/guide/
