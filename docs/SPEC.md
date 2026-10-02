@@ -245,9 +245,11 @@ name)` (python-multiplatform #36; issue #9).
 | Name | Notebook use | Note |
 |---|---|---|
 | `remember_saveable` | imported from `pythonx.compose.runtime`; state read/written with `getValue()` / `setValue()` | INTENT §5.1: Pythonic attribute access instead of the accessors |
-| `DefaultCoroutineScope`, `MainCoroutineScope` | imported from `pythonx.compose.runtime` | |
-| `DefaultIcons` | `DefaultIcons.Add()` | needs `Icon` (S5.3) |
-| `modifier` | lower-case instance from `pythonx.compose.ui` | INTENT §4 open question 1 |
+| `DefaultCoroutineScope`, `MainCoroutineScope` | imported from `pythonx.compose.runtime` | INTENT §4.1, open |
+| `DefaultIcons` | `DefaultIcons.Add()` | INTENT §5.7: `Icons.Default` by alias, once python-multiplatform #37 binds `material-icons-core` |
+| `modifier` | lower-case instance from `pythonx.compose.ui` | INTENT §5.4: not provided; written `Modifier` |
+| `color=0xFFFF0000` | ARGB integer for a colour | INTENT §5.5: not accepted; written `Color(0xFFFF0000)` |
+| `Spacer(start=..., top=...)` | spacing parameters | INTENT §5.6: not supported; written `Spacer(modifier=Modifier.padding(...))` |
 | `Column`, `Row`, `Spacer` | imported from `pythonx.compose.material3` | INTENT §5.2: served from both, by the manifest's `[aliases]` (`tests/test_chain.py::ManifestAliases`); render proof pending (#9) |
 | `Card`, `Button`, `Text`, `TextField` | as above | S5.2 |
 | `main.App`, `App.update(...)` | live screen replacement from a cell | INTENT §5.1: a declared root that a redefinition replaces, no update function (issue #11) |

@@ -123,9 +123,8 @@ types — even though the runtime resolves bindings on demand.
 
 These are recorded so that `docs/SPEC.md` does not settle them by accident.
 
-1. **Convenience spellings** the notebook uses that Kotlin does not have: a module-level
-   `modifier` instance, `DefaultIcons`, `DefaultCoroutineScope` / `MainCoroutineScope`, numeric
-   ARGB colours (`color=0xFFFF0000`), and `Spacer(start=..., top=...)`.
+1. **Coroutine scopes** the notebook imports, `DefaultCoroutineScope` / `MainCoroutineScope`.
+   (The other convenience spellings are decided, §5.4–5.7.)
 2. **The `test/` directory** — a 2023–2024 Kotlin Multiplatform sample (`pycomposeui`). Whether it
    is kept, moved, or removed is the maintainer's decision.
 
@@ -153,4 +152,13 @@ them.
 3. **Alignment constants in both spellings:** Kotlin's flat `Alignment.End`, and the notebook's
    grouping by type, `Alignment.Horizontal.End` (in Kotlin `Alignment.End` *is* an
    `Alignment.Horizontal`).
-
+4. **No lower-case `modifier`.** In Kotlin the empty modifier *is* `Modifier` (its companion); the
+   lower-case instance was the 2024 implementation's second name, and the archived design already
+   concluded to drop it. The notebook's `modifier=modifier` is written `modifier=Modifier`.
+5. **Colours are explicit.** A raw integer is not accepted for a `Color` parameter (`Color` packs
+   several fields into one value, so a number would decode as something else). The notebook's
+   `color=0xFFFF0000` is written `color=Color(0xFFFF0000)`, through Kotlin's own `Color` factory.
+6. **No parameters Kotlin does not have.** `Spacer(start=..., top=...)` is not supported; the
+   intent is written `Spacer(modifier=Modifier.padding(...))`.
+7. **`DefaultIcons` is `Icons.Default`,** served by name once the binder walks
+   `material-icons-core` (python-multiplatform #37).
