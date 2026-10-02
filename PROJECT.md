@@ -35,14 +35,14 @@ Compose(`androidx.compose.*`)를 파이썬에서 쓰기 위한 pip 패키지 **`
 
 ```
 python3 -m pytest tests -q
-  PythonMultiplatform 체크아웃 없음       55 passed, 56 skipped
-  python-multiplatform develop ba4c6f49+    111 passed
+  PythonMultiplatform 체크아웃 없음       53 passed, 56 skipped
+  python-multiplatform develop ba4c6f49+    109 passed
   그보다 오래된 체크아웃                    같은 수, 그중 5 개 건너뜀  (member resolver 없음)
 ```
 
 member resolver(python-multiplatform `ba4c6f49`)가 없는 바인더에서는 proxy 의 snake_case 메서드를 부르는
 5 개가 건너뛴다. 건너뜀은 통과가 아니다.
-체크아웃 없이 통과하는 55 개 중 다수는 *부재*(옛 토큰·삭제된 파일이 없음)를 확인하는 것이라 기능 진척으로 세지
+체크아웃 없이 통과하는 53 개 중 다수는 *부재*(옛 토큰·삭제된 파일이 없음)를 확인하는 것이라 기능 진척으로 세지
 않는다.
 
 ### 마일스톤
@@ -70,7 +70,7 @@ pythonx/compose/          import 패키지 (현재 대부분 독스트링만 있
   _reexport.py            매니페스트 모듈 전체에 적용되는 재노출 규칙 하나
   ui/                     modifier.py (빈 Modifier 등록 지점), alignment.py
   layout/                 arrangement.py
-  material3/              icon.py, color_scheme.py (호출 불가 기록용), 빈 파일 28 개
+  material3/              __init__.py 하나 (위젯은 모두 재노출 규칙으로)
   lite/                   2024 JPype 프로토타입 (은퇴, 바이너리 97 개 추적 중)
   native/                 서브모듈 → thisisthepy/swing-graalvm-demo
 tests/                    pytest (unittest 스타일)

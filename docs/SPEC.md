@@ -20,8 +20,8 @@ Run from a worktree with `python3 -m pytest tests -q` (pytest 8, CPython 3.13):
 
 | Environment | Result |
 |---|---|
-| No `PythonMultiplatform` checkout found | **55 passed, 56 skipped**, 67 subtests passed |
-| python-multiplatform `develop` at `ba4c6f49` or later (has `add_member_resolver`) | **111 passed**, 73 subtests passed |
+| No `PythonMultiplatform` checkout found | **53 passed, 56 skipped**, 66 subtests passed |
+| python-multiplatform `develop` at `ba4c6f49` or later (has `add_member_resolver`) | **109 passed**, 72 subtests passed |
 | an older checkout, without `add_member_resolver` | the same, with 5 of them skipped |
 
 Without a checkout, the 56 tests that install the binder's layers through `tests/adapter.py` skip.
@@ -29,7 +29,7 @@ Against a binder older than `ba4c6f49`, the 5 that call a snake_case method on a
 returned skip, because that needs its member resolver (python-multiplatform #17). A skip is not a
 pass.
 
-Of the 55 that pass without a checkout, most assert **absence** (a retired token, a deleted file, a docstring that
+Of the 53 that pass without a checkout, most assert **absence** (a retired token, a deleted file, a docstring that
 exists). Those are listed in §9 and are not counted as features.
 
 ---
@@ -163,13 +163,13 @@ toggle family, `TextField`, `Checkbox` and `Switch` are meant to be reached thro
   host binds no material3 declaration, so no test here exercises one; the render proof per widget
   is issue #9.
 
-### S5.3 `Icon` and colour schemes — `partial`
+### S5.3 `Icon` and colour schemes — `planned`
 
-`pythonx/compose/material3/icon.py` and `color_scheme.py` import without raising
-(`tests/test_material3_module.py::TheTwoUnreachableWrappersLoadWithoutCrashing`) but are **not
-callable**: `Icon` needs an `ImageBitmap` / `ImageVector` / `Painter` nothing bound can produce, and
-the two colour-scheme factories take 36 `Color` parameters. The notebook uses `Icon` and
-`DefaultIcons` (§8).
+`Icon` needs an `ImageBitmap` / `ImageVector` / `Painter`, and nothing bound produces one until the
+binder walks `material-icons-core` (python-multiplatform #37; then `DefaultIcons` is
+`Icons.Default`, INTENT §5.7). The two colour-scheme factories take 36 `Color` parameters against
+the binding's omission cap (python-multiplatform `a6742a1c`). The hand-written `icon.py` /
+`color_scheme.py` that recorded this were dead code and are deleted (#31).
 
 ## 6. Modifiers — extension functions as methods
 
@@ -258,9 +258,11 @@ name)` (python-multiplatform #36; issue #9).
 
 These tests pass and assert that retired 2024 mechanisms are gone. They are not features:
 
-- `tests/test_legacy_modules.py` (7 tests): no chaquopy / JPype tokens or dead relative imports in
-  `layout/__init__.py`, `lite/*.py`, `test/main.py`, `ui/unit/__init__.py`, `wrapper/__init__.py`,
+- `tests/test_legacy_modules.py` (6 tests): no chaquopy / JPype tokens or dead relative imports in
+  `layout/__init__.py`, `lite/*.py`, `test/main.py`, `ui/unit/__init__.py`,
   `material3/__init__.py`; each retired module carries a real docstring.
+- `tests/test_material3_module.py::TheDeadFilesAreGone` (2 tests): `material3/` holds only its
+  `__init__.py`, and `wrapper/` is gone (#31).
 - `tests/test_ui_init_module.py::TheChaquopyUiInitMechanismIsGone` (1 test).
 
 ---
@@ -282,15 +284,9 @@ Found in the repository; not covered by `docs/INTENT.md`, or in conflict with it
 4. **Two spellings for one module.** The manifest maps both `pythonx.compose.layout` and
    `pythonx.compose.foundation.layout` (plus `pythonx.compose.foundation` and `pythonx.compose`)
    "while the spelling settles".
-5. **A removed mechanism kept as a record.** `material3/icon.py` and `color_scheme.py` still import
-   `androidx.compose.material3.IconKt` and scan for mangled JVM names (`"Icon-"`), the reflection
-   approach INTENT §3 excludes.
-   The package no longer imports them: star-importing them made `import pythonx.compose.material3`
-   fail wherever `androidx.compose.material3` was not bound, and shadowed the binder's `Icon`.
-   Whether the files stay is still open.
+5. *(Resolved, #31.)* `material3/icon.py` and `color_scheme.py`, dead reflection code, are deleted.
 6. *(Decided, INTENT §5.3.)* Grouped alignment constants: both spellings are to be served; the grouped one is not built yet (§7).
-7. **28 empty `material3/*.py` files** (`checkbox.py`, `switch.py`, `scaffold.py`, ...), and the
-   submodule `pythonx/compose/native` → `thisisthepy/swing-graalvm-demo`, which INTENT does not
-   mention.
+7. The submodule `pythonx/compose/native` → `thisisthepy/swing-graalvm-demo`, which INTENT does not
+   mention. (The 29 empty `material3/*.py` files are deleted, #31.)
 8. **The `test/` directory** — a 2023–2024 Kotlin Multiplatform sample (`pycomposeui`, chaquopy
    era). Kept as-is pending the maintainer's decision (INTENT §4.2).

@@ -5,7 +5,6 @@ Covers:
 - `pythonx/compose/lite/app.py`, `jvm.py`, `material3.py`, `runtime.py`
 - `pythonx/compose/test/main.py`
 - `pythonx/compose/ui/unit/__init__.py` and `pythonx/compose/ui/unit/dp.py`
-- `pythonx/compose/wrapper/__init__.py`
 - `pythonx/compose/material3/__init__.py`
 """
 
@@ -25,7 +24,6 @@ LITE_DIR = REPO / "pythonx" / "compose" / "lite"
 TEST_MAIN = REPO / "pythonx" / "compose" / "test" / "main.py"
 UI_UNIT_INIT = REPO / "pythonx" / "compose" / "ui" / "unit" / "__init__.py"
 UI_UNIT_DP = REPO / "pythonx" / "compose" / "ui" / "unit" / "dp.py"
-WRAPPER_INIT = REPO / "pythonx" / "compose" / "wrapper" / "__init__.py"
 MATERIAL3_INIT = REPO / "pythonx" / "compose" / "material3" / "__init__.py"
 
 
@@ -96,17 +94,6 @@ class TestUiUnitInitNoDeadTokens(unittest.TestCase):
         )
 
 
-class TestWrapperModuleNoDeadTokens(unittest.TestCase):
-    def test_wrapper_init_has_no_chaquopy_class_mutation_tokens(self) -> None:
-        tokens = _get_executable_tokens(WRAPPER_INIT)
-        for banned in ("KotlinWrapper", "__class__"):
-            self.assertNotIn(
-                banned,
-                tokens,
-                f"pythonx/compose/wrapper/__init__.py still contains Chaquopy wrapper token: {banned}",
-            )
-
-
 class TestMaterial3InitNoPlaceholderStarImports(unittest.TestCase):
     def test_material3_init_has_no_dead_star_imports_of_placeholder_files(self) -> None:
         tokens = _get_executable_tokens(MATERIAL3_INIT)
@@ -143,7 +130,6 @@ class TestRetiredModulesExposeTheirExplanationAsADocstring(unittest.TestCase):
         "pythonx/compose/ui/unit/dp.py",
         "pythonx/compose/ui/unit/__init__.py",
         "pythonx/compose/test/main.py",
-        "pythonx/compose/wrapper/__init__.py",
         "pythonx/compose/lite/material3.py",
         "pythonx/compose/lite/runtime.py",
         "pythonx/compose/lite/app.py",
