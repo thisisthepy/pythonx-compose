@@ -45,7 +45,7 @@ python3 -m pip install pytest</code></pre>
 <pre><code class="language-bash">python3 -m pytest tests -q</code></pre>
 <p data-lang="en">Expect <strong>40 passed, 37 skipped</strong>. The skipped tests drive the binder's adaptation layer and need a <a href="https://github.com/thisisthepy/python-multiplatform">python-multiplatform</a> checkout beside this one, or:</p><p data-lang="ko"><strong>40 passed, 37 skipped</strong> 가 정상입니다. 건너뛴 테스트는 바인더의 적응 계층을 구동하며, 옆에 <a href="https://github.com/thisisthepy/python-multiplatform">python-multiplatform</a> 체크아웃이 있거나 다음이 필요합니다:</p>
 <pre><code class="language-bash">PYTHONMULTIPLATFORM_HOME=/path/to/python-multiplatform python3 -m pytest tests -q</code></pre>
-<p data-lang="en">With it, those 37 currently <strong>fail</strong>: the binder no longer renames namespaces, and this package's side of the runtime is not wired yet. That is expected and recorded.</p><p data-lang="ko">지정하면 그 37 개는 현재 <strong>실패</strong>합니다: 바인더는 더 이상 네임스페이스 이름을 바꾸지 않고, 이 패키지 쪽 런타임은 아직 연결되지 않았습니다. 예상된 상태이며 기록되어 있습니다.</p>
+<p data-lang="en">With it, 4 of them pass and 33 currently <strong>fail</strong>: the binder no longer renames namespaces, and this package's re-export is not wired yet. That is expected and recorded.</p><p data-lang="ko">지정하면 그중 4 개는 통과하고 33 개는 현재 <strong>실패</strong>합니다: 바인더는 더 이상 네임스페이스 이름을 바꾸지 않고, 이 패키지의 재노출은 아직 연결되지 않았습니다. 예상된 상태이며 기록되어 있습니다.</p>
 </section>
 
 <section>

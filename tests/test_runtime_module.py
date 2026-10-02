@@ -19,7 +19,7 @@ That is not incidental breakage, it is a different technology than this reposito
 inspecting `self.compose.__code__.co_varnames` to find where `content` sits -- is retired for the
 same reason `modifier.py`'s mangled-suffix search was: `docs/pythonx-adapter-design.md` §5.6/§7
 record that composer threading, `$changed` and `$default` are now arithmetic
-`pythonx._bind_composable` does from a slot's *declared type*, uniformly, for a content lambda
+`python_multiplatform.binding._bind_composable` does from a slot's *declared type*, uniformly, for a content lambda
 exactly as for any other parameter -- there is nothing left for a Python-side base class to detect.
 
 ## What is left
@@ -30,14 +30,10 @@ write. Nothing needs to happen to the decorated function for it to work: the com
 `pythonx.compose.*` call needs comes from `PythonComposition`'s push/pop around the whole exec pass
 and from the *callee's* slot type, never from the caller.
 
-## What this file cannot do
+## How it is reached
 
-`pythonx.compose.runtime` is not reachable through `import pythonx.compose.runtime` once
-`PythonxAdapter.install()` has run -- the same reason `pythonx/compose/ui/modifier.py`'s docstring
-gives for `pythonx.compose.ui.modifier`, and confirmed directly below
-(`TheModuleIsUnreachableByOrdinaryImport`) against the real adapter source, not assumed from reading
-Kotlin. `docs/pythonx-adapter-design.md` §2.5 in `PythonMultiplatform` is where a real fix is open;
-this repository loads the file by path instead, the same way `modifier.py` already is.
+By its own dotted name, with the binder installed: `TheModuleIsTheFileOnDisk` below. This used to
+assert the opposite, because the binder owned `sys.modules['pythonx']` with `__path__ = []`.
 """
 
 from __future__ import annotations
@@ -59,47 +55,42 @@ RUNTIME_PY = REPO / "pythonx" / "compose" / "runtime" / "__init__.py"
 
 
 def load_by_path(path, name):
-    """Load a `pythonx/...` file directly, the same way `test_modifier_module.py` does and for the
-    same reason: the host builds `sys.modules['pythonx']` with `__path__ = []`, so nothing on disk
-    under that name is importable through the ordinary `import pythonx....` route.
-    """
+    """Load a `pythonx/...` file without importing its package, for the tests that need no binder."""
     spec = importlib.util.spec_from_file_location(name, path)
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     return module
 
 
-class TheModuleIsUnreachableByOrdinaryImport(unittest.TestCase):
-    """The claim `modifier.py`'s docstring makes about its own dotted name, checked here for
-    `pythonx.compose.runtime` specifically, against the real `PythonxAdapter.SOURCE` -- not assumed
-    by analogy.
+class TheModuleIsTheFileOnDisk(unittest.TestCase):
+    """`import pythonx.compose.runtime` loads this repository's file, with the binder installed.
+
+    The binder used to own `sys.modules['pythonx']` with `__path__ = []`, and this class asserted
+    the resulting unreachability. PythonMultiplatform `d00f413f` moved its layer to
+    `python_multiplatform.binding`; `pythonx` is this package (AGENTS.md section 12).
     """
 
     def setUp(self):
         try:
-            source = adapter_loader.read_adapter_source()
+            self.binding = adapter_loader.install()
         except adapter_loader.AdapterUnavailable as unavailable:
             self.skipTest(str(unavailable))
         self.host = fake_host.FakeHost()
         self.host.bind()
-        self.pythonx = adapter_loader.install(source)
-        self.host.register(self.pythonx)
+        self.host.register(self.binding)
         self.addCleanup(self.host.unbind)
         self.addCleanup(adapter_loader.uninstall)
 
-    def test_import_pythonx_compose_runtime_is_not_found(self):
-        # `fake_host`'s table walks nothing under `androidx.compose.runtime` at all (its packages
-        # are `androidx.compose.ui`, `androidx.compose.foundation.layout`, ...), so this is the
-        # stronger claim: `pythonx.compose.runtime` is unreachable *because* `pythonx.compose`
-        # itself is a synthetic package with `__path__ = []`, not because this particular submodule
-        # was individually declined.
-        with self.assertRaises(ModuleNotFoundError):
-            __import__("pythonx.compose.runtime")
+    def test_import_pythonx_compose_runtime_loads_the_file_on_disk(self):
+        import pythonx.compose.runtime as runtime
 
-    def test_pythonx_compose_itself_has_no_real_path(self):
+        self.assertEqual(RUNTIME_PY, Path(runtime.__file__).resolve())
+        self.assertTrue(callable(runtime.Composable))
+
+    def test_pythonx_compose_is_a_package_on_disk(self):
         import pythonx.compose as compose
 
-        self.assertEqual([], compose.__path__)
+        self.assertEqual([str(REPO / "pythonx" / "compose")], [str(Path(p).resolve()) for p in compose.__path__])
 
 
 class TheRuntimeSeam(unittest.TestCase):

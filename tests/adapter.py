@@ -1,14 +1,20 @@
-"""Load the `pythonx` adaptation layer that lives in `PythonMultiplatform`.
+"""Install the binder's Python layers, read out of a `PythonMultiplatform` checkout.
 
-The adapter is **not** a `.py` file. `PythonxAdapter.kt` holds it as a Kotlin raw-string literal and
-`Python3.exec`s it at run time, for the reason its KDoc gives: on iOS, androidNative and wasm there
-is no resource path a `.py` could be put on. `docs/pythonx-adapter-design.md` §2.5 records that as
-open.
+The binder ships two hand-written Python sources as Kotlin raw-string literals, and `exec`s them at
+run time for the reason `PythonxAdapter.kt` gives (on iOS, androidNative and wasm there is no
+resource path a `.py` could be put on):
 
-That leaves this repository unable to `import pythonx` the ordinary way, and unable to test against
-the layer it is supposed to sit on -- unless it reads the layer out of the Kotlin literal. That is
-what this module does. It is a *reader*, never a copy: if `PythonxAdapter.SOURCE` changes, these
-tests exercise the changed source on the next run, so the two cannot drift.
+| Kotlin object | Python module | what |
+|---|---|---|
+| `KotlinSurface.SOURCE` | `python_multiplatform` | `KOTLIN_DEFAULT`, `describe`, `signature_of` -- the contract a Pythonic layer reads |
+| `PythonxAdapter.SOURCE` | `python_multiplatform.binding` | the finder that serves Kotlin-named modules (`androidx.compose.*`), overload dispatch, receiver proxies |
+
+This module reads both literals and installs them the way `PythonxAdapter.install` does. It is a
+*reader*, never a copy: if either source changes, these tests exercise the changed source on the
+next run.
+
+**It installs no mapping.** The binder renames nothing; `pythonx` is this repository's own package on
+disk, imported the ordinary way. Making it Pythonic is this package's job (AGENTS.md section 12).
 
 `PythonMultiplatform` is read-only here. Nothing in this file writes to it.
 """
@@ -17,6 +23,7 @@ from __future__ import annotations
 
 import os
 import pathlib
+import re
 import sys
 import types
 from pathlib import Path
@@ -25,9 +32,15 @@ _MARKER = 'val SOURCE: String = """'
 
 _DEFAULT_HOME = Path(__file__).resolve().parents[2] / "PythonMultiplatform"
 
-_ADAPTER_KT = Path(
-    "python-multiplatform/src/commonMain/kotlin/python/multiplatform/ffi/pythonx/PythonxAdapter.kt"
-)
+_FFI = Path("python-multiplatform/src/commonMain/kotlin/python/multiplatform/ffi")
+_ADAPTER_KT = _FFI / "pythonx" / "PythonxAdapter.kt"
+_SURFACE_KT = _FFI / "upcall" / "KotlinSurface.kt"
+_CALLABLES_KT = _FFI / "pythonx" / "PythonCallables.kt"
+
+ROOT_MODULE = "python_multiplatform"
+BINDING_MODULE = "python_multiplatform.binding"
+
+_REPO = Path(__file__).resolve().parents[1]
 
 
 class AdapterUnavailable(RuntimeError):
@@ -72,9 +85,24 @@ lands in the exec'd source and every name built from it is a `SyntaxError` inste
 """
 
 
-def read_adapter_source() -> str:
-    """The Python inside `PythonxAdapter.SOURCE`, exactly as Kotlin would hand it to CPython."""
-    path = adapter_source_path()
+_INTERPOLATION = re.compile(r"\$\{(\w+)\.(\w+)\}")
+
+
+def _kotlin_constant(owner: str, name: str) -> str:
+    """The value of a `const val` a source literal interpolates, read from its declaring file."""
+    files = {"PythonCallables": _CALLABLES_KT}
+    path = python_multiplatform_home() / files.get(owner, Path("-"))
+    if not path.is_file():
+        raise AdapterUnavailable(f"cannot resolve ${{{owner}.{name}}}: no source for {owner}")
+    found = re.search(rf'const val {name}: String = "([^"]*)"', path.read_text(encoding="utf-8"))
+    if found is None:
+        raise AdapterUnavailable(f"cannot resolve ${{{owner}.{name}}} in {path}")
+    return found.group(1)
+
+
+def _read_source(relative: Path) -> str:
+    """The Python inside one `val SOURCE: String = \"\"\"...\"\"\"`, exactly as Kotlin hands it to CPython."""
+    path = python_multiplatform_home() / relative
     if not path.is_file():
         raise AdapterUnavailable(
             f"{path} not found. Set PYTHONMULTIPLATFORM_HOME to the PythonMultiplatform checkout."
@@ -87,7 +115,18 @@ def read_adapter_source() -> str:
     end = text.find('"""', start)
     if end < 0:
         raise AdapterUnavailable(f"{path}: the SOURCE literal is not terminated")
-    return trim_indent(text[start:end]).replace(_DOLLAR_ESCAPE, "$")
+    source = trim_indent(text[start:end]).replace(_DOLLAR_ESCAPE, "$")
+    return _INTERPOLATION.sub(lambda m: _kotlin_constant(m.group(1), m.group(2)), source)
+
+
+def read_adapter_source() -> str:
+    """`PythonxAdapter.SOURCE`: the binding layer."""
+    return _read_source(_ADAPTER_KT)
+
+
+def read_surface_source() -> str:
+    """`KotlinSurface.SOURCE`: the root module and its public contract."""
+    return _read_source(_SURFACE_KT)
 
 
 def read_manifest() -> dict:
@@ -105,35 +144,53 @@ def read_manifest() -> dict:
         return tomllib.load(handle)
 
 
-def install(source: str | None = None) -> types.ModuleType:
-    """Reproduce `PythonxAdapter.DELIVERY`: build the `pythonx` module and exec the source into it.
+def install() -> types.ModuleType:
+    """Reproduce `KotlinSurface.DELIVERY` and `PythonxAdapter.DELIVERY`; return the binding module.
 
-    Deliberately unconditional, unlike the Kotlin, which guards on `sys.modules`. A test wants a
-    fresh layer per case; a running interpreter wants one per process.
+    Deliberately unconditional, unlike the Kotlin, which guards on `sys.modules`. A test wants fresh
+    layers per case; a running interpreter wants one per process. The caller registers a table
+    (`FakeHost.register`) -- that is the generated half `PythonxAdapter.renderTable` would emit.
 
-    The manifest is applied here because an embedder applies it there: `PythonxAdapter.install`
-    takes the map as an argument and registers nothing without one. A fake host that skipped this
-    step would be testing a layer no real caller runs.
+    The repository root goes on `sys.path` so `import pythonx.compose...` finds this package's
+    files, as it would once installed.
     """
+    surface, binding_source = read_surface_source(), read_adapter_source()
     uninstall()
-    module = types.ModuleType("pythonx")
-    module.__path__ = []
-    sys.modules["pythonx"] = module
-    exec(compile(source or read_adapter_source(), "pythonx/__init__.py", "exec"), module.__dict__)
-    manifest = read_manifest()
-    for python_name, kotlin_package in manifest["modules"].items():
-        module.register_package(python_name, kotlin_package)
-    for kotlin_type in manifest["value-classes"]["raw-primitive-allowed"]:
-        module.allow_raw_primitive(kotlin_type)
-    return module
+    if str(_REPO) not in sys.path:
+        sys.path.insert(0, str(_REPO))
+    root = types.ModuleType(ROOT_MODULE)
+    root.__path__ = []
+    sys.modules[ROOT_MODULE] = root
+    exec(compile(surface, f"{ROOT_MODULE}/__init__.py", "exec"), root.__dict__)
+    binding = types.ModuleType(BINDING_MODULE)
+    sys.modules[BINDING_MODULE] = binding
+    root.binding = binding
+    exec(compile(binding_source, "python_multiplatform/binding.py", "exec"), binding.__dict__)
+    return binding
+
+
+def _owned(name: str) -> bool:
+    return (
+        name == ROOT_MODULE or name.startswith(ROOT_MODULE + ".")
+        or name == "pythonx" or name.startswith("pythonx.")
+    )
 
 
 def uninstall() -> None:
-    """Drop `pythonx` and everything under it, and take the finder back off `sys.meta_path`."""
-    adapter = sys.modules.get("pythonx")
-    if adapter is not None:
-        finder_type = getattr(adapter, "_Finder", None)
+    """Drop both binder layers, every module the binding layer adapted, and this package's modules.
+
+    The Kotlin-named modules (`androidx.*`) are found through the binding layer's own `_MODULES`,
+    so nothing here has to know which packages a table happened to bind. `pythonx.*` is dropped so
+    the next test imports this package's files afresh against the next layer.
+    """
+    binding = sys.modules.get(BINDING_MODULE)
+    if binding is not None:
+        finder_type = getattr(binding, "_Finder", None)
         if finder_type is not None:
             sys.meta_path[:] = [f for f in sys.meta_path if not isinstance(f, finder_type)]
-    for name in [n for n in sys.modules if n == "pythonx" or n.startswith("pythonx.")]:
+        adapted = {module.__name__ for module in getattr(binding, "_MODULES", ())}
+        seen = set(getattr(binding, "_PACKAGES_SEEN", ()))
+        for name in [n for n in sys.modules if n in adapted or n in seen]:
+            del sys.modules[name]
+    for name in [n for n in sys.modules if _owned(n)]:
         del sys.modules[name]

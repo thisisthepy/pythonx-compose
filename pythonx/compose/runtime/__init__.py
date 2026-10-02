@@ -19,7 +19,7 @@ That is not incidental breakage, it is a different technology than this reposito
 of what `Composable.__call__` did -- inspecting `self.compose.__code__.co_varnames` to find where
 `content` sat, so it could be popped out and wrapped specially -- is retired for the same reason
 `modifier.py`'s mangled-suffix search was: `docs/pythonx-adapter-design.md` §5.6/§7 record that
-composer threading, `$changed` and `$default` are now arithmetic `pythonx._bind_composable` does from
+composer threading, `$changed` and `$default` are now arithmetic the binder's `_bind_composable` (`python_multiplatform.binding`) does from
 a slot's *declared type*, uniformly, for a `content` lambda exactly as for any other parameter. There
 is nothing left for a Python-side base class to detect or thread by hand.
 
@@ -35,28 +35,13 @@ A plain `def Screen(): Button(...)` already works with no wrapper, no base class
 slot detection; `@Composable` changes nothing about that and exists only so the notebook's own
 spelling keeps working.
 
-## What this file cannot do
+## How it is reached
 
-`pythonx.compose.runtime` -- this file's own dotted name -- is not reachable through
-`import pythonx.compose.runtime` once `PythonxAdapter.install()` has run, for the reason
-`pythonx/compose/ui/modifier.py`'s module docstring already gives for `pythonx.compose.ui.modifier`:
-`register_package('pythonx.compose', 'androidx.compose')` makes `pythonx.compose` a synthetic package
-with `__path__ = []`, and Python's import machinery passes that empty path to *every* finder for
-*every* submodule underneath it -- so no on-disk file under `pythonx/compose/` is importable by its
-own dotted name, regardless of whether the specific submodule (`runtime`, `material3`, `ui.modifier`,
-...) itself corresponds to anything walked. `tests/test_runtime_module.py`'s
-`TheModuleIsUnreachableByOrdinaryImport` checks this directly against the real adapter source
-(`tests/adapter.py` reads `PythonxAdapter.SOURCE` unmodified) rather than assuming it by analogy:
-`import pythonx.compose.runtime` raises `ModuleNotFoundError` once the layer is installed, the same
-as `import pythonx.compose.material3` does for a name the walked table never produced.
-
-`modifier.py` works around this by being loaded out of band
-(`importlib.util.spec_from_file_location`, never as `pythonx.compose.ui.modifier`), and this file
-needs the same treatment. Closing the gap for real -- a packaging route, or an adapter-side seam that
-does not collide with `register_package` -- is `docs/pythonx-adapter-design.md` §2.5's open item in
-`PythonMultiplatform`, and is not something editing this file can do. Until it closes, an application
-loads this module the way `tests/test_runtime_module.py` and `tests/test_modifier_module.py` do: by
-path, under whatever name it chooses, and reads [Composable] off the result.
+By its own dotted name: `import pythonx.compose.runtime` loads this file. The binder used to put a
+synthetic `pythonx` with `__path__ = []` into `sys.modules`, which made every file under
+`pythonx/compose/` unreachable; PythonMultiplatform `d00f413f` moved its layer to
+`python_multiplatform.binding` and leaves `pythonx` to this package (AGENTS.md section 12).
+`tests/test_runtime_module.py::TheModuleIsTheFileOnDisk` checks that against the binder's real source.
 """
 
 from __future__ import annotations
@@ -65,7 +50,7 @@ from __future__ import annotations
 def Composable(target):
     """Identity. `UI.ipynb` writes `@Composable def Screen(): ...`; nothing needs to happen to
     `Screen` for that to work, because the composer every nested `pythonx.compose.*` call needs is
-    threaded by `PythonComposition`/`pythonx._bind_composable` from the *callee's* declared slot
+    threaded by `PythonComposition`/`python_multiplatform.binding._bind_composable` from the *callee's* declared slot
     type, not from anything the caller -- decorated or not -- does. See the module docstring for
     what used to be here and why it is gone.
     """
