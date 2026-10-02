@@ -35,14 +35,14 @@ Compose(`androidx.compose.*`)를 파이썬에서 쓰기 위한 pip 패키지 **`
 
 ```
 python3 -m pytest tests -q
-  PythonMultiplatform 체크아웃 없음       51 passed, 53 skipped
-  python-multiplatform develop ba4c6f49+    104 passed
+  PythonMultiplatform 체크아웃 없음       55 passed, 56 skipped
+  python-multiplatform develop ba4c6f49+    111 passed
   그보다 오래된 체크아웃                    같은 수, 그중 5 개 건너뜀  (member resolver 없음)
 ```
 
 member resolver(python-multiplatform `ba4c6f49`)가 없는 바인더에서는 proxy 의 snake_case 메서드를 부르는
 5 개가 건너뛴다. 건너뜀은 통과가 아니다.
-체크아웃 없이 통과하는 51 개 중 다수는 *부재*(옛 토큰·삭제된 파일이 없음)를 확인하는 것이라 기능 진척으로 세지
+체크아웃 없이 통과하는 55 개 중 다수는 *부재*(옛 토큰·삭제된 파일이 없음)를 확인하는 것이라 기능 진척으로 세지
 않는다.
 
 ### 마일스톤

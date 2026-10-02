@@ -196,6 +196,32 @@ class TheTextFieldWrapperIsGone(unittest.TestCase):
         self.assertNotIn("from .text_field import", source)
 
 
+class ThePackageDoesNotImportTheRecords(unittest.TestCase):
+    """`icon.py` / `color_scheme.py` are not imported by the package, so they shadow nothing.
+
+    Star-importing them made `import pythonx.compose.material3` reach for `androidx.compose.material3`
+    at load time and put a dead `Icon` class in front of the one the re-export rule serves.
+    """
+
+    def test_the_package_init_does_not_import_them(self):
+        source = MATERIAL3_INIT.read_text(encoding="utf-8")
+        self.assertNotIn("from .icon import", source)
+        self.assertNotIn("from .color_scheme import", source)
+
+    def test_the_package_imports_with_no_binder_installed(self):
+        import importlib
+        import sys
+
+        for name in [n for n in sys.modules if n == "pythonx.compose.material3" or n.startswith("androidx")]:
+            del sys.modules[name]
+        sys.path.insert(0, str(REPO))
+        try:
+            module = importlib.import_module("pythonx.compose.material3")
+        finally:
+            sys.path.remove(str(REPO))
+        self.assertNotIn("Icon", vars(module))
+
+
 class TheTwoUnreachableWrappersLoadWithoutCrashing(unittest.TestCase):
     """`icon.py` (`Icon`) and `color_scheme.py` (`ColorScheme`/`lightColorScheme`/`darkColorScheme`)
     are the two declarations `PythonMultiplatform` commit `a6742a1c` pinned as *unreachable* through

@@ -390,6 +390,30 @@ class ObjectNamespaces(AdapterCase):
         self.assertIn("androidx.compose.ui.Alignment", str(raised.exception))
 
 
+class ManifestAliases(AdapterCase):
+    """INTENT 5.2: `Column`, `Row`, `Spacer` from `material3`, as the notebook imports them."""
+
+    def test_the_notebook_import_resolves_to_the_layout_object(self):
+        from pythonx.compose.layout import Column as from_layout
+        from pythonx.compose.material3 import Column, Row, Spacer
+
+        self.assertIs(from_layout, Column)
+        self.assertIsNotNone(Row)
+        self.assertIsNotNone(Spacer)
+
+    def test_dir_of_material3_lists_the_aliases(self):
+        import pythonx.compose.material3 as material3
+
+        for name in ("Column", "Row", "Spacer"):
+            self.assertIn(name, dir(material3))
+
+    def test_a_name_not_listed_is_not_borrowed(self):
+        import pythonx.compose.material3 as material3
+
+        with self.assertRaises(AttributeError):
+            material3.padding_values_of  # noqa: B018
+
+
 class Handles(AdapterCase):
     """The binder's proxy owns a handle; dropping it gives the handle back."""
 

@@ -45,3 +45,10 @@
 raw-primitive-allowed = [
     "androidx.compose.ui.unit.Dp",
 ]
+
+[aliases."pythonx.compose.material3"]
+# Names a module also answers for, because the notebook imports them from there (INTENT section 5.2):
+# `from pythonx.compose.material3 import Column, Row, Spacer`, while Kotlin declares them in
+# `androidx.compose.foundation.layout`. Each is the same object as in its home module; this is data,
+# not a wrapper, and the rule that serves it is the one in `_reexport.py`.
+"pythonx.compose.layout" = ["Column", "Row", "Spacer"]
