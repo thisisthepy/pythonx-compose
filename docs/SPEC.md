@@ -20,14 +20,14 @@ Run from a worktree with `python3 -m pytest tests -q` (pytest 8, CPython 3.13):
 
 | Environment | Result |
 |---|---|
-| No `PythonMultiplatform` checkout found | **43 passed, 45 skipped**, 44 subtests passed |
-| `PYTHONMULTIPLATFORM_HOME` → the `PythonMultiplatform` checkout | **84 passed, 4 skipped**, 44 subtests passed |
+| No `PythonMultiplatform` checkout found | **50 passed, 46 skipped**, 66 subtests passed |
+| `PYTHONMULTIPLATFORM_HOME` → the `PythonMultiplatform` checkout | **92 passed, 4 skipped**, 72 subtests passed |
 
-Without a checkout, the 45 tests that install the binder's layers through `tests/adapter.py` skip.
+Without a checkout, the 46 tests that install the binder's layers through `tests/adapter.py` skip.
 With one, all pass except 4 that skip because they call a camelCase extension on a binder proxy by
 its snake_case name, which needs python-multiplatform #17 (§3). A skip is not a pass.
 
-Of the 43 that pass without a checkout, most assert **absence** (a retired token, a deleted file, a docstring that
+Of the 50 that pass without a checkout, most assert **absence** (a retired token, a deleted file, a docstring that
 exists). Those are listed in §9 and are not counted as features.
 
 ---
@@ -45,12 +45,21 @@ exists). Those are listed in §9 and are not counted as features.
   module (issue #13). The manifest lives inside the package directory so `package-data` carries it.
 - Not yet true: no `.pyi` and no `py.typed` exist (S1.2, issue #12).
 
-### S1.2 Type stubs ship in the wheel — `planned`
+### S1.2 Type stubs ship in the wheel — `partial`
 
-Stubs carry the Pythonic names and signatures the runtime resolves, generated from the same
-manifest (S2) so the name an editor completes and the name the interpreter resolves cannot drift.
-The generator lives in `python-multiplatform`'s Gradle plugin; nothing in this repository produces
-or contains a stub yet.
+Stubs carry the Pythonic names and signatures the runtime resolves, so the name an editor completes
+and the name the interpreter resolves cannot drift.
+
+- In this repository: `tools/gen_stubs.py` converts python-multiplatform's Kotlin-named stubs
+  (`PythonStubsTask` output, one `androidx/.../__init__.pyi` per package) into
+  `pythonx/compose/**/__init__.pyi`, using the runtime's own `python_name` / `snake_case`; an
+  overload set also gets `@overload`s of its base name; a package's own definitions
+  (`runtime.Composable`) are carried over. `tests/test_stubs.py` converts a fixture holding the fake
+  host's declarations and checks each stub signature against `inspect.signature` at run time.
+  Disabling the parameter rename fails 2 tests, the overloads 1, the name rule 3.
+- Not yet true: no stub is generated from real Compose and none ships, and there is no `py.typed`.
+  That needs the Kotlin-named stubs for Compose 1.11.1 from python-multiplatform, and object types
+  better than `int` for completion to be useful (issue #12).
 
 ## 2. The mapping manifest (`pythonx-map.toml`) — `implemented`
 
