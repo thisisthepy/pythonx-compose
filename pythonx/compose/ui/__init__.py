@@ -10,9 +10,12 @@ A `try...except` block executing `from .modifier import Modifier`, `modifier = M
 
 `import pythonx.compose.ui` loads this file; it is an ordinary package on disk. The binder serves the
 Kotlin package under its Kotlin name, `androidx.compose.ui`, as a separate module, and renames
-nothing. Re-exporting its declarations here under Pythonic names (`Modifier`, `Alignment`, ...) is
-this package's job and has not landed yet (SPEC section 3, issue #8). Until then this file carries
-no code.
+nothing. This file re-exports it under Pythonic names (`Modifier`, `describe_modifier`, ...) by the
+one rule in `pythonx/compose/_reexport.py` (SPEC section 3); it names no declaration itself.
 """
 
 from __future__ import annotations
+
+from pythonx.compose._reexport import reexport
+
+__getattr__, __dir__ = reexport(__name__)

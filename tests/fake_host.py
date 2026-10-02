@@ -243,8 +243,9 @@ class FakeHost:
                          lambda a: f"paddingFromBaseline({_dp(a[0])})"),
         )
         self._add(
-            # The name the snake -> camel rule cannot invert.
-            "androidx.compose.ui.util.toURLString", 1, ("raw",), ("STRING",), ("kotlin.String",),
+            # The name the snake -> camel rule cannot invert. Fictional, and placed in a mapped
+            # package (`pythonx.compose.ui`) so the re-export rule is what reaches it.
+            "androidx.compose.ui.toURLString", 1, ("raw",), ("STRING",), ("kotlin.String",),
             "STRING", "kotlin.String", False, None, (False,),
             lambda args: "url:" + args[0],
         )

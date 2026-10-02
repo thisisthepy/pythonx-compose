@@ -1,16 +1,18 @@
-"""The chain, and the four things `docs/pythonx-adapter-design.md` asks the adaptation layer for.
+"""The chain, the dispatcher and the naming rule, as an application reaches them: through `pythonx`.
 
-This is the test the 2024 tree never had. `pythonx/compose/ui/modifier.py` shipped a `padding()`
-that composed nothing and a `fill_max_size()` that returned `self`, and nothing in the repository
-could have noticed, because there was nothing to run.
+The binder serves Kotlin names (`androidx.compose.foundation.layout.paddingValuesOf`) and renames
+nothing. These tests go through this package's own modules (`pythonx.compose.*`), so what they
+check is the re-export rule in `pythonx/compose/_reexport.py` on top of the binder's real Python,
+read out of a `PythonMultiplatform` checkout by `tests/adapter.py`.
 
-    python3 -m unittest discover -s tests -v
+    python3 -m pytest tests -q
 
 Requires a `PythonMultiplatform` checkout beside this one, or `PYTHONMULTIPLATFORM_HOME`.
 """
 
 from __future__ import annotations
 
+import inspect
 import sys
 import unittest
 from pathlib import Path
@@ -22,17 +24,16 @@ import fake_host  # noqa: E402
 
 
 class AdapterCase(unittest.TestCase):
-    """One adaptation layer and one host per test, because a table install is destructive."""
+    """One binding layer and one host per test, because a table install is destructive."""
 
     def setUp(self):
         try:
-            source = adapter_loader.read_adapter_source()
+            self.binding = adapter_loader.install()
         except adapter_loader.AdapterUnavailable as unavailable:
             self.skipTest(str(unavailable))
         self.host = fake_host.FakeHost()
         self.host.bind()
-        self.pythonx = adapter_loader.install(source)
-        self.host.register(self.pythonx)
+        self.host.register(self.binding)
         self.addCleanup(self.host.unbind)
         self.addCleanup(adapter_loader.uninstall)
 
@@ -48,7 +49,7 @@ class AdapterCase(unittest.TestCase):
         `test_modifier_module.py` is what tests that file; this keeps the chain tests independent of
         it, so a break in one does not read as a break in the other.
         """
-        self.pythonx.register_empty(fake_host.MODIFIER, fake_host.EMPTY_MODIFIER)
+        self.binding.register_empty(fake_host.MODIFIER, fake_host.EMPTY_MODIFIER)
         return self.modifier_type()
 
     def empty(self):
@@ -59,14 +60,30 @@ class AdapterCase(unittest.TestCase):
 
         return ui.describe_modifier(modifier)
 
+    def needs_member_resolver(self):
+        """Receiver methods by snake_case name need the binder's member-resolver hook.
 
-class TheAdapterSourceIsReadable(AdapterCase):
+        python-multiplatform #17 adds it; until a checkout has it, these tests skip rather than pass.
+        """
+        if not hasattr(self.binding, "add_member_resolver"):
+            self.skipTest("the binder has no add_member_resolver yet (python-multiplatform #17)")
 
-    def test_the_source_came_out_of_the_kotlin_literal_and_compiles(self):
+
+class TheBinderSourcesAreReadable(AdapterCase):
+
+    def test_both_sources_came_out_of_the_kotlin_literals_and_compile(self):
+        binding = adapter_loader.read_adapter_source()
+        surface = adapter_loader.read_surface_source()
+        self.assertIn("class _Finder", binding)
+        self.assertIn("KOTLIN_DEFAULT", surface)
+        compile(binding, "python_multiplatform/binding.py", "exec")
+        compile(surface, "python_multiplatform/__init__.py", "exec")
+
+    def test_the_binder_renames_nothing(self):
+        """The rule lives here; the binder has no snake_case of its own to lean on."""
         source = adapter_loader.read_adapter_source()
-        self.assertIn("class _Finder", source)
-        self.assertIn("def to_python_name(", source)
-        compile(source, "pythonx/__init__.py", "exec")
+        self.assertNotIn("def to_python_name(", source)
+        self.assertNotIn("def register_package(", source)
 
     def test_the_table_is_the_walked_shape(self):
         """`padding__Dp` here carries every field the real walked entry carries.
@@ -94,12 +111,18 @@ class TheAdapterSourceIsReadable(AdapterCase):
 class TheChain(AdapterCase):
     """`Modifier.padding(16).size(24)` -- the thing the 2024 tree could not do."""
 
+    def test_modifier_is_the_binders_proxy_class(self):
+        import androidx.compose.ui as kotlin_ui
+
+        self.assertIs(kotlin_ui.Modifier, self.modifier_type())
+
     def test_chain_from_the_class_object(self):
         chained = self.register_empty().padding(16).size(24)
         self.assertEqual("padding(16.0) -> size(24.0)", self.describe(chained))
         self.assertEqual(["padding__Dp", "size__Dp"], self.host.calls)
 
     def test_chain_from_an_instance(self):
+        self.needs_member_resolver()
         chained = self.empty().padding(16).size(24).fill_max_width()
         self.assertEqual(
             "padding(16.0) -> size(24.0) -> fillMaxWidth", self.describe(chained)
@@ -112,13 +135,6 @@ class TheChain(AdapterCase):
         self.assertEqual("padding(8.0)", self.describe(base))
         self.assertEqual("padding(8.0) -> size(1.0)", self.describe(left))
         self.assertEqual("padding(8.0) -> size(2.0)", self.describe(right))
-
-    def test_a_method_is_attached_to_the_type_once(self):
-        first = self.register_empty()
-        self.assertNotIn("padding", vars(first))
-        first.padding(1)
-        self.assertIn("padding", vars(first))
-        self.assertIs(first, self.modifier_type())
 
     def test_an_unbound_name_is_an_attribute_error_that_says_where_it_looked(self):
         with self.assertRaises(AttributeError) as raised:
@@ -173,50 +189,96 @@ class OverloadDispatch(AdapterCase):
         getattr(self.empty(), "padding__Dp")(16)
         self.assertEqual(["padding__Dp"], self.host.calls)
 
+    def test_the_module_function_dispatches_with_snake_case_keywords(self):
+        import pythonx.compose.foundation.layout as layout
+
+        values = layout.padding_values_of(8)
+        result = layout.padding(self.empty(), padding_values=values)
+        self.assertEqual(["padding__PaddingValues"], self.host.calls)
+        self.assertEqual("padding(pv(8.0))", self.describe(result))
+
 
 class Names(AdapterCase):
-    """§3: PascalCase for types, snake_case for everything else, forward by rule."""
+    """PascalCase for types, snake_case for everything else, forward by rule and never inverted."""
 
     def test_camel_case_becomes_snake_case(self):
-        self.assertEqual("fill_max_width", self.pythonx.to_python_name("fillMaxWidth"))
-        self.assertEqual("z_index", self.pythonx.to_python_name("zIndex"))
-        self.assertEqual("to_url_string", self.pythonx.to_python_name("toURLString"))
+        from pythonx.compose._reexport import python_name
+
+        self.assertEqual("fill_max_width", python_name("fillMaxWidth"))
+        self.assertEqual("z_index", python_name("zIndex"))
+        self.assertEqual("to_url_string", python_name("toURLString"))
+        self.assertEqual("padding__Dp_Dp", python_name("padding__Dp_Dp"))
 
     def test_a_type_name_is_left_alone(self):
-        self.assertEqual("Modifier", self.pythonx.to_python_name("Modifier"))
+        from pythonx.compose._reexport import python_name
+
+        self.assertEqual("Modifier", python_name("Modifier"))
 
     def test_a_name_the_reverse_rule_cannot_invert_still_resolves(self):
-        import pythonx.compose.ui.util as util
+        import pythonx.compose.ui as ui
 
-        self.assertEqual("url:x", util.to_url_string("x"))
-        self.assertEqual("toUrlString", self.pythonx.to_kotlin_name("to_url_string"))
+        self.assertEqual("url:x", ui.to_url_string("x"))
+
+    def test_the_kotlin_camel_case_spelling_is_not_a_second_name(self):
+        import pythonx.compose.foundation.layout as layout
+
+        with self.assertRaises(AttributeError):
+            layout.paddingValuesOf  # noqa: B018
 
     def test_on_click_not_onclick(self):
         """`UI.ipynb` writes `onclick`; the decision on record is that `pythonx` is the reference."""
-        self.assertEqual("on_click", self.pythonx.to_python_name("onClick"))
+        from pythonx.compose._reexport import python_name
+
+        self.assertEqual("on_click", python_name("onClick"))
+
+    def test_the_signature_carries_snake_case_parameter_names(self):
+        import pythonx.compose.foundation.layout as layout
+
+        parameters = list(inspect.signature(layout.padding__PaddingValues).parameters)
+        self.assertEqual(["receiver", "padding_values"], parameters)
+
+    def test_a_defaulted_parameter_keeps_the_kotlin_default_marker(self):
+        import python_multiplatform
+        import pythonx.compose.foundation.layout as layout
+
+        signature = inspect.signature(layout.padding__Dp_Dp)
+        self.assertIs(python_multiplatform.KOTLIN_DEFAULT, signature.parameters["horizontal"].default)
+
+    def test_an_unknown_keyword_reaches_the_binders_refusal(self):
+        import pythonx.compose.foundation.layout as layout
+
+        with self.assertRaises(TypeError) as raised:
+            layout.padding_values_of(everything=8)
+        self.assertIn("everything", str(raised.exception))
 
 
 class ValueClasses(AdapterCase):
-    """§4.4: `Dp` takes a raw number, a packed wrapper must not."""
+    """`Dp` takes a raw number, a packed wrapper must not; the manifest says which."""
 
     def test_a_raw_number_reaches_a_dp_parameter(self):
         self.assertEqual("padding(16.0)", self.describe(self.empty().padding(16)))
 
+    def test_the_manifest_allowlist_is_what_lets_a_number_through(self):
+        """The binder alone refuses a raw number for `Dp`; importing through `pythonx` allows it."""
+        import androidx.compose.foundation.layout as kotlin_layout
+
+        with self.assertRaises(TypeError):
+            kotlin_layout.paddingValuesOf(8)
+        import pythonx.compose.foundation.layout as layout
+
+        result = self.empty().padding(layout.padding_values_of(8))
+        self.assertEqual("padding(pv(8.0))", self.describe(result))
+
     def test_a_dp_proxy_reaches_the_same_parameter(self):
-        # `pythonx.dp(...)` used to exist, defined in the binder itself -- which meant the language
-        # boundary shipped a Compose spelling and any other library's value class needed a core
-        # edit to get one. The binder now offers only the general form, and `dp` is a name this
-        # package owes on top of it. Written the general way until there is somewhere to put the
-        # short one: the disk modules under `pythonx/compose/` are never loaded (the adapter's
-        # finder answers those imports), so a hand-written `dp` needs a home this package does not
-        # have yet.
-        result = self.empty().padding(self.pythonx.value_of("androidx.compose.ui.unit.Dp", 16))
+        result = self.empty().padding(self.binding.value_of(fake_host.DP, 16))
         self.assertEqual("padding(16.0)", self.describe(result))
 
     def test_a_plain_float_parameter_is_not_treated_as_a_value_class(self):
+        self.needs_member_resolver()
         self.assertEqual("zIndex(1.5)", self.describe(self.empty().z_index(1.5)))
 
     def test_a_packed_value_class_refuses_a_raw_number_and_says_why(self):
+        self.needs_member_resolver()
         with self.assertRaises(TypeError) as raised:
             self.empty().padding_from_baseline(16)
         message = str(raised.exception)
@@ -224,21 +286,22 @@ class ValueClasses(AdapterCase):
         self.assertIn("reinterpreted", message)
 
     def test_the_allowlist_can_be_extended_at_run_time(self):
-        self.pythonx.allow_raw_primitive(fake_host.TEXT_UNIT)
+        self.needs_member_resolver()
+        self.binding.allow_raw_primitive(fake_host.TEXT_UNIT)
         self.assertEqual(
             "paddingFromBaseline(16.0)", self.describe(self.empty().padding_from_baseline(16))
         )
 
 
 class Laziness(AdapterCase):
-    """§2.3: a finder for the module, a `__getattr__` for the names inside it."""
+    """A mapped module is a file on disk; the names inside it resolve on first use."""
 
-    def test_a_package_something_is_bound_under_is_importable(self):
+    def test_a_mapped_package_is_importable(self):
         import pythonx.compose.foundation.layout as layout
 
         self.assertEqual("pythonx.compose.foundation.layout", layout.__name__)
 
-    def test_a_package_nothing_is_bound_under_is_not(self):
+    def test_a_package_with_no_file_is_not(self):
         with self.assertRaises(ModuleNotFoundError):
             import pythonx.compose.nothing.here  # noqa: F401
 
@@ -250,17 +313,29 @@ class Laziness(AdapterCase):
         self.assertIn("padding", vars(layout))
         self.assertIs(first, layout.padding)
 
-    def test_dir_reports_what_is_bound(self):
+    def test_dir_reports_what_is_bound_under_pythonic_names(self):
         import pythonx.compose.foundation.layout as layout
 
         names = dir(layout)
         self.assertIn("padding", names)
         self.assertIn("size", names)
         self.assertIn("fill_max_width", names)
+        self.assertNotIn("fillMaxWidth", names)
+
+    def test_without_the_binding_layer_a_name_says_what_is_missing(self):
+        import pythonx.compose.foundation.layout as layout
+
+        adapter_loader.uninstall()
+        import pythonx.compose.foundation.layout as fresh
+
+        self.assertIsNot(layout, fresh)
+        with self.assertRaises(RuntimeError) as raised:
+            fresh.padding  # noqa: B018
+        self.assertIn("PythonxAdapter.install()", str(raised.exception))
 
 
 class Handles(AdapterCase):
-    """§4.1's proxy is what owns a handle; `kotlin-extensions` §3.2 recorded three leaking."""
+    """The binder's proxy owns a handle; dropping it gives the handle back."""
 
     def test_dropping_a_proxy_releases_its_handle(self):
         modifier = self.empty().padding(16)
