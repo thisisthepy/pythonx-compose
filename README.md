@@ -7,7 +7,7 @@ English | [한국어](docs/locale/README_ko.md)
 **Write Compose user interfaces in Python — with Compose's own widgets, spelled the Python way.**
 
 [![License: MIT](https://img.shields.io/badge/license-MIT-7c4dff.svg)](LICENSE)
-[![Python](https://img.shields.io/badge/python-3.8%2B-7c4dff.svg)](pyproject.toml)
+[![Python](https://img.shields.io/badge/python-3.11%2B-7c4dff.svg)](pyproject.toml)
 [![pip](https://img.shields.io/badge/pip-pythonx--compose-7c4dff.svg)](pyproject.toml)
 [![Status](https://img.shields.io/badge/status-pre--alpha-lightgrey.svg)](#-status)
 
@@ -34,20 +34,28 @@ def Greeting():
     Button(on_click=lambda: print("hi"), content=lambda: Text("Hello from Python"))
 ```
 
-<sub>This is the target surface. See [Status](#-status) for what runs today.</sub>
+<sub>These names resolve today, by one rule, inside an app that embeds the binder; per-widget render
+proofs are still pending. See [Status](#-status).</sub>
 
 ## ✨ Principles
 
 - **The original API, Pythonic names.** Every parameter is Compose's own parameter, in
-  `snake_case`: `onClick` → `on_click`, `horizontalAlignment` → `horizontal_alignment`.
-- **Extension functions are methods.** `Modifier.padding(16).size(24)` chains exactly as it does in
-  Kotlin.
+  `snake_case`: `onClick` → `on_click`, `horizontalAlignment` → `horizontal_alignment`. Upper-case
+  names (types, objects, composables) keep their Kotlin spelling; every other name is `snake_case`
+  only (`fillMaxWidth` → `fill_max_width`, `toURLString` → `to_url_string`), and an explicit
+  overload keeps its suffix (`padding__Dp`).
+- **Extension functions are methods.** `Modifier.padding(16).size(24).fill_max_width()` chains
+  exactly as it does in Kotlin. Keyword arguments to such a method are still Kotlin's own
+  (`m.padding(paddingValues=...)`); the module function takes `padding(m, padding_values=...)`.
+- **Kotlin objects are namespaces.** `Alignment.Center` and `Arrangement.End` are read without
+  parentheses; functions inside them are `snake_case`: `Arrangement.spaced_by(8)`.
 - **`@Composable` stays.** Screens are decorated Python functions.
 - **A real package.** `pythonx/` is ordinary Python source that imports `androidx.compose.*` and
   reshapes it. The binder never renames anything — renaming is this package's job.
 - **One manifest.** [`pythonx-map.toml`](pythonx/compose/pythonx-map.toml) says which `pythonx.compose.*` module
-  stands for which Kotlin package. The runtime and the `.pyi` generator read the same file, so what
-  your editor completes is what the interpreter resolves.
+  stands for which Kotlin package. It lives inside the package and ships in the wheel. The runtime
+  and the `.pyi` generator read the same file, so what your editor completes is what the interpreter
+  resolves.
 
 ## 🧩 Architecture at a glance
 
@@ -57,7 +65,7 @@ flowchart LR
     px --> ax["androidx.compose.*<br/>Kotlin names, exposed by python-multiplatform"]
     ax --> compose["Jetpack / Compose Multiplatform"]
     map["pythonx-map.toml"] -.-> px
-    map -.-> pyi[".pyi stubs<br/>(shipped in the wheel)"]
+    map -.-> pyi[".pyi stubs<br/>(for the wheel, planned)"]
 ```
 
 | Python module | Kotlin package |
@@ -66,6 +74,10 @@ flowchart LR
 | `pythonx.compose.ui` | `androidx.compose.ui` |
 | `pythonx.compose.layout` | `androidx.compose.foundation.layout` |
 | `pythonx.compose.material3` | `androidx.compose.material3` |
+
+Each module is a real file whose `__init__.py` calls one re-export rule; names resolve on first use.
+`Column`, `Row` and `Spacer` are importable from `pythonx.compose.material3` as well as
+`pythonx.compose.layout`, as the notebook writes them (the manifest's `[aliases]`).
 
 ## 🚀 Quick start
 
@@ -104,14 +116,26 @@ manifest["value-classes"]["raw-primitive-allowed"]
 # ['androidx.compose.ui.unit.Dp']   ->  padding(16) means padding(16.dp)
 ```
 
+```python
+from pythonx.compose._reexport import python_name   # the naming rule, no binder needed
+
+python_name("fillMaxWidth")   # 'fill_max_width'
+python_name("toURLString")    # 'to_url_string'
+python_name("Modifier")       # 'Modifier'
+```
+
+Reading a Compose name such as `pythonx.compose.material3.Text` needs the binder, which the Kotlin
+host installs; outside an app it raises a `RuntimeError` saying so.
+
 The tests that drive a `Modifier` chain and overload dispatch read the binder's adaptation layer
 from a sibling [python-multiplatform](https://github.com/thisisthepy/python-multiplatform) checkout
 (or `PYTHONMULTIPLATFORM_HOME`); without one they are skipped.
 
 ## 📦 Installation
 
-Distributed as the pip package **`pythonx-compose`**, providing the import package
-`pythonx.compose`, with `.pyi` stubs inside the wheel. It runs inside an app that embeds CPython
+Distributed as the pip package **`pythonx-compose`** (Python 3.11 or later), providing the import
+package `pythonx.compose`, with the manifest inside the wheel; `.pyi` stubs generated from real
+Compose and `py.typed` are planned. It runs inside an app that embeds CPython
 through [python-multiplatform](https://github.com/thisisthepy/python-multiplatform); it is not a
 standalone desktop toolkit.
 
@@ -121,11 +145,18 @@ standalone desktop toolkit.
 |---|---|
 | Mapping manifest `pythonx-map.toml` | ✅ implemented and tested |
 | `@Composable` decorator | ✅ implemented and tested |
-| Distribution metadata (`pythonx-compose`) | 🟡 partial — configured; stubs not generated yet, manifest not yet inside the package |
-| `Modifier` chains, overload dispatch, `Dp` as a number | 🟡 partial — tested against the binder's layer; failing while the runtime side is rewired |
-| Material 3 widgets (`Text`, `Button`, `Card`, `TextField`, …) | 🟡 partial — proven to render in python-multiplatform, not yet re-exported here |
-| `pythonx` as a real on-disk package importing `androidx.compose.*` | ⏳ planned |
-| `remember_saveable`, `DefaultIcons`, coroutine scopes | ⏳ planned |
+| `pythonx` as a real on-disk package re-exporting `androidx.compose.*` by one rule | ✅ implemented and tested |
+| `Modifier` chains with snake_case methods, overload dispatch, `Dp` as a number | ✅ implemented and tested against the binder's layer |
+| `Column`, `Row`, `Spacer` from `material3` as well as `layout` | ✅ implemented and tested |
+| Method keyword arguments in `snake_case` | 🟡 partial — module functions yes; methods still take Kotlin's keywords |
+| The empty `Modifier` | 🟡 partial — `Modifier.padding(16)` from the class needs an app-supplied factory against real Compose |
+| `Alignment` / `Arrangement` | 🟡 partial — `Alignment.Center`, `Arrangement.spaced_by(8)` work; grouped `Alignment.Horizontal.End` pending |
+| Material 3 widgets (`Text`, `Button`, `Card`, `TextField`, …) | 🟡 partial — re-exported by rule; render proofs per widget pending (#9) |
+| Distribution (`pythonx-compose`) | 🟡 partial — the wheel carries the manifest; no stubs from real Compose, no `py.typed` (#12) |
+| Declared app root and Pythonic state, no update call | ⏳ planned (#11) |
+| `TextField` input-method (IME) handling | ⏳ planned (#10) |
+| `Icon`, `DefaultIcons`, colour schemes | ⏳ planned (python-multiplatform #37) |
+| `remember_saveable`, coroutine scopes | ⏳ planned |
 
 The full list is on the guide's [Status page](docs/guide/status.html).
 
