@@ -35,13 +35,13 @@ Compose(`androidx.compose.*`)를 파이썬에서 쓰기 위한 pip 패키지 **`
 
 ```
 python3 -m pytest tests -q
-  PythonMultiplatform 체크아웃 없음       43 passed, 45 skipped
-  PYTHONMULTIPLATFORM_HOME 지정            84 passed, 4 skipped  (4 개는 python-multiplatform #17 대기)
+  PythonMultiplatform 체크아웃 없음       50 passed, 46 skipped
+  PYTHONMULTIPLATFORM_HOME 지정            92 passed, 4 skipped  (4 개는 python-multiplatform #17 대기)
 ```
 
 건너뛰는 4 개는 바인더가 돌려준 proxy 위의 camelCase 확장을 snake_case 이름으로 부르는 테스트다.
 바인더의 member resolver(python-multiplatform #17)가 들어오면 실행된다. 건너뜀은 통과가 아니다.
-체크아웃 없이 통과하는 43 개 중 다수는 *부재*(옛 토큰·삭제된 파일이 없음)를 확인하는 것이라 기능 진척으로 세지
+체크아웃 없이 통과하는 50 개 중 다수는 *부재*(옛 토큰·삭제된 파일이 없음)를 확인하는 것이라 기능 진척으로 세지
 않는다.
 
 ### 마일스톤
