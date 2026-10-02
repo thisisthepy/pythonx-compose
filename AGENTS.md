@@ -187,6 +187,9 @@ worktree so a test can see it. Read it in place.
   one they **skip**; with a checkout older than python-multiplatform `ba4c6f49`, 5 of them skip for
   want of its member resolver (see `docs/SPEC.md` §0). Report both numbers and say which environment you ran in. A skip is not
   a pass.
+- The suite runs on GitHub Actions (`.github/workflows/tests.yml`) in both environments, without and
+  with a python-multiplatform checkout, for every pull request into `develop`. Local runs are for
+  quick checks of the part you changed; leave the full two-environment run to CI.
 - `PythonMultiplatform` is read-only from this repository. Never write to it from here.
 - Record the before and after counts of every change; a change that only touches documentation
   must leave them identical.

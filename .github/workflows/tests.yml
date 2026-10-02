@@ -1,0 +1,62 @@
+name: Tests
+
+# The suite runs twice: without the binder checkout (its tests skip) and with
+# python-multiplatform develop beside it. The tests only read three Kotlin
+# source files from it, so no JVM or Gradle is needed.
+on:
+  pull_request:
+    branches: [develop]
+  push:
+    branches: ['work/**']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: tests-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  no-binder:
+    runs-on: ubuntu-latest
+    env:
+      # A path that does not exist, so the binder tests skip.
+      PYTHONMULTIPLATFORM_HOME: /nonexistent
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - run: pip install pytest setuptools wheel
+      - name: Run the suite
+        run: python -m pytest tests -q -rs
+
+  with-binder:
+    runs-on: ubuntu-latest
+    env:
+      # The two repositories side by side, as on a developer machine. The binder is not checked out
+      # inside this one: tests/test_wheel.py copies this repository to build the wheel.
+      PYTHONMULTIPLATFORM_HOME: ${{ github.workspace }}/python-multiplatform
+    defaults:
+      run:
+        working-directory: pythonx-compose
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: pythonx-compose
+          fetch-depth: 1
+      - uses: actions/checkout@v4
+        with:
+          repository: thisisthepy/python-multiplatform
+          ref: develop
+          path: python-multiplatform
+          fetch-depth: 1
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - run: pip install pytest setuptools wheel
+      - name: Run the suite
+        run: python -m pytest tests -q -rs
