@@ -106,8 +106,7 @@ python3 tools/check_guide.py                     # 가이드: HTML 파싱, 링�
 
 1. **`test/` 디렉터리** — 2023–2024 Kotlin Multiplatform 샘플. 유지 / 이동 / 삭제 중 무엇인지.
    결정 전까지 손대지 않는다.
-2. **노트북식 편의 표기** — 소문자 `modifier` 인스턴스, `DefaultIcons`, ARGB 정수 색,
-   `Spacer(start=..., top=...)`.
+2. **코루틴 스코프** — 노트북이 import 하는 `DefaultCoroutineScope`·`MainCoroutineScope`.
 3. **`pythonx/compose/lite/release/`** 의 Windows 바이너리·jar 97 개와 빈 `material3/*.py` 28 개,
    서브모듈 `native` 의 처리.
 4. **`pythonx-map.toml` 의 이중 표기** — `pythonx.compose.layout` 과
@@ -124,6 +123,9 @@ python3 tools/check_guide.py                     # 가이드: HTML 파싱, 링�
 - **`Column`·`Row`·`Spacer`** 는 `pythonx.compose.material3` 와 `pythonx.compose.layout` 양쪽에서
   import 된다.
 - **정렬 상수** 는 `Alignment.End` 와 `Alignment.Horizontal.End` 둘 다 지원한다.
+- 소문자 `modifier` 는 두지 않는다(`Modifier` 로 쓴다). ARGB 정수 색은 받지 않는다
+  (`Color(0xFFFF0000)`). `Spacer(start=...)` 는 지원하지 않는다(`Modifier.padding`). `DefaultIcons` 는
+  `Icons.Default` 의 alias(python-multiplatform #37 뒤). — `docs/INTENT.md` §5.4–5.7
 - 합성된 `pythonx` 를 전제한 테스트·독스트링은 #7 에서 정리했다.
 
 ## 8. 관련 저장소
