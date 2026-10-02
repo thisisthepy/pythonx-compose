@@ -20,14 +20,14 @@ Run from a worktree with `python3 -m pytest tests -q` (pytest 8, CPython 3.13):
 
 | Environment | Result |
 |---|---|
-| No `PythonMultiplatform` checkout found | **40 passed, 45 skipped**, 44 subtests passed |
-| `PYTHONMULTIPLATFORM_HOME` → the `PythonMultiplatform` checkout | **81 passed, 4 skipped**, 44 subtests passed |
+| No `PythonMultiplatform` checkout found | **43 passed, 45 skipped**, 44 subtests passed |
+| `PYTHONMULTIPLATFORM_HOME` → the `PythonMultiplatform` checkout | **84 passed, 4 skipped**, 44 subtests passed |
 
 Without a checkout, the 45 tests that install the binder's layers through `tests/adapter.py` skip.
 With one, all pass except 4 that skip because they call a camelCase extension on a binder proxy by
 its snake_case name, which needs python-multiplatform #17 (§3). A skip is not a pass.
 
-Of the 40 that pass without a checkout, most assert **absence** (a retired token, a deleted file, a docstring that
+Of the 43 that pass without a checkout, most assert **absence** (a retired token, a deleted file, a docstring that
 exists). Those are listed in §9 and are not counted as features.
 
 ---
@@ -36,14 +36,14 @@ exists). Those are listed in §9 and are not counted as features.
 
 ### S1.1 Installed as `pythonx-compose`, importing `pythonx.compose` — `partial`
 
-`pyproject.toml` declares `name = "pythonx-compose"`, version `0.0.1`, setuptools build, and
+`pyproject.toml` declares `name = "pythonx-compose"`, version `0.0.1`, setuptools build,
+`requires-python >= 3.11` (the runtime reads the manifest with `tomllib`), and
 `packages.find include = ["pythonx.compose*"]`.
 
-- Configured: `package-data` carries `*.pyi`, `py.typed` and `pythonx-map.toml` for every package
-  (`tests/test_pythonx_map.py::TestManifestShipsWithThePackage::test_the_wheel_is_configured_to_carry_it`).
-- Not yet true: no `.pyi` and no `py.typed` exist in the tree, and `pythonx-map.toml` sits at the
-  repository root — outside every package directory — so the `package-data` pattern cannot pick it
-  up. No test builds a wheel and looks inside it.
+- Shipped and tested: `tests/test_wheel.py` builds the wheel from a copy of the sources and finds
+  `pythonx/compose/pythonx-map.toml`, the re-export rule, and an `__init__.py` for every mapped
+  module (issue #13). The manifest lives inside the package directory so `package-data` carries it.
+- Not yet true: no `.pyi` and no `py.typed` exist (S1.2, issue #12).
 
 ### S1.2 Type stubs ship in the wheel — `planned`
 

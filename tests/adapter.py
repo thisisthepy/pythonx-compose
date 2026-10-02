@@ -139,7 +139,7 @@ def read_manifest() -> dict:
     """
     import tomllib
 
-    path = pathlib.Path(__file__).resolve().parents[1] / "pythonx-map.toml"
+    path = pathlib.Path(__file__).resolve().parents[1] / "pythonx" / "compose" / "pythonx-map.toml"
     with path.open("rb") as handle:
         return tomllib.load(handle)
 

@@ -42,7 +42,7 @@ from pathlib import Path
 ROOT_MODULE = "python_multiplatform"
 BINDING_MODULE = "python_multiplatform.binding"
 
-_MANIFEST = Path(__file__).resolve().parents[2] / "pythonx-map.toml"
+_MANIFEST = Path(__file__).resolve().parent / "pythonx-map.toml"
 
 _LOWER_UPPER = re.compile(r"([a-z0-9])([A-Z])")
 _ACRONYM_WORD = re.compile(r"([A-Z]+)([A-Z][a-z])")

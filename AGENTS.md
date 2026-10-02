@@ -152,8 +152,8 @@ worktree so a test can see it. Read it in place.
 - `docs/INTENT.md` and `docs/SPEC.md` are derived from it. When they disagree with the notebook or
   with the user, the notebook and the user win.
 - `tests/test_pythonx_map.py` reads the notebook's imports. Where the notebook is absent (any
-  worktree, any CI checkout) that test checks nothing and still passes. Run it in the main checkout
-  before claiming the manifest covers the notebook.
+  worktree, any CI checkout) that test **skips**, saying so. Run it in the main checkout before
+  claiming the manifest covers the notebook.
 
 ## 12. Renaming happens here, in real Python, never in the binder
 

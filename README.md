@@ -45,7 +45,7 @@ def Greeting():
 - **`@Composable` stays.** Screens are decorated Python functions.
 - **A real package.** `pythonx/` is ordinary Python source that imports `androidx.compose.*` and
   reshapes it. The binder never renames anything — renaming is this package's job.
-- **One manifest.** [`pythonx-map.toml`](pythonx-map.toml) says which `pythonx.compose.*` module
+- **One manifest.** [`pythonx-map.toml`](pythonx/compose/pythonx-map.toml) says which `pythonx.compose.*` module
   stands for which Kotlin package. The runtime and the `.pyi` generator read the same file, so what
   your editor completes is what the interpreter resolves.
 
@@ -95,7 +95,7 @@ assert Screen() == "drawn" and Screen.__name__ == "Screen"
 ```python
 import tomllib                   # the manifest: the one place the mapping is written down
 
-with open("pythonx-map.toml", "rb") as f:
+with open("pythonx/compose/pythonx-map.toml", "rb") as f:
     manifest = tomllib.load(f)
 
 manifest["modules"]["pythonx.compose.layout"]

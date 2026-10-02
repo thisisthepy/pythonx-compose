@@ -44,7 +44,7 @@ def Greeting():
 - **`@Composable` 은 그대로.** 화면은 데코레이터가 붙은 파이썬 함수입니다.
 - **실제 패키지.** `pythonx/` 는 `androidx.compose.*` 를 import 해 재구성하는 평범한 파이썬
   소스입니다. 바인더는 아무 이름도 바꾸지 않습니다 — 이름을 바꾸는 것은 이 패키지의 일입니다.
-- **하나의 매니페스트.** [`pythonx-map.toml`](../../pythonx-map.toml) 이 어떤 `pythonx.compose.*`
+- **하나의 매니페스트.** [`pythonx-map.toml`](../../pythonx/compose/pythonx-map.toml) 이 어떤 `pythonx.compose.*`
   모듈이 어떤 Kotlin 패키지에 대응하는지 적습니다. 런타임과 `.pyi` 생성기가 같은 파일을 읽으므로,
   편집기가 자동완성하는 이름과 인터프리터가 해석하는 이름이 어긋나지 않습니다.
 
@@ -94,7 +94,7 @@ assert Screen() == "drawn" and Screen.__name__ == "Screen"
 ```python
 import tomllib                   # 매니페스트: 대응 관계가 적힌 유일한 곳
 
-with open("pythonx-map.toml", "rb") as f:
+with open("pythonx/compose/pythonx-map.toml", "rb") as f:
     manifest = tomllib.load(f)
 
 manifest["modules"]["pythonx.compose.layout"]
