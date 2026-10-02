@@ -414,6 +414,33 @@ class ManifestAliases(AdapterCase):
             material3.padding_values_of  # noqa: B018
 
 
+class SubmodulesWithoutABinder(unittest.TestCase):
+    """`from pythonx.compose.ui import modifier` reaches the file even when no binder is installed.
+
+    `from package import name` asks the package for the attribute first and only imports a
+    submodule if that raises AttributeError. The re-export `__getattr__` raised RuntimeError ("the
+    binding layer is not installed") for every name, so the submodule was never tried.
+    """
+
+    def setUp(self):
+        adapter_loader.uninstall()
+        self.addCleanup(adapter_loader.uninstall)
+        root = str(Path(__file__).resolve().parents[1])
+        if root not in sys.path:
+            sys.path.insert(0, root)
+
+    def test_from_import_of_a_submodule_needs_no_binder(self):
+        from pythonx.compose.ui import modifier
+
+        self.assertTrue(callable(modifier.install))
+
+    def test_a_kotlin_name_still_says_the_binder_is_missing(self):
+        import pythonx.compose.ui as ui
+
+        with self.assertRaises(RuntimeError):
+            ui.Modifier  # noqa: B018
+
+
 class Handles(AdapterCase):
     """The binder's proxy owns a handle; dropping it gives the handle back."""
 
