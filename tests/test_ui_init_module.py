@@ -1,10 +1,9 @@
-"""`pythonx/compose/ui/__init__.py` -- testing that the on-disk file is unexecuted and dead.
+"""`pythonx/compose/ui/__init__.py` -- the file `import pythonx.compose.ui` loads, and what it no longer contains.
 
-Three things are asserted here:
-1. That `import pythonx.compose.ui` under an installed adapter returns the synthetic module produced
-   by `PythonxAdapter` (`register_package('pythonx.compose', 'androidx.compose')`), NOT the file on disk.
-2. That the synthetic `pythonx.compose.ui` module exposes the `Modifier` proxy type directly.
-3. That no dead Chaquopy-era code (`jclass`, `from .modifier import Modifier`, etc.) survives in
+Two things are asserted here:
+1. That `import pythonx.compose.ui`, with the binder installed, loads the file on disk, while the
+   binder serves the Kotlin name `androidx.compose.ui` as a separate module.
+2. That no dead Chaquopy-era code (`jclass`, `from .modifier import Modifier`, etc.) survives in
    executable tokens in `pythonx/compose/ui/__init__.py`.
 """
 
@@ -26,44 +25,31 @@ REPO = Path(__file__).resolve().parents[1]
 UI_INIT_PY = REPO / "pythonx" / "compose" / "ui" / "__init__.py"
 
 
-class TheUiInitModuleIsUnreachableAndDead(unittest.TestCase):
-    """The claim `pythonx/compose/ui/__init__.py` makes about ordinary import and Chaquopy dead code."""
+class TheUiInitModuleIsTheFileOnDisk(unittest.TestCase):
+    """`import pythonx.compose.ui` loads `pythonx/compose/ui/__init__.py`, with the binder installed."""
 
     def setUp(self):
         try:
-            source = adapter_loader.read_adapter_source()
+            self.binding = adapter_loader.install()
         except adapter_loader.AdapterUnavailable as unavailable:
             self.skipTest(str(unavailable))
         self.host = fake_host.FakeHost()
         self.host.bind()
-        self.pythonx = adapter_loader.install(source)
-        self.host.register(self.pythonx)
+        self.host.register(self.binding)
         self.addCleanup(self.host.unbind)
         self.addCleanup(adapter_loader.uninstall)
 
-    def test_import_pythonx_compose_ui_returns_synthetic_adapter_module(self):
+    def test_import_pythonx_compose_ui_loads_the_file_on_disk(self):
         import pythonx.compose.ui as ui
 
-        # The synthetic module produced by PythonxAdapter has no __file__ attribute pointing to disk
-        self.assertFalse(
-            hasattr(ui, "__file__"),
-            "import pythonx.compose.ui must return the synthetic module, not the on-disk file",
-        )
-        self.assertTrue(
-            hasattr(ui, "Modifier"),
-            "synthetic module must expose Modifier proxy type",
-        )
+        self.assertEqual(UI_INIT_PY, Path(ui.__file__).resolve())
 
-    def test_on_disk_ui_init_is_not_imported_by_ordinary_import(self):
+    def test_the_binder_serves_the_kotlin_name_not_pythonx(self):
+        import androidx.compose.ui as kotlin_ui
         import pythonx.compose.ui as ui
 
-        # Verify that sys.modules['pythonx.compose.ui'] is not the on-disk __init__.py file
-        loaded_file = getattr(ui, "__file__", None)
-        self.assertNotEqual(
-            loaded_file,
-            str(UI_INIT_PY),
-            "pythonx.compose.ui on disk must not be loaded by ordinary import",
-        )
+        self.assertFalse(hasattr(kotlin_ui, "__file__"), "androidx.compose.ui is the binder's module")
+        self.assertIsNot(ui, kotlin_ui)
 
 
 class TheChaquopyUiInitMechanismIsGone(unittest.TestCase):

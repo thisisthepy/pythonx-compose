@@ -14,23 +14,22 @@ Each item carries a status:
 
 A behaviour change starts here, then becomes a failing test, then code (`AGENTS.md` §5).
 
-## 0. Test baseline (2026-10-02)
+## 0. Test baseline (2026-10-03)
 
 Run from a worktree with `python3 -m pytest tests -q` (pytest 8, CPython 3.13):
 
 | Environment | Result |
 |---|---|
 | No `PythonMultiplatform` checkout found | **40 passed, 37 skipped**, 44 subtests passed |
-| `PYTHONMULTIPLATFORM_HOME` → the `PythonMultiplatform` checkout | **40 passed, 37 failed**, 44 subtests passed |
+| `PYTHONMULTIPLATFORM_HOME` → the `PythonMultiplatform` checkout | **44 passed, 33 failed**, 44 subtests passed |
 
-The 37 are every test that installs the binder's adaptation layer through `tests/adapter.py`
-(`test_chain.py`: 28, `test_modifier_module.py::TheModifierSeam`: 5,
-`test_runtime_module.py::TheModuleIsUnreachableByOrdinaryImport`: 2,
-`test_ui_init_module.py::TheUiInitModuleIsUnreachableAndDead`: 2). They
-fail with `AttributeError: module 'pythonx' has no attribute 'register_package'`: the binder no
-longer renames namespaces (INTENT §2.3), and the runtime side that replaces it in this package is
-not wired yet. That failure is expected and is why the items below that depend on those tests are
-`partial`, not `implemented`.
+Without a checkout, the 37 tests that install the binder's layers through `tests/adapter.py` skip.
+With one, 4 of them pass (`test_runtime_module.py::TheModuleIsTheFileOnDisk`: 2,
+`test_ui_init_module.py::TheUiInitModuleIsTheFileOnDisk`: 2) and 33 fail (`test_chain.py`: 28,
+`test_modifier_module.py::TheModifierSeam`: 5). The 33 still call the old harness signature and
+exercise the binder's Kotlin-named surface as if it were `pythonx`; they are rewritten against this
+package's re-export rule (issue #8). That failure is expected and is why the items below that depend
+on those tests are `partial`, not `implemented`.
 
 Of the 40 that pass, most assert **absence** (a retired token, a deleted file, a docstring that
 exists). Those are listed in §9 and are not counted as features.
@@ -89,11 +88,10 @@ Required by INTENT §2.2: `import pythonx.compose.material3` (and every other ma
 **this repository's files on disk**, and those files import the binder-exposed
 `androidx.compose.*` modules and present them Pythonically.
 
-Today the opposite structure is in the tree. The module docstrings in
-`pythonx/compose/runtime/__init__.py`, `pythonx/compose/ui/__init__.py` and
-`pythonx/compose/ui/modifier.py` describe a synthesised `pythonx` with `__path__ = []` that makes
-the on-disk files unreachable, and two test classes assert that unreachability
-(see "Outside intent" §1). No on-disk module currently re-exports anything from `androidx.compose.*`.
+Half of it holds. `import pythonx.compose.runtime` and `import pythonx.compose.ui` load this
+repository's files with the binder installed (`TheModuleIsTheFileOnDisk`, `TheUiInitModuleIsTheFileOnDisk`),
+because PythonMultiplatform `d00f413f` moved its layer to `python_multiplatform.binding`. The other
+half has not landed: no on-disk module re-exports anything from `androidx.compose.*` yet (issue #8).
 
 ## 4. Naming
 
@@ -233,17 +231,13 @@ These tests pass and assert that retired 2024 mechanisms are gone. They are not 
 
 Found in the repository; not covered by `docs/INTENT.md`, or in conflict with it.
 
-1. **Tests and docstrings encode the structure INTENT §2.2 rules out.**
-   `tests/test_runtime_module.py::TheModuleIsUnreachableByOrdinaryImport` (2 tests) and
-   `tests/test_ui_init_module.py::TheUiInitModuleIsUnreachableAndDead` (2 tests) assert that the
-   on-disk `pythonx/compose/...` files *cannot* be imported by their dotted names. The docstrings of
-   `runtime/__init__.py`, `ui/__init__.py`, `ui/modifier.py` and `ui/unit/__init__.py` explain the
-   package in the same terms. These need rewriting once §3 is designed, not preserving.
-2. **The test harness asks the binder to rename.** `tests/adapter.py::install` calls
-   `register_package(python_name, kotlin_package)` on the binder's layer for each manifest row —
-   the binder-side `androidx` → `pythonx` mapping INTENT §2.3 forbids. That method is gone upstream,
-   which is the cause of the 37 failures (§0). The tests in `test_chain.py` and
-   `test_modifier_module.py` need a harness that goes through this package's own code instead.
+1. *(Resolved, issue #7.)* Tests and docstrings that assumed a synthesised `pythonx` with
+   `__path__ = []` now assert and describe the real package. `ui/modifier.py` still loads by path
+   and is rewritten with the re-export (issue #8).
+2. *(Resolved, issue #7.)* `tests/adapter.py` no longer asks the binder to rename: it installs
+   `python_multiplatform` and `python_multiplatform.binding` from the binder's sources and imports
+   `pythonx` from disk. `test_chain.py` and `test_modifier_module.py` still use the old call and
+   are rewritten with issue #8.
 3. **Prebuilt binaries inside the package directory.** `pythonx/compose/lite/release/` tracks 97
    files, including a Windows `.exe`, `.dll` and Compose desktop jars from the 2024 JPype
    prototype, alongside a Gradle project in `pythonx/compose/lite/`.

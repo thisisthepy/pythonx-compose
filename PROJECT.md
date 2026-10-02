@@ -36,12 +36,12 @@ Compose(`androidx.compose.*`)를 파이썬에서 쓰기 위한 pip 패키지 **`
 ```
 python3 -m pytest tests -q
   PythonMultiplatform 체크아웃 없음       40 passed, 37 skipped
-  PYTHONMULTIPLATFORM_HOME 지정            40 passed, 37 failed  (register_package 없음)
+  PYTHONMULTIPLATFORM_HOME 지정            44 passed, 33 failed  (재노출 전, #8)
 ```
 
-37 개 실패는 **예상된 것**이다. 테스트 하네스(`tests/adapter.py`)가 바인더에게
-`register_package('pythonx.compose', 'androidx.compose')` 를 시키는데, 바인더는 더 이상 이름을
-바꾸지 않는다. 이 패키지 쪽 런타임이 아직 연결되지 않았으므로 해당 항목은 "부분" 으로 기록한다.
+33 개 실패는 **예상된 것**이다. `test_chain.py`·`test_modifier_module.py` 가 바인더의 Kotlin 이름
+표면을 `pythonx` 처럼 다루는 옛 하네스 호출을 쓰고 있어서, 이 패키지의 재노출 규칙(#8)에 맞춰 다시
+써야 한다. 그래서 해당 항목은 "부분" 으로 기록한다.
 통과하는 40 개 중 다수는 *부재*(옛 토큰·삭제된 파일이 없음)를 확인하는 것이라 기능 진척으로 세지
 않는다.
 

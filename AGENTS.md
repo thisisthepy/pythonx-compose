@@ -184,9 +184,9 @@ worktree so a test can see it. Read it in place.
   `.tmp/` (rule 2), not in the home directory.
 - Tests that exercise the binder's adaptation layer read it, read-only, from a `PythonMultiplatform`
   checkout: the sibling directory `../PythonMultiplatform`, or `PYTHONMULTIPLATFORM_HOME`. Without
-  one they **skip**; with one they currently **fail** (37 tests, `register_package` is gone
-  upstream — see `docs/SPEC.md` §0). Report both numbers and say which environment you ran in. A
-  skip is not a pass.
+  one they **skip**; with one, 33 of them currently **fail** until the re-export lands (issue #8;
+  see `docs/SPEC.md` §0). Report both numbers and say which environment you ran in. A skip is not
+  a pass.
 - `PythonMultiplatform` is read-only from this repository. Never write to it from here.
 - Record the before and after counts of every change; a change that only touches documentation
   must leave them identical.
