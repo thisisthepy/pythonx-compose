@@ -20,10 +20,10 @@ Run from a worktree with `python3 -m pytest tests -q` (pytest 8, CPython 3.13):
 
 | Environment | Result |
 |---|---|
-| No `PythonMultiplatform` checkout found | **50 passed, 46 skipped**, 72 subtests passed (66 without a checkout) |
-| `PYTHONMULTIPLATFORM_HOME` → the `PythonMultiplatform` checkout | **92 passed, 4 skipped**, 72 subtests passed (66 without a checkout) |
+| No `PythonMultiplatform` checkout found | **50 passed, 46 skipped**, 66 subtests passed |
+| `PYTHONMULTIPLATFORM_HOME` → the `PythonMultiplatform` checkout | **92 passed, 4 skipped**, 72 subtests passed |
 
-Without a checkout, the 45 tests that install the binder's layers through `tests/adapter.py` skip.
+Without a checkout, the 46 tests that install the binder's layers through `tests/adapter.py` skip.
 With one, all pass except 4 that skip because they call a camelCase extension on a binder proxy by
 its snake_case name, which needs python-multiplatform #17 (§3). A skip is not a pass.
 
