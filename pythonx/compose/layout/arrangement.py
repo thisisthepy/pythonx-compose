@@ -14,19 +14,19 @@ rather than constants and reach Python through the ordinary function path, not t
 
 ## They are read, not called
 
-    from androidx.compose.foundation.layout import Row, Arrangement, width__Dp
-    from androidx.compose.material3 import Text
-    from fixture.compose import emptyModifier
+    from pythonx.compose.layout import Row, Arrangement
+    from pythonx.compose.material3 import Text
+    from pythonx.compose.ui import Modifier      # its empty factory registered (ui/modifier.py)
 
     Row(
-        modifier=width__Dp(emptyModifier(), 80.0),
+        modifier=Modifier.width(80),
         horizontal_arrangement=Arrangement.End,        # no parentheses
         content=lambda scope: Text('X'),
     )
 
 Since upstream's `46be0212` a static getter is evaluated on attribute access, so `Arrangement.End()`
-raises `TypeError` -- the value is not callable. The imports are the Kotlin names for the reason
-`alignment.py` gives.
+raises `TypeError` -- the value is not callable. A function inside the object follows the module
+rule: `Arrangement.spaced_by(8)`, never `spacedBy`.
 
 The width matters as much as the spelling: a row wraps its content, so with no width constraint
 there is no spare space and every arrangement puts the child in the same place. Upstream's proof

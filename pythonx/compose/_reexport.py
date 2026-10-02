@@ -214,6 +214,68 @@ def _pythonic(value, name):
     return PythonicFunction(value, name)
 
 
+def _resolve(kotlin, name: str):
+    """What the Pythonic [name] means in the binder's module [kotlin]: `(value, cacheable)` or `None`.
+
+    A name the module lists is looked up by the rule. An upper-case name it does not list may be a
+    Kotlin object served as a sub-package (`androidx.compose.ui.Alignment`), which the binder imports
+    on demand but does not list or expose as an attribute before that (python-multiplatform #35);
+    it comes back as a `KotlinObject` namespace read by the same rule.
+    """
+    kotlin_name = _name_table(kotlin).get(name)
+    if kotlin_name is not None:
+        value = getattr(kotlin, kotlin_name)
+        # The binder declined to cache it -- a live property, read again on every access -- so this
+        # layer does not freeze it either.
+        return _pythonic(value, name), kotlin_name in vars(kotlin)
+    if name[:1].isupper():
+        try:
+            nested = importlib.import_module(kotlin.__name__ + "." + name)
+        except ImportError:
+            return None
+        return KotlinObject(nested), True
+    return None
+
+
+class KotlinObject:
+    """A Kotlin object (`Arrangement`, `Alignment`) served as a namespace, read by the module rule.
+
+    Constants are read again on every access, as the binder serves them; functions inside the object
+    are snake_case (`Arrangement.spaced_by`) and are resolved once.
+    """
+
+    __slots__ = ("_kotlin", "_cache")
+
+    def __init__(self, kotlin_module):
+        object.__setattr__(self, "_kotlin", kotlin_module)
+        object.__setattr__(self, "_cache", {})
+
+    def __getattr__(self, name):
+        if name.startswith("__") and name.endswith("__"):
+            raise AttributeError(name)
+        cached = self._cache.get(name)
+        if cached is not None:
+            return cached
+        resolved = _resolve(self._kotlin, name)
+        if resolved is None:
+            raise AttributeError(
+                f"{self._kotlin.__name__} has nothing spelled {name!r} under pythonx's naming rule"
+            )
+        value, cacheable = resolved
+        if cacheable:
+            self._cache[name] = value
+        return value
+
+    def __setattr__(self, name, value):
+        raise AttributeError(f"{self._kotlin.__name__} is a Kotlin object; its members are read-only here")
+
+    def __dir__(self):
+        return sorted(_name_table(self._kotlin))
+
+    def __repr__(self):
+        return f"<pythonx view of Kotlin object {self._kotlin.__name__}>"
+
+
 def reexport(module_name: str):
     """The module-level `__getattr__` and `__dir__` for the mapped package `module_name`.
 
@@ -225,20 +287,16 @@ def reexport(module_name: str):
         if name.startswith("__") and name.endswith("__"):
             raise AttributeError(name)
         kotlin = kotlin_module(module_name)
-        kotlin_name = _name_table(kotlin).get(name)
-        if kotlin_name is None:
+        resolved = _resolve(kotlin, name)
+        if resolved is None:
             raise AttributeError(
                 f"module {module_name!r} has no attribute {name!r} (nothing in Kotlin package "
                 f"{kotlin.__name__} is spelled that way under pythonx's naming rule)"
             )
-        value = getattr(kotlin, kotlin_name)
-        if kotlin_name not in vars(kotlin):
-            # The binder declined to cache it -- a live property, read again on every access -- so
-            # this layer does not freeze it either.
-            return value
-        adapted = _pythonic(value, name)
-        setattr(sys.modules[module_name], name, adapted)
-        return adapted
+        value, cacheable = resolved
+        if cacheable:
+            setattr(sys.modules[module_name], name, value)
+        return value
 
     def __dir__():
         own = set(vars(sys.modules[module_name]))

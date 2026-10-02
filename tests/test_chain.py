@@ -342,6 +342,54 @@ class Laziness(AdapterCase):
         self.assertIn("PythonxAdapter.install()", str(raised.exception))
 
 
+class ObjectNamespaces(AdapterCase):
+    """`Arrangement`, `Alignment`: a Kotlin object is a namespace, read by the same rule."""
+
+    def label_of(self, proxy):
+        return self.host._object(proxy._pm_handle).label
+
+    def test_a_constant_is_reached_through_the_pythonx_module(self):
+        import pythonx.compose.layout as layout
+
+        self.assertEqual("End", self.label_of(layout.Arrangement.End))
+
+    def test_the_same_object_from_its_kotlin_home_and_the_short_spelling(self):
+        import pythonx.compose.foundation.layout as long
+        import pythonx.compose.layout as short
+
+        self.assertEqual("Start", self.label_of(long.Arrangement.Start))
+        self.assertEqual("Start", self.label_of(short.Arrangement.Start))
+
+    def test_a_constant_is_read_again_each_time_not_frozen(self):
+        import pythonx.compose.ui as ui
+
+        first, second = ui.Alignment.Center, ui.Alignment.Center
+        self.assertIsNot(first, second)
+        self.assertEqual("Center", self.label_of(second))
+
+    def test_a_function_inside_an_object_is_snake_case(self):
+        import pythonx.compose.layout as layout
+
+        self.assertEqual("spacedBy(8.0)", self.label_of(layout.Arrangement.spaced_by(8)))
+        with self.assertRaises(AttributeError):
+            layout.Arrangement.spacedBy  # noqa: B018
+
+    def test_dir_of_the_namespace_reports_pythonic_names(self):
+        import pythonx.compose.layout as layout
+
+        names = dir(layout.Arrangement)
+        self.assertIn("SpaceBetween", names)
+        self.assertIn("spaced_by", names)
+        self.assertNotIn("spacedBy", names)
+
+    def test_an_unknown_constant_says_where_it_looked(self):
+        import pythonx.compose.ui as ui
+
+        with self.assertRaises(AttributeError) as raised:
+            ui.Alignment.Nowhere  # noqa: B018
+        self.assertIn("androidx.compose.ui.Alignment", str(raised.exception))
+
+
 class Handles(AdapterCase):
     """The binder's proxy owns a handle; dropping it gives the handle back."""
 

@@ -27,6 +27,14 @@ DP = "androidx.compose.ui.unit.Dp"
 PADDING_VALUES = "androidx.compose.foundation.layout.PaddingValues"
 TEXT_UNIT = "androidx.compose.ui.unit.TextUnit"
 
+ARRANGEMENT = "androidx.compose.foundation.layout.Arrangement"
+ARRANGEMENT_HORIZONTAL = ARRANGEMENT + ".Horizontal"
+ARRANGEMENT_VERTICAL = ARRANGEMENT + ".Vertical"
+ARRANGEMENT_BOTH = ARRANGEMENT + ".HorizontalOrVertical"
+ALIGNMENT = "androidx.compose.ui.Alignment"
+ALIGNMENT_HORIZONTAL = ALIGNMENT + ".Horizontal"
+ALIGNMENT_VERTICAL = ALIGNMENT + ".Vertical"
+
 EMPTY_MODIFIER = "androidx.compose.ui.emptyModifier"
 """The one entry the real walker does **not** produce; see `ComposeShapedFragment.EMPTY_MODIFIER`.
 
@@ -50,6 +58,15 @@ class StubModifier:
 
     def describe(self):
         return " -> ".join(self.elements) if self.elements else "<empty>"
+
+
+class StubConstant:
+    """What an object constant is for this fixture: its name, so a test can see which one arrived."""
+
+    __slots__ = ("label",)
+
+    def __init__(self, label):
+        self.label = label
 
 
 class StubPaddingValues:
@@ -143,9 +160,10 @@ class FakeHost:
     # ------------------------------------------------------------------ the table
 
     def _add(self, name, arity, param_names, param_tags, param_type_names, return_tag,
-             return_type_name, is_extension, receiver_type_name, param_has_default, body):
+             return_type_name, is_extension, receiver_type_name, param_has_default, body,
+             kind="FUNCTION"):
         row = (
-            name, arity, "FUNCTION", False, tuple(param_names), tuple(param_tags),
+            name, arity, kind, False, tuple(param_names), tuple(param_tags),
             tuple(param_type_names), return_tag, return_type_name, is_extension,
             receiver_type_name, tuple(param_has_default),
         )
@@ -249,3 +267,25 @@ class FakeHost:
             "STRING", "kotlin.String", False, None, (False,),
             lambda args: "url:" + args[0],
         )
+        # Object constants, the way `ArtifactScanner.constantsOf` binds them: a `STATIC_GETTER` with no
+        # parameters, named `<package>.<Object>.<Constant>`, returning the constant's declared type.
+        for constant, declared in (
+            ("End", ARRANGEMENT_HORIZONTAL), ("Start", ARRANGEMENT_HORIZONTAL),
+            ("Top", ARRANGEMENT_VERTICAL), ("SpaceBetween", ARRANGEMENT_BOTH),
+        ):
+            self._constant(f"{ARRANGEMENT}.{constant}", declared)
+        for constant, declared in (
+            ("End", ALIGNMENT_HORIZONTAL), ("CenterHorizontally", ALIGNMENT_HORIZONTAL),
+            ("Top", ALIGNMENT_VERTICAL), ("Center", ALIGNMENT),
+        ):
+            self._constant(f"{ALIGNMENT}.{constant}", declared)
+        self._add(
+            # A function inside an object: reached through the object, camelCase in Kotlin.
+            f"{ARRANGEMENT}.spacedBy", 1, ("space",), ("FLOAT",), (DP,),
+            "OBJECT", ARRANGEMENT_BOTH, False, None, (False,),
+            lambda args: StubConstant(f"spacedBy({_dp(args[0])})"),
+        )
+
+    def _constant(self, name, declared):
+        self._add(name, 0, (), (), (), "OBJECT", declared, False, None, (),
+                  lambda args, label=name.rpartition(".")[2]: StubConstant(label), kind="STATIC_GETTER")
