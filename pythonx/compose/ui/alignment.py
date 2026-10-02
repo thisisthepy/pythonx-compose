@@ -5,9 +5,10 @@ value-class constructors, and a constant held by a companion was neither. `Pytho
 `80318c16` added that binding (`CallableKind.STATIC_GETTER`), and `6d896fba` proved a constant
 crosses and changes a layout.
 
-So there is nothing to wrap here, and that is the point: this package's rule is that whatever the
-adaptation layer produces gets no hand-written wrapper (`0856d08`, `f7e21f8`). What this file is for
-is the two things a caller cannot read off the layer.
+The binding exists only under its Kotlin name. Re-exporting it as `pythonx.compose.ui.Alignment` is
+this package's job, not the binder's -- the earlier rule that whatever the layer produces gets no
+wrapper here (`0856d08`, `f7e21f8`) was the wrong way round. Until that re-export can land, this file
+records the two things a caller cannot read off the layer.
 
 ## The names the layer produces
 
@@ -17,14 +18,16 @@ is the two things a caller cannot read off the layer.
 Read out of the walked table, not from Compose's own source: a name Compose declares but the walker
 declines would not be here.
 
-## They are called, not read
+## They are read, not called
 
-    from pythonx.compose.ui import Alignment
-    Alignment.Center()          # with the parentheses
+    from androidx.compose.ui import Alignment
+    Alignment.Center            # no parentheses
 
-The layer renders every declaration as a callable and does not branch on the kind column, so a
-static getter arrives as a zero-argument function rather than an attribute. Writing `Alignment.Center`
-passes the function object itself, and the dispatcher refuses it -- upstream `6d896fba` records the
-message ("expected a Horizontal handle", for the arrangement case). Exposing these as attributes is
-upstream's next step; the column that would drive it already exists.
+`PythonMultiplatform`'s `46be0212` taught the layer to branch on the kind column: a static getter is
+evaluated on attribute access and handed back as a value, so `Alignment.Center()` -- the spelling
+this file used to prescribe -- now raises `TypeError` because the value is not callable.
+
+The import is the Kotlin name on purpose. The binder no longer re-exports anything under
+`pythonx.*`; giving these a `pythonx.compose.ui` spelling is this package's job, and until the
+adapter stops occupying `sys.modules['pythonx']` that re-export has nowhere to live.
 """

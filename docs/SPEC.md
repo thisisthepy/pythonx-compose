@@ -20,8 +20,8 @@ Run from a worktree with `python3 -m pytest tests -q` (pytest 8, CPython 3.13):
 
 | Environment | Result |
 |---|---|
-| No `PythonMultiplatform` checkout found | **39 passed, 37 skipped**, 42 subtests passed |
-| `PYTHONMULTIPLATFORM_HOME` → the `PythonMultiplatform` checkout | **39 passed, 37 failed**, 42 subtests passed |
+| No `PythonMultiplatform` checkout found | **40 passed, 37 skipped**, 44 subtests passed |
+| `PYTHONMULTIPLATFORM_HOME` → the `PythonMultiplatform` checkout | **40 passed, 37 failed**, 44 subtests passed |
 
 The 37 are every test that installs the binder's adaptation layer through `tests/adapter.py`
 (`test_chain.py`: 28, `test_modifier_module.py::TheModifierSeam`: 5,
@@ -32,7 +32,7 @@ longer renames namespaces (INTENT §2.3), and the runtime side that replaces it 
 not wired yet. That failure is expected and is why the items below that depend on those tests are
 `partial`, not `implemented`.
 
-Of the 39 that pass, most assert **absence** (a retired token, a deleted file, a docstring that
+Of the 40 that pass, most assert **absence** (a retired token, a deleted file, a docstring that
 exists). Those are listed in §9 and are not counted as features.
 
 ---
@@ -191,13 +191,18 @@ handle. Evidence: `tests/test_chain.py::Laziness` (4 tests), `::Handles` (1 test
 
 The bound constant names are documented in `pythonx/compose/ui/alignment.py` (15 `Alignment`
 names) and `pythonx/compose/layout/arrangement.py` (8 `Arrangement` names), checked by
-`tests/test_alignment_modules.py` (5 tests, passing). The modules contain no code; the constants
+`tests/test_alignment_modules.py` (6 tests, passing). The modules contain no code; the constants
 come from the bindings.
 
-How a constant is spelled is **not settled**: `alignment.py` and `arrangement.py` say they are
-called (`Alignment.Center()`), and the test enforces that text; `pythonx/compose/layout/__init__.py`
-says they are read without parentheses (`Arrangement.Start`). The notebook writes
-`Alignment.Horizontal.End` (no call). See "Outside intent" §6.
+A constant is **read, not called**: `Arrangement.Start`, `Alignment.Center`. The binder reads a
+bound static getter on attribute access (`PythonMultiplatform` `46be0212`), so `Alignment.Center()`
+raises `TypeError`; the notebook writes the same attribute form. Both modules show that form with
+`androidx.compose.*` imports, since nothing re-exports these under `pythonx.*` yet (§3), and the
+test checks the attribute form is shown and the call form is not prescribed.
+
+Still open: the notebook groups horizontal and vertical alignments under the interface
+(`Alignment.Horizontal.End`), where Kotlin has a flat `Alignment.End` typed `Alignment.Horizontal`.
+Whether the re-export adds that grouping is a §3 design question (see "Outside intent" §6).
 
 ## 8. The notebook surface not yet covered — `planned`
 
@@ -248,8 +253,10 @@ Found in the repository; not covered by `docs/INTENT.md`, or in conflict with it
 5. **A removed mechanism kept as a record.** `material3/icon.py` and `color_scheme.py` still import
    `androidx.compose.material3.IconKt` and scan for mangled JVM names (`"Icon-"`), the reflection
    approach INTENT §3 excludes.
-6. **Constants called as functions** (`Alignment.Center()`), a limitation of the current bindings,
-   is documented as the surface; the notebook reads them as attributes (§7).
+6. **Grouped alignment constants.** The notebook writes `Alignment.Horizontal.End` and
+   `Alignment.Vertical.Top`; Kotlin and the binder expose flat `Alignment.End` / `Alignment.Top`.
+   Whether `pythonx.compose.ui.Alignment` adds the grouping is undecided (§7). (Call versus read
+   is settled: read.)
 7. **28 empty `material3/*.py` files** (`checkbox.py`, `switch.py`, `scaffold.py`, ...), and the
    submodule `pythonx/compose/native` → `thisisthepy/swing-graalvm-demo`, which INTENT does not
    mention.
