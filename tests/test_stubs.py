@@ -71,6 +71,13 @@ class TheConversion(unittest.TestCase):
         for variant in padding:
             self.assertEqual(["overload"], [ast.unparse(d) for d in variant.decorator_list])
 
+    def test_overloads_come_fewest_parameters_first(self):
+        """mypy takes the first matching overload, so the order is part of the contract."""
+        padding = _functions(self.stubs[LAYOUT])["padding"]
+        counts = [len(_parameter_names(variant)) for variant in padding]
+        self.assertEqual(sorted(counts), counts)
+        self.assertEqual(2, counts[0])
+
     def test_anonymous_and_receiver_slots_keep_their_names(self):
         scan = _functions(self.stubs[LAYOUT])["scan"][0]
         self.assertEqual(["receiver", "first", "__a1", "last"], _parameter_names(scan))

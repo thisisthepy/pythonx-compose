@@ -12,7 +12,8 @@ next to the module's `__init__.py`:
 - a parameter is renamed with `snake_case`, except the positional-only `receiver` and anonymous
   `__aN` slots, which a caller never writes by name;
 - every explicit overload (`padding__Dp`, `padding__Dp_Dp`) also contributes an `@overload` of its
-  base name (`padding`), which is the name the runtime's dispatcher answers to;
+  base name (`padding`), which is the name the runtime's dispatcher answers to, fewest parameters
+  first because a type checker takes the first match;
 - a nested object stub (`Arrangement/__init__.pyi`) is converted the same way, one level down;
 - names the module's own `__init__.py` defines (`runtime.Composable`) are carried over, because a
   `.pyi` beside a module replaces everything a type checker knows about it.
@@ -50,6 +51,10 @@ def _rename_arguments(arguments: ast.arguments) -> ast.arguments:
     return arguments
 
 
+def _arity(arguments: ast.arguments) -> int:
+    return len(arguments.posonlyargs) + len(arguments.args) + len(arguments.kwonlyargs)
+
+
 def _overload(function: ast.FunctionDef, name: str) -> ast.FunctionDef:
     copy = ast.parse(ast.unparse(function)).body[0]
     copy.name = name
@@ -85,7 +90,10 @@ def convert(source: str) -> str:
     for base, variants in overloads.items():
         if base in defined:
             continue
-        body.extend(_overload(variant, base) for variant in variants)
+        # mypy picks the first matching `@overload`, so the order is the contract: fewest parameters
+        # first, ties kept in table order -- the order the binder's dispatcher tries them in.
+        ordered = sorted(variants, key=lambda variant: _arity(variant.args))
+        body.extend(_overload(variant, base) for variant in ordered)
     lines = [HEADER]
     if overloads:
         lines.append("from typing import overload\n")
