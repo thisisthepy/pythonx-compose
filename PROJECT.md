@@ -28,21 +28,21 @@ Compose(`androidx.compose.*`)를 파이썬에서 쓰기 위한 pip 패키지 **`
 | 상태 | 항목 |
 |---|---|
 | 구현 | 매핑 매니페스트 `pythonx-map.toml`, `@Composable` 항등 데코레이터 |
-| 부분 | 배포 설정(스텁·`py.typed` 없음, 매니페스트가 패키지 밖), `Modifier` 체인·오버로드·`Dp` 숫자 허용(바인더 계층 대상 테스트가 실패 중), Material 3 위젯(렌더 증거는 python-multiplatform 에만), `Icon`·색 스킴(import 만 됨), `Alignment`/`Arrangement` 상수(표기 미확정) |
+| 부분 | 배포 설정(스텁·`py.typed` 없음, 매니페스트가 패키지 밖), `Modifier` 체인·오버로드·`Dp` 숫자 허용(바인더 계층 대상 테스트가 실패 중), Material 3 위젯(렌더 증거는 python-multiplatform 에만), `Icon`·색 스킴(import 만 됨), `Alignment`/`Arrangement` 상수(괄호 없이 읽는 표기로 확정, `pythonx.*` 재노출 전) |
 | 계획 | `pythonx` 를 실제 디스크 패키지로 재구성, `.pyi` 동봉, `remember_saveable`·`DefaultIcons`·코루틴 스코프 |
 
 ### 테스트 기준선
 
 ```
 python3 -m pytest tests -q
-  PythonMultiplatform 체크아웃 없음       39 passed, 37 skipped
-  PYTHONMULTIPLATFORM_HOME 지정            39 passed, 37 failed  (register_package 없음)
+  PythonMultiplatform 체크아웃 없음       40 passed, 37 skipped
+  PYTHONMULTIPLATFORM_HOME 지정            40 passed, 37 failed  (register_package 없음)
 ```
 
 37 개 실패는 **예상된 것**이다. 테스트 하네스(`tests/adapter.py`)가 바인더에게
 `register_package('pythonx.compose', 'androidx.compose')` 를 시키는데, 바인더는 더 이상 이름을
 바꾸지 않는다. 이 패키지 쪽 런타임이 아직 연결되지 않았으므로 해당 항목은 "부분" 으로 기록한다.
-통과하는 39 개 중 다수는 *부재*(옛 토큰·삭제된 파일이 없음)를 확인하는 것이라 기능 진척으로 세지
+통과하는 40 개 중 다수는 *부재*(옛 토큰·삭제된 파일이 없음)를 확인하는 것이라 기능 진척으로 세지
 않는다.
 
 ## 4. 구조
@@ -97,8 +97,8 @@ python3 tools/check_guide.py                     # 가이드: HTML 파싱, 링�
 4. **`Column`·`Row`·`Spacer` 의 import 위치** — 노트북은 `material3`, Kotlin 은 `foundation.layout`.
 5. **노트북식 편의 표기** — 소문자 `modifier` 인스턴스, `DefaultIcons`, ARGB 정수 색,
    `Spacer(start=..., top=...)`.
-6. **상수 표기** — `Alignment.Center()` (현재 문서) 와 `Arrangement.Start` (layout 독스트링, 노트북)
-   가 엇갈린다.
+6. **정렬 상수의 묶음 표기** — 노트북은 `Alignment.Horizontal.End`, Kotlin·바인더는 평평한
+   `Alignment.End`. 재노출 때 묶음을 둘지 미정. (호출이냐 읽기냐는 확정: 괄호 없이 읽는다.)
 7. **`pythonx/compose/lite/release/`** 의 Windows 바이너리·jar 97 개와 빈 `material3/*.py` 28 개,
    서브모듈 `native` 의 처리.
 8. **`pythonx-map.toml` 의 이중 표기** — `pythonx.compose.layout` 과

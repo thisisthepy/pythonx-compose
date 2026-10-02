@@ -12,19 +12,23 @@ value crossed rather than that something merely composed.
 Read out of the walked table. Compose declares more (`spacedBy`, for one) -- those are functions
 rather than constants and reach Python through the ordinary function path, not this one.
 
-## They are called, not read
+## They are read, not called
 
-    from pythonx.compose.foundation.layout import Row, Arrangement, width__Dp
-    from pythonx.compose.material3 import Text
+    from androidx.compose.foundation.layout import Row, Arrangement, width__Dp
+    from androidx.compose.material3 import Text
     from fixture.compose import emptyModifier
 
     Row(
         modifier=width__Dp(emptyModifier(), 80.0),
-        horizontal_arrangement=Arrangement.End(),      # with the parentheses
+        horizontal_arrangement=Arrangement.End,        # no parentheses
         content=lambda scope: Text('X'),
     )
 
-The width matters as much as the parentheses: a row wraps its content, so with no width constraint
+Since upstream's `46be0212` a static getter is evaluated on attribute access, so `Arrangement.End()`
+raises `TypeError` -- the value is not callable. The imports are the Kotlin names for the reason
+`alignment.py` gives.
+
+The width matters as much as the spelling: a row wraps its content, so with no width constraint
 there is no spare space and every arrangement puts the child in the same place. Upstream's proof
 passed for that wrong reason once, before its opposite-end control caught it.
 """

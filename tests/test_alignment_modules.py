@@ -1,4 +1,4 @@
-"""`alignment.py` / `arrangement.py` -- loadable now, and still unbound.
+"""`alignment.py` / `arrangement.py` -- loadable, and documenting constants the layer now binds.
 
 Both files carried Chaquopy-era code that could not run: `from java import jclass` at module
 level, in a project whose bridge is not Chaquopy. Importing either one raised before a single
@@ -8,10 +8,9 @@ could reach anyway.
 Two things are asserted, and they are separate on purpose:
 
 1. **They load.** Importing them by path no longer raises. That is what changed.
-2. **They are still unbound.** No `jclass` survives in executable tokens, and the classes carry
-   no constants -- because the artefact scanner binds top-level functions and value-class
-   constructors, and `Alignment.Center` / `Arrangement.SpaceBetween` are neither. When that
-   changes upstream, this test fails and these files get real contents.
+2. **The layer supplies them.** No `jclass` survives in executable tokens and no placeholder class
+   remains: upstream's scanner binds companion constants (`80318c16`) and reads them as attributes
+   (`46be0212`), so these files only document the names and the spelling.
 
 Tokens are checked rather than raw text, so a mention inside the docstring that explains the
 history does not count as surviving code -- the same distinction `test_ui_init_module.py` makes.
@@ -75,7 +74,7 @@ class TheLayerSuppliesThemNow(unittest.TestCase):
     -- the layer produces the names and this package's rule is not to wrap what the layer produces.
 
     What stays asserted is what a caller cannot read off the layer: which names exist, and that they
-    are called rather than read.
+    are read as attributes -- `46be0212` made the parenthesised form a `TypeError`.
     """
 
     ALIGNMENT = (
@@ -103,13 +102,27 @@ class TheLayerSuppliesThemNow(unittest.TestCase):
                 with self.subTest(module=name, constant=constant):
                     self.assertIn(constant, doc, f"{name} does not name {constant}")
 
-    def test_each_module_says_the_constants_are_called(self) -> None:
-        """Reading one without calling it passes the function object and the dispatcher refuses it."""
+    def test_each_module_says_the_constants_are_read_not_called(self) -> None:
+        """Upstream `46be0212`: a static getter is a value on attribute access; calling it raises."""
+        call_form = {"alignment": "Alignment.Center()", "arrangement": "Arrangement.End()"}
+        read_form = {"alignment": "Alignment.Center ", "arrangement": "Arrangement.End,"}
+        for name, path in MODULES.items():
+            text = path.read_text()
+            with self.subTest(module=name):
+                self.assertIn(read_form[name], text, f"{name} does not show the attribute form")
+                self.assertIn("no parentheses", text, f"{name} does not say to drop them")
+                self.assertIn("TypeError", text, f"{name} does not say what the call form does now")
+                code = [line for line in text.splitlines() if line.startswith("    ")]
+                self.assertFalse(any(call_form[name] in line for line in code),
+                                 f"{name} still prescribes the call form in an example")
+
+    def test_examples_import_the_kotlin_names(self) -> None:
+        """The binder no longer re-exports under `pythonx.*`; an example importing that would not resolve."""
         for name, path in MODULES.items():
             with self.subTest(module=name):
-                self.assertIn("()", path.read_text(), f"{name} does not show the call form")
-                self.assertIn("parentheses", path.read_text(), f"{name} does not say why")
-
+                text = path.read_text()
+                self.assertIn("from androidx.compose.", text)
+                self.assertNotRegex(text, r"(?m)^\s+from pythonx\.compose")
 
 if __name__ == "__main__":
     unittest.main()
