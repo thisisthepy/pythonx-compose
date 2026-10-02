@@ -47,18 +47,18 @@ python3 -m pytest tests -q
 
 ### 마일스톤
 
-GitHub 마일스톤과 같은 내용이다. 날짜는 2026-10-03 에 정했다.
+GitHub 마일스톤과 같은 내용이다. 날짜는 2026-10-03 에 정했고, 같은 날 M2·M3 를 1주 앞당겼다(아래 M2 근거).
 
 | 마일스톤 | 목표일 | 범위 | 완료 기준 | 이슈 |
 |---|---|---|---|---|
 | M1 실제 `pythonx` 패키지와 규칙 기반 재노출 | 2026-10-16 | SPEC §3, S4.1, S6 | 실패 37개 통과(체크아웃 있을 때), 가짜 `pythonx` 를 전제한 테스트 없음, 규칙을 끄면 테스트가 실패 | #7, #8 |
-| M2 `UI.ipynb` 위젯 동작 | 2026-11-13 | SPEC S5.2, S5.3, §7, §8 | 노트북이 쓰는 위젯마다 PythonMultiplatform 렌더 증거, TextField 의 IME 조합 보존, INTENT §4 열린 질문 결정 | #9, #10, #11 |
-| M3 pip 설치 가능한 `pythonx-compose` | 2026-11-27 | SPEC S1.1, S1.2 | wheel 을 빌드해 `.pyi`·`py.typed`·`pythonx-map.toml` 이 들어 있음을 확인하는 테스트, 스텁과 런타임 시그니처 일치 | #12, #13 |
+| M2 `UI.ipynb` 위젯 동작 | 2026-11-06 | SPEC S5.2, S5.3, §7, §8, INTENT §5 | 노트북이 쓰는 위젯마다 PythonMultiplatform 렌더 증거, TextField 의 IME 조합 보존, 선언형 앱 루트(갱신 함수 없음)로 셀에서 다시 정의한 화면이 반영됨 | #9, #10, #11 |
+| M3 pip 설치 가능한 `pythonx-compose` | 2026-11-20 | SPEC S1.1, S1.2 | wheel 을 빌드해 `.pyi`·`py.typed`·`pythonx-map.toml` 이 들어 있음을 확인하는 테스트, 스텁과 런타임 시그니처 일치 | #12, #13 |
 
 날짜 근거:
 
 - **M1 (2주):** 바인더 계약(`inspect.signature`, `python_multiplatform.describe`)이 PythonMultiplatform `d00f413f` 에 착지했다. 남은 일은 이 저장소의 순수 Python 과 가짜 호스트 하네스뿐이라 JVM 빌드가 필요 없다.
-- **M2 (M1 뒤 4주):** 위젯마다 JVM 렌더 테스트가 필요하다. 그런데 `~/.gradle`·`~/.konan` 링크가 끊긴 상태이고, Compose 1.11 의 `TextFieldState` 확인이 남아 있으며, INTENT §4 질문 세 개는 메인테이너가 결정해야 한다.
+- **M2 (M1 뒤 3주):** 위젯마다 JVM 렌더 테스트가 필요하다. 처음엔 Gradle 캐시 링크가 끊겼다고 보고 4주로 잡았으나, 캐시는 `PythonMultiplatform/.caches` 로 다시 걸려 Compose 픽스처가 통과하고 있었고, 노트북 관련 질문도 INTENT §5 로 결정됐다. 남은 위험은 Compose 1.11 의 `TextFieldState` 확인과, 앱 루트 교체를 Kotlin 컴포지션이 관찰하는 진입점(바인더 몫일 수 있음)이다.
 - **M3 (M2 뒤 2주):** 스텁은 M1 규칙만 있으면 만들 수 있어 M2 와 겹쳐 진행할 수 있다. 다만 노트북 위젯의 최종 이름이 M2 에서 정해지므로 마감은 M2 뒤로 둔다.
 
 ## 4. 구조
@@ -105,23 +105,25 @@ python3 tools/check_guide.py                     # 가이드: HTML 파싱, 링�
 
 1. **`test/` 디렉터리** — 2023–2024 Kotlin Multiplatform 샘플. 유지 / 이동 / 삭제 중 무엇인지.
    결정 전까지 손대지 않는다.
-2. **현재 코드·테스트가 반대 구조를 전제한다.** `runtime/__init__.py`, `ui/__init__.py`,
-   `ui/modifier.py` 의 독스트링과 `test_runtime_module.py`·`test_ui_init_module.py` 의 4 개 테스트가
-   "합성된 `pythonx`(`__path__ = []`) 때문에 디스크 파일을 import 할 수 없다" 를 전제·단언한다.
-   사용자 지시(실제 패키지)와 충돌하므로 재작성 대상이다.
-3. **`main.App` / `App.update`** — 노트북의 라이브 앱 객체를 이 패키지가 제공하는지.
-4. **`Column`·`Row`·`Spacer` 의 import 위치** — 노트북은 `material3`, Kotlin 은 `foundation.layout`.
-5. **노트북식 편의 표기** — 소문자 `modifier` 인스턴스, `DefaultIcons`, ARGB 정수 색,
+2. **노트북식 편의 표기** — 소문자 `modifier` 인스턴스, `DefaultIcons`, ARGB 정수 색,
    `Spacer(start=..., top=...)`.
-6. **정렬 상수의 묶음 표기** — 노트북은 `Alignment.Horizontal.End`, Kotlin·바인더는 평평한
-   `Alignment.End`. 재노출 때 묶음을 둘지 미정. (호출이냐 읽기냐는 확정: 괄호 없이 읽는다.)
-7. **`pythonx/compose/lite/release/`** 의 Windows 바이너리·jar 97 개와 빈 `material3/*.py` 28 개,
+3. **`pythonx/compose/lite/release/`** 의 Windows 바이너리·jar 97 개와 빈 `material3/*.py` 28 개,
    서브모듈 `native` 의 처리.
-8. **`pythonx-map.toml` 의 이중 표기** — `pythonx.compose.layout` 과
+4. **`pythonx-map.toml` 의 이중 표기** — `pythonx.compose.layout` 과
    `pythonx.compose.foundation.layout` 를 둘 다 유지할지.
-9. **릴리스·Pages 활성화** — `tools/release/` 와 `.github/workflows/`(release-sync, main-source-guard,
+5. **릴리스·Pages 활성화** — `tools/release/` 와 `.github/workflows/`(release-sync, main-source-guard,
    pages)는 들어와 있다. 실제로 돌려면 원격 푸시, `RELEASE_PR_TOKEN` 시크릿, main 보호 적용이
    필요하고, 셋 다 메인테이너 승인 사항이다.
+
+### 결정됨 (2026-10-03, `docs/INTENT.md` §5)
+
+- **선언형 앱 루트, 갱신 함수 없음.** 노트북의 `main.App.update(...)`·`getValue()`/`setValue()` 는
+  당시 구현의 제약이었다. 루트는 선언하고 다시 정의하면 화면이 따라가며, 상태는 Compose 상태 모델을
+  따른다(#11).
+- **`Column`·`Row`·`Spacer`** 는 `pythonx.compose.material3` 와 `pythonx.compose.layout` 양쪽에서
+  import 된다.
+- **정렬 상수** 는 `Alignment.End` 와 `Alignment.Horizontal.End` 둘 다 지원한다.
+- 합성된 `pythonx` 를 전제한 테스트·독스트링은 #7 에서 정리했다.
 
 ## 8. 관련 저장소
 

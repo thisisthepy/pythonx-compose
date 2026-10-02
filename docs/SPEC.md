@@ -198,9 +198,8 @@ raises `TypeError`; the notebook writes the same attribute form. Both modules sh
 `androidx.compose.*` imports, since nothing re-exports these under `pythonx.*` yet (§3), and the
 test checks the attribute form is shown and the call form is not prescribed.
 
-Still open: the notebook groups horizontal and vertical alignments under the interface
-(`Alignment.Horizontal.End`), where Kotlin has a flat `Alignment.End` typed `Alignment.Horizontal`.
-Whether the re-export adds that grouping is a §3 design question (see "Outside intent" §6).
+Decided (INTENT §5.3): the re-export serves both Kotlin's flat `Alignment.End` and the notebook's
+grouping by type, `Alignment.Horizontal.End`. Not built yet (issue #9).
 
 ## 8. The notebook surface not yet covered — `planned`
 
@@ -208,13 +207,13 @@ Whether the re-export adds that grouping is a §3 design question (see "Outside 
 
 | Name | Notebook use | Note |
 |---|---|---|
-| `remember_saveable` | imported from `pythonx.compose.runtime`; state read/written with `getValue()` / `setValue()` | |
+| `remember_saveable` | imported from `pythonx.compose.runtime`; state read/written with `getValue()` / `setValue()` | INTENT §5.1: Pythonic attribute access instead of the accessors |
 | `DefaultCoroutineScope`, `MainCoroutineScope` | imported from `pythonx.compose.runtime` | |
 | `DefaultIcons` | `DefaultIcons.Add()` | needs `Icon` (S5.3) |
-| `modifier` | lower-case instance from `pythonx.compose.ui` | INTENT §4 open question 3 |
-| `Column`, `Row`, `Spacer` | imported from `pythonx.compose.material3` | Kotlin has them in `foundation.layout`; INTENT §4 question 2 |
+| `modifier` | lower-case instance from `pythonx.compose.ui` | INTENT §4 open question 1 |
+| `Column`, `Row`, `Spacer` | imported from `pythonx.compose.material3` | INTENT §5.2: served from both `material3` and `layout` |
 | `Card`, `Button`, `Text`, `TextField` | as above | S5.2 |
-| `main.App`, `App.update(...)` | live screen replacement from a cell | INTENT §4 question 1 |
+| `main.App`, `App.update(...)` | live screen replacement from a cell | INTENT §5.1: a declared root that a redefinition replaces, no update function (issue #11) |
 
 ## 9. Repository hygiene (not behaviour)
 
@@ -247,12 +246,9 @@ Found in the repository; not covered by `docs/INTENT.md`, or in conflict with it
 5. **A removed mechanism kept as a record.** `material3/icon.py` and `color_scheme.py` still import
    `androidx.compose.material3.IconKt` and scan for mangled JVM names (`"Icon-"`), the reflection
    approach INTENT §3 excludes.
-6. **Grouped alignment constants.** The notebook writes `Alignment.Horizontal.End` and
-   `Alignment.Vertical.Top`; Kotlin and the binder expose flat `Alignment.End` / `Alignment.Top`.
-   Whether `pythonx.compose.ui.Alignment` adds the grouping is undecided (§7). (Call versus read
-   is settled: read.)
+6. *(Decided, INTENT §5.3.)* Grouped alignment constants: both spellings are served (§7).
 7. **28 empty `material3/*.py` files** (`checkbox.py`, `switch.py`, `scaffold.py`, ...), and the
    submodule `pythonx/compose/native` → `thisisthepy/swing-graalvm-demo`, which INTENT does not
    mention.
 8. **The `test/` directory** — a 2023–2024 Kotlin Multiplatform sample (`pycomposeui`, chaquopy
-   era). Kept as-is pending the maintainer's decision (INTENT §4).
+   era). Kept as-is pending the maintainer's decision (INTENT §4.2).
