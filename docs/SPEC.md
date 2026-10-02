@@ -20,16 +20,16 @@ Run from a worktree with `python3 -m pytest tests -q` (pytest 8, CPython 3.13):
 
 | Environment | Result |
 |---|---|
-| No `PythonMultiplatform` checkout found | **50 passed, 47 skipped**, 66 subtests passed |
-| python-multiplatform `develop` at `ba4c6f49` or later (has `add_member_resolver`) | **97 passed**, 72 subtests passed |
-| an older checkout, without `add_member_resolver` | **92 passed, 5 skipped**, 72 subtests passed |
+| No `PythonMultiplatform` checkout found | **51 passed, 47 skipped**, 66 subtests passed |
+| python-multiplatform `develop` at `ba4c6f49` or later (has `add_member_resolver`) | **98 passed**, 72 subtests passed |
+| an older checkout, without `add_member_resolver` | the same, with 5 of them skipped |
 
 Without a checkout, the 47 tests that install the binder's layers through `tests/adapter.py` skip.
 Against a binder older than `ba4c6f49`, the 5 that call a snake_case method on a proxy the binder
 returned skip, because that needs its member resolver (python-multiplatform #17). A skip is not a
 pass.
 
-Of the 50 that pass without a checkout, most assert **absence** (a retired token, a deleted file, a docstring that
+Of the 51 that pass without a checkout, most assert **absence** (a retired token, a deleted file, a docstring that
 exists). Those are listed in §9 and are not counted as features.
 
 ---
@@ -58,7 +58,8 @@ and the name the interpreter resolves cannot drift.
   overload set also gets `@overload`s of its base name; a package's own definitions
   (`runtime.Composable`) are carried over. `tests/test_stubs.py` converts a fixture holding the fake
   host's declarations and checks each stub signature against `inspect.signature` at run time.
-  Disabling the parameter rename fails 2 tests, the overloads 1, the name rule 3.
+  Overloads come fewest parameters first, because a type checker takes the first match. Disabling
+  the parameter rename fails 2 tests, the overloads 1, the name rule 3, the ordering 1.
 - Not yet true: no stub is generated from real Compose and none ships, and there is no `py.typed`.
   That needs the Kotlin-named stubs for Compose 1.11.1 from python-multiplatform, and object types
   better than `int` for completion to be useful (issue #12).
