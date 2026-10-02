@@ -128,6 +128,14 @@ class TheChain(AdapterCase):
             "padding(16.0) -> size(24.0) -> fillMaxWidth", self.describe(chained)
         )
 
+    def test_a_resolved_snake_case_method_leaves_the_binders_class_kotlin_named(self):
+        """The alias lives in the binder's resolver registry, not on its proxy class."""
+        self.needs_member_resolver()
+        modifier = self.empty().fill_max_width()
+        self.assertEqual("fillMaxWidth", self.describe(modifier))
+        self.assertNotIn("fill_max_width", vars(type(modifier)))
+        self.assertNotIn("fill_max_width", dir(type(modifier)))
+
     def test_each_link_is_a_new_receiver_not_a_mutation(self):
         base = self.empty().padding(8)
         left = base.size(1)

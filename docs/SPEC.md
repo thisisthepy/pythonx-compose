@@ -20,12 +20,14 @@ Run from a worktree with `python3 -m pytest tests -q` (pytest 8, CPython 3.13):
 
 | Environment | Result |
 |---|---|
-| No `PythonMultiplatform` checkout found | **50 passed, 46 skipped**, 66 subtests passed |
-| `PYTHONMULTIPLATFORM_HOME` → the `PythonMultiplatform` checkout | **92 passed, 4 skipped**, 72 subtests passed |
+| No `PythonMultiplatform` checkout found | **50 passed, 47 skipped**, 66 subtests passed |
+| python-multiplatform `develop` at `ba4c6f49` or later (has `add_member_resolver`) | **97 passed**, 72 subtests passed |
+| an older checkout, without `add_member_resolver` | **92 passed, 5 skipped**, 72 subtests passed |
 
-Without a checkout, the 46 tests that install the binder's layers through `tests/adapter.py` skip.
-With one, all pass except 4 that skip because they call a camelCase extension on a binder proxy by
-its snake_case name, which needs python-multiplatform #17 (§3). A skip is not a pass.
+Without a checkout, the 47 tests that install the binder's layers through `tests/adapter.py` skip.
+Against a binder older than `ba4c6f49`, the 5 that call a snake_case method on a proxy the binder
+returned skip, because that needs its member resolver (python-multiplatform #17). A skip is not a
+pass.
 
 Of the 50 that pass without a checkout, most assert **absence** (a retired token, a deleted file, a docstring that
 exists). Those are listed in §9 and are not counted as features.
@@ -107,14 +109,16 @@ Evidence: `tests/test_runtime_module.py::TheModuleIsTheFileOnDisk`,
 real Python and the fake host. Disabling the name rule fails 15 tests, the keyword mapping 1, the
 allowlist priming 12.
 
-Not covered by this: **methods on a proxy the binder returned** (`m.fill_max_width()`). Those are
-attributes of the binder's own class, which this package can only reach through the member-resolver
-hook python-multiplatform #17 adds; until then a camelCase extension is reachable on a proxy only by
-its Kotlin name, and four tests skip (S4.1, S6.1, S6.4).
+Methods on a proxy the binder returned (`m.fill_max_width()`) are attributes of the binder's own
+class. The same rule reaches them as the binder's member resolver (`member_name`, registered through
+`python_multiplatform.binding.add_member_resolver`, python-multiplatform `ba4c6f49`); the binder
+caches the alias in its own registry, so its class keeps Kotlin names in `dir()` (issue #20).
+Keyword arguments to such a method are still Kotlin's own (`m.padding(paddingValues=...)`): the
+resolver maps names, not keywords.
 
 ## 4. Naming
 
-### S4.1 Kotlin parameters, `snake_case` — `partial`
+### S4.1 Kotlin parameters, `snake_case` — `partial` (method keywords)
 
 `onClick` → `on_click`, `fillMaxWidth` → `fill_max_width`, `zIndex` → `z_index`,
 `toURLString` → `to_url_string`; type names (`Modifier`) unchanged; an explicit overload keeps its
@@ -122,8 +126,9 @@ type suffix (`padding__Dp_Dp`); a name the reverse rule cannot invert still reso
 rule is only ever applied forward to the module's real names; the camelCase spelling is not a second
 name.
 
-Implemented for module-level names and keywords (`tests/test_chain.py::Names`, 8 tests). Partial
-because receiver methods on a binder proxy need python-multiplatform #17 (§3, issue #20).
+Implemented for module-level names and keywords and for method names on a binder proxy
+(`tests/test_chain.py::Names`, 8 tests; `TheChain`). Partial because a method's keyword arguments are
+still Kotlin's (§3).
 
 ### S4.2 The notebook's spellings are examples, not the contract — `implemented` as a rule
 
@@ -167,16 +172,16 @@ the two colour-scheme factories take 36 `Color` parameters. The notebook uses `I
 
 ## 6. Modifiers — extension functions as methods
 
-### S6.1 `Modifier` extensions are methods on the receiver proxy — `partial`
+### S6.1 `Modifier` extensions are methods on the receiver proxy — `implemented`
 
 `Modifier.padding(16).size(24)` chains; each link returns a new receiver; an unbound name raises
 `AttributeError` naming where it looked; the class-object spelling without a registered empty
 factory raises `TypeError` naming `register_empty`; `pythonx.compose.ui.Modifier` is the binder's
 proxy class itself.
 
-Evidence: `tests/test_chain.py::TheChain` (6 tests, 1 skipped) and
-`tests/test_modifier_module.py::TheModifierSeam` (5 tests). Partial because a camelCase extension
-(`fill_max_width`) on a proxy waits for python-multiplatform #17.
+Evidence: `tests/test_chain.py::TheChain` (8 tests) and
+`tests/test_modifier_module.py::TheModifierSeam` (5 tests), against python-multiplatform `ba4c6f49`.
+A snake_case method resolved through the member rule leaves the binder's class Kotlin-named.
 
 ### S6.2 The empty-`Modifier` seam — `partial`
 
@@ -195,14 +200,13 @@ declared type; a non-match names the candidates; an explicit overload spelling (
 bypasses dispatch; the module function takes snake_case keywords. Evidence:
 `tests/test_chain.py::OverloadDispatch` (7 tests). Status: `implemented`.
 
-### S6.4 Value classes — `partial`
+### S6.4 Value classes — `implemented`
 
 A raw number is accepted for a `Dp` parameter; a `Dp` value is accepted too; a plain `Float`
 parameter is not treated as a value class; a packed value class (`TextUnit`) refuses a raw number and
 says why; the allow-list can be extended at run time. The allow-list itself is the manifest's
 (S2, implemented) and reaches the binder when a `pythonx.compose` module first resolves a name.
-Runtime evidence: `tests/test_chain.py::ValueClasses` (6 tests, 3 skipped until python-multiplatform
-#17, because they call camelCase extensions on a proxy).
+Runtime evidence: `tests/test_chain.py::ValueClasses` (6 tests).
 
 ### S6.5 Lazy resolution and handle lifetime — `implemented`
 

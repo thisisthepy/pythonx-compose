@@ -23,6 +23,9 @@ and every name in it then resolves against the Kotlin package `pythonx-map.toml`
   defaults stay `python_multiplatform.KOTLIN_DEFAULT`.
 - **Value classes.** The manifest's `raw-primitive-allowed` list is handed to the binder once per
   installed binding layer, so `padding(16)` reaches a `Dp` parameter.
+- **Methods on a proxy.** The same name rule is registered as the binder's member resolver, so
+  `Modifier.padding(16).fill_max_width()` reaches `fillMaxWidth` on a proxy Kotlin returned. The
+  binder caches the alias in its own registry; its proxy classes keep Kotlin names in `dir()`.
 
 Nothing here names a Kotlin declaration. Names defined in the package's own `__init__.py` (such as
 `runtime.Composable`) are ordinary module attributes and win, because `__getattr__` only runs for a
@@ -97,12 +100,30 @@ def binding_layer():
 _PRIMED = weakref.WeakSet()
 
 
+def member_name(kotlin_type_name: str, requested: str, kotlin_member_names) -> str | None:
+    """The binder's member-resolver hook: the Kotlin member a Pythonic name means on a proxy.
+
+    The binder asks this only for a name its proxy has no Kotlin member of
+    (`python_multiplatform.binding.add_member_resolver`). The rule is the module rule, applied
+    forward to the proxy's real member names: `fill_max_width` finds `fillMaxWidth`.
+    """
+    matches = [name for name in kotlin_member_names if python_name(name) == requested]
+    return matches[0] if len(matches) == 1 else None
+
+
 def _prime(binding) -> None:
-    """Hand the manifest's value-class allowlist to this binding layer, once per layer."""
+    """Hand this binding layer the manifest's value-class allowlist and the member rule, once.
+
+    The member rule needs python-multiplatform's `add_member_resolver`; on a binder without it,
+    methods on a returned proxy stay reachable by their Kotlin names only.
+    """
     if binding in _PRIMED:
         return
     for kotlin_type in manifest().get("value-classes", {}).get("raw-primitive-allowed", ()):
         binding.allow_raw_primitive(kotlin_type)
+    add_member_resolver = getattr(binding, "add_member_resolver", None)
+    if add_member_resolver is not None:
+        add_member_resolver(member_name)
     _PRIMED.add(binding)
 
 
