@@ -76,6 +76,21 @@ class TestEveryNotebookImportIsMapped(unittest.TestCase):
         )
 
 
+class TestAliasSection(unittest.TestCase):
+    def test_every_alias_points_between_mapped_modules(self) -> None:
+        manifest = _manifest()
+        modules = manifest["modules"]
+        for owner, sources in manifest.get("aliases", {}).items():
+            with self.subTest(owner=owner):
+                self.assertIn(owner, modules)
+                for source in sources:
+                    self.assertIn(source, modules)
+
+    def test_material3_answers_for_the_layout_composables_the_notebook_imports(self) -> None:
+        aliases = _manifest()["aliases"]["pythonx.compose.material3"]["pythonx.compose.layout"]
+        self.assertEqual(["Column", "Row", "Spacer"], aliases)
+
+
 class TestValueClassSection(unittest.TestCase):
     def test_dp_is_allowed_and_packed_classes_are_not(self) -> None:
         allowed = _manifest()["value-classes"]["raw-primitive-allowed"]

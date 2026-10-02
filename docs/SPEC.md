@@ -20,16 +20,16 @@ Run from a worktree with `python3 -m pytest tests -q` (pytest 8, CPython 3.13):
 
 | Environment | Result |
 |---|---|
-| No `PythonMultiplatform` checkout found | **51 passed, 53 skipped**, 66 subtests passed |
-| python-multiplatform `develop` at `ba4c6f49` or later (has `add_member_resolver`) | **104 passed**, 72 subtests passed |
+| No `PythonMultiplatform` checkout found | **55 passed, 56 skipped**, 67 subtests passed |
+| python-multiplatform `develop` at `ba4c6f49` or later (has `add_member_resolver`) | **111 passed**, 73 subtests passed |
 | an older checkout, without `add_member_resolver` | the same, with 5 of them skipped |
 
-Without a checkout, the 53 tests that install the binder's layers through `tests/adapter.py` skip.
+Without a checkout, the 56 tests that install the binder's layers through `tests/adapter.py` skip.
 Against a binder older than `ba4c6f49`, the 5 that call a snake_case method on a proxy the binder
 returned skip, because that needs its member resolver (python-multiplatform #17). A skip is not a
 pass.
 
-Of the 51 that pass without a checkout, most assert **absence** (a retired token, a deleted file, a docstring that
+Of the 55 that pass without a checkout, most assert **absence** (a retired token, a deleted file, a docstring that
 exists). Those are listed in §9 and are not counted as features.
 
 ---
@@ -248,7 +248,7 @@ name)` (python-multiplatform #36; issue #9).
 | `DefaultCoroutineScope`, `MainCoroutineScope` | imported from `pythonx.compose.runtime` | |
 | `DefaultIcons` | `DefaultIcons.Add()` | needs `Icon` (S5.3) |
 | `modifier` | lower-case instance from `pythonx.compose.ui` | INTENT §4 open question 1 |
-| `Column`, `Row`, `Spacer` | imported from `pythonx.compose.material3` | INTENT §5.2: served from both `material3` and `layout` |
+| `Column`, `Row`, `Spacer` | imported from `pythonx.compose.material3` | INTENT §5.2: served from both, by the manifest's `[aliases]` (`tests/test_chain.py::ManifestAliases`); render proof pending (#9) |
 | `Card`, `Button`, `Text`, `TextField` | as above | S5.2 |
 | `main.App`, `App.update(...)` | live screen replacement from a cell | INTENT §5.1: a declared root that a redefinition replaces, no update function (issue #11) |
 
@@ -283,7 +283,10 @@ Found in the repository; not covered by `docs/INTENT.md`, or in conflict with it
 5. **A removed mechanism kept as a record.** `material3/icon.py` and `color_scheme.py` still import
    `androidx.compose.material3.IconKt` and scan for mangled JVM names (`"Icon-"`), the reflection
    approach INTENT §3 excludes.
-6. *(Decided, INTENT §5.3.)* Grouped alignment constants: both spellings are served (§7).
+   The package no longer imports them: star-importing them made `import pythonx.compose.material3`
+   fail wherever `androidx.compose.material3` was not bound, and shadowed the binder's `Icon`.
+   Whether the files stay is still open.
+6. *(Decided, INTENT §5.3.)* Grouped alignment constants: both spellings are to be served; the grouped one is not built yet (§7).
 7. **28 empty `material3/*.py` files** (`checkbox.py`, `switch.py`, `scaffold.py`, ...), and the
    submodule `pythonx/compose/native` → `thisisthepy/swing-graalvm-demo`, which INTENT does not
    mention.

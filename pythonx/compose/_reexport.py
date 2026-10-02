@@ -27,6 +27,10 @@ and every name in it then resolves against the Kotlin package `pythonx-map.toml`
   `Modifier.padding(16).fill_max_width()` reaches `fillMaxWidth` on a proxy Kotlin returned. The
   binder caches the alias in its own registry; its proxy classes keep Kotlin names in `dir()`.
 
+A module may also answer for names the manifest's `[aliases]` section lends it from another mapped
+module (`material3` answers for `Column`, `Row`, `Spacer` from `layout`, as the notebook imports
+them); the object is the same one either way.
+
 Nothing here names a Kotlin declaration. Names defined in the package's own `__init__.py` (such as
 `runtime.Composable`) are ordinary module attributes and win, because `__getattr__` only runs for a
 name the module does not already have.
@@ -276,6 +280,15 @@ class KotlinObject:
         return f"<pythonx view of Kotlin object {self._kotlin.__name__}>"
 
 
+def _aliases(module_name: str) -> dict:
+    """Name -> the `pythonx.compose` module it is borrowed from, per the manifest's `[aliases]`."""
+    borrowed = {}
+    for source, names in manifest().get("aliases", {}).get(module_name, {}).items():
+        for name in names:
+            borrowed[name] = source
+    return borrowed
+
+
 def reexport(module_name: str):
     """The module-level `__getattr__` and `__dir__` for the mapped package `module_name`.
 
@@ -286,7 +299,17 @@ def reexport(module_name: str):
     def __getattr__(name):
         if name.startswith("__") and name.endswith("__"):
             raise AttributeError(name)
-        kotlin = kotlin_module(module_name)
+        source = _aliases(module_name).get(name)
+        if source is not None:
+            value = getattr(importlib.import_module(source), name)
+            setattr(sys.modules[module_name], name, value)
+            return value
+        try:
+            kotlin = kotlin_module(module_name)
+        except ImportError as missing:
+            raise AttributeError(
+                f"module {module_name!r} has no attribute {name!r} ({missing})"
+            ) from missing
         resolved = _resolve(kotlin, name)
         if resolved is None:
             raise AttributeError(
@@ -299,7 +322,7 @@ def reexport(module_name: str):
         return value
 
     def __dir__():
-        own = set(vars(sys.modules[module_name]))
+        own = set(vars(sys.modules[module_name])) | set(_aliases(module_name))
         try:
             own.update(_name_table(kotlin_module(module_name)))
         except (RuntimeError, ImportError):

@@ -267,6 +267,14 @@ class FakeHost:
             "STRING", "kotlin.String", False, None, (False,),
             lambda args: "url:" + args[0],
         )
+        for layout_composable in ("Column", "Row", "Spacer"):
+            # Shape only: the notebook imports these from material3 and Kotlin declares them in
+            # foundation.layout. Nothing here composes; the tests check which object a name reaches.
+            self._add(
+                f"androidx.compose.foundation.layout.{layout_composable}", 1, ("modifier",),
+                ("OBJECT",), (MODIFIER,), "UNIT", "kotlin.Unit", False, None, (True,),
+                lambda args: None,
+            )
         # Object constants, the way `ArtifactScanner.constantsOf` binds them: a `STATIC_GETTER` with no
         # parameters, named `<package>.<Object>.<Constant>`, returning the constant's declared type.
         for constant, declared in (

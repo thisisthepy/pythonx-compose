@@ -1,6 +1,8 @@
-# Hand-written fallback wrappers for declarations unreachable through adaptation layer alone
-from .color_scheme import *
-from .icon import *
+# `icon.py` and `color_scheme.py` are records, not part of this package's surface, and are not
+# imported here. Star-importing them made `import pythonx.compose.material3` import
+# `androidx.compose.material3` at load time -- failing wherever that Kotlin package is not bound --
+# and put their dead `Icon` / `ColorScheme` classes in front of the binder's real ones, which the
+# re-export rule below serves. Whether the two files stay is an open question (SPEC, Outside intent 5).
 
 
 # `Text` is not here. `pythonx.compose.material3.Text` is a walked declaration -- the adaptation
