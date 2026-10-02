@@ -37,7 +37,7 @@ r.lang=l;if(t==='dark'||t==='light'){r.setAttribute('data-theme',t);}})();</scri
 <pre><code class="language-bash">git clone https://github.com/thisisthepy/pythonx-compose
 cd pythonx-compose
 python3 -m venv .venv &amp;&amp; . .venv/bin/activate
-python3 -m pip install pytest</code></pre>
+python3 -m pip install pytest      # Python 3.11 or later</code></pre>
 </section>
 
 <section>
@@ -66,25 +66,42 @@ with open(&quot;pythonx/compose/pythonx-map.toml&quot;, &quot;rb&quot;) as f:
 
 manifest[&quot;modules&quot;][&quot;pythonx.compose.layout&quot;]
 # &#x27;androidx.compose.foundation.layout&#x27;</code></pre>
+<p data-lang="en">The naming rule itself needs no binder either:</p><p data-lang="ko">이름 규칙 자체도 바인더 없이 동작합니다:</p>
+<pre><code class="language-python">from pythonx.compose._reexport import python_name
+
+python_name(&quot;fillMaxWidth&quot;)   # &#x27;fill_max_width&#x27;
+python_name(&quot;toURLString&quot;)    # &#x27;to_url_string&#x27;
+python_name(&quot;padding__Dp&quot;)    # &#x27;padding__Dp&#x27;  (an explicit overload keeps its suffix)
+python_name(&quot;Modifier&quot;)       # &#x27;Modifier&#x27;     (upper-case names keep their spelling)</code></pre>
+<p data-lang="en">Every mapped module imports on its own. Reading a Compose name from it needs the binder, which the Kotlin host installs; outside an app the error says so:</p><p data-lang="ko">대응된 모듈은 모두 그 자체로 import 됩니다. 그 모듈에서 Compose 이름을 읽으려면 Kotlin 호스트가 설치하는 바인더가 필요하며, 앱 밖에서는 오류가 그 사실을 알려 줍니다:</p>
+<pre><code class="language-python">import pythonx.compose.material3 as material3   # fine: a real file on disk
+
+material3.Text
+# RuntimeError: the python-multiplatform binding layer is not installed:
+# the Kotlin host must run PythonxAdapter.install() before pythonx.compose
+# can resolve a Kotlin declaration</code></pre>
 </section>
 
 <section>
-<h2><span data-lang="en">4. What you will write</span><span data-lang="ko">4. 앞으로 쓰게 될 코드</span></h2>
-<p data-lang="en">Once the package re-exports the bound Compose modules, a screen looks like this — every parameter is Compose's own:</p><p data-lang="ko">패키지가 바인딩된 Compose 모듈을 재노출하면, 화면은 이렇게 됩니다 — 모든 매개변수는 Compose 자신의 것입니다:</p>
+<h2><span data-lang="en">4. What you write in an app</span><span data-lang="ko">4. 앱 안에서 쓰는 코드</span></h2>
+<p data-lang="en">Inside an app whose Kotlin host has installed the binder, a screen looks like this — every name and parameter is Compose's own, spelled by the one rule:</p><p data-lang="ko">Kotlin 호스트가 바인더를 설치한 앱 안에서는, 화면이 이렇게 됩니다 — 모든 이름과 매개변수는 Compose 자신의 것이며, 규칙 하나로 표기됩니다:</p>
 <pre><code class="language-python">from pythonx.compose.runtime import Composable
-from pythonx.compose.material3 import Text, Button
-from pythonx.compose.layout import Column
-from pythonx.compose.ui import Modifier
+from pythonx.compose.material3 import Text, Button, Column   # Column also from layout
+from pythonx.compose.layout import Arrangement
+from pythonx.compose.ui import Alignment, Modifier
 
 @Composable
 def Practice():
     Column(
-        modifier=Modifier.padding(16),
+        modifier=Modifier.padding(16).fill_max_width(),
+        vertical_arrangement=Arrangement.spaced_by(8),
+        horizontal_alignment=Alignment.CenterHorizontally,   # read, not called
         content=lambda: (
-            Text(&quot;Hello&quot;, font_size=30),
+            Text(&quot;Hello&quot;),
             Button(on_click=lambda: None, content=lambda: Text(&quot;Press&quot;)),
         ),
     )</code></pre>
+<p data-lang="en">Two things to know. A chain that starts from the class, <code>Modifier.padding(16)</code>, needs the app to register an empty-<code>Modifier</code> factory against real Compose — see <a href="guide-modifiers.html">Modifiers</a>. And the screen above runs inside the app; a declared app root that redefining a screen replaces (issue #11) is planned, not built.</p><p data-lang="ko">알아 둘 것이 두 가지 있습니다. 클래스에서 시작하는 체인 <code>Modifier.padding(16)</code> 은 실제 Compose 에서 앱이 빈 <code>Modifier</code> 팩토리를 등록해야 합니다 — <a href="guide-modifiers.html">모디파이어</a>를 보세요. 그리고 위 화면은 앱 안에서 실행됩니다. 화면을 다시 정의하면 교체되는 선언형 앱 루트(이슈 #11)는 계획 단계이며 아직 만들어지지 않았습니다.</p>
 <div class="pager"><span></span><a href="concepts.html"><span data-lang="en">Concepts</span><span data-lang="ko">개념</span> →</a></div>
 </section>
 </div>

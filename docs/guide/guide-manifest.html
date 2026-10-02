@@ -32,7 +32,7 @@ r.lang=l;if(t==='dark'||t==='light'){r.setAttribute('data-theme',t);}})();</scri
 <div class="wrap doc narrow">
 <section class="flush">
 <p><span class="chip ok"><span data-lang="en">implemented</span><span data-lang="ko">구현</span></span></p>
-<p data-lang="en" class="muted"><code>pythonx-map.toml</code> is implemented and tested (<code>tests/test_pythonx_map.py</code>).</p><p data-lang="ko" class="muted"><code>pythonx-map.toml</code> 은 구현되어 있고 테스트됩니다 (<code>tests/test_pythonx_map.py</code>).</p>
+<p data-lang="en" class="muted"><code>pythonx-map.toml</code> is implemented and tested (<code>tests/test_pythonx_map.py</code>). It lives at <code>pythonx/compose/pythonx-map.toml</code>, inside the package, and ships in the wheel.</p><p data-lang="ko" class="muted"><code>pythonx-map.toml</code> 은 구현되어 있고 테스트됩니다 (<code>tests/test_pythonx_map.py</code>). 패키지 안의 <code>pythonx/compose/pythonx-map.toml</code> 에 있으며 wheel 에 함께 담깁니다.</p>
 </section>
 
 <section>
@@ -41,6 +41,7 @@ r.lang=l;if(t==='dark'||t==='light'){r.setAttribute('data-theme',t);}})();</scri
 &quot;pythonx.compose.material3&quot; = &quot;androidx.compose.material3&quot;
 &quot;pythonx.compose.layout&quot;    = &quot;androidx.compose.foundation.layout&quot;</code></pre>
 <p data-lang="en">The second row is why the mapping is written down rather than derived: it drops <code>foundation.</code> from the middle of the name, which no prefix rule can do.</p><p data-lang="ko">두 번째 줄이 대응을 유도하지 않고 적어 두는 이유입니다: 이름 중간의 <code>foundation.</code> 을 빼는 것은 어떤 접두사 규칙으로도 할 수 없습니다.</p>
+<p data-lang="en">Every row is a real file on disk: a new <code>pythonx.compose.*</code> module gets a row here and an <code>__init__.py</code> that calls <code>reexport(__name__)</code>, in the same change.</p><p data-lang="ko">모든 줄은 디스크에 있는 실제 파일입니다: 새 <code>pythonx.compose.*</code> 모듈은 같은 변경 안에서 여기 한 줄과, <code>reexport(__name__)</code> 를 부르는 <code>__init__.py</code> 를 함께 얻습니다.</p>
 </section>
 
 <section>
@@ -50,6 +51,13 @@ raw-primitive-allowed = [
     &quot;androidx.compose.ui.unit.Dp&quot;,
 ]</code></pre>
 <p data-lang="en">Only add a value class whose constructor is the identity on its number. <code>Color</code> and <code>TextUnit</code> are deliberately absent, and a test fails if they appear.</p><p data-lang="ko">생성자가 숫자에 대한 항등인 값 클래스만 추가합니다. <code>Color</code> 와 <code>TextUnit</code> 은 의도적으로 빠져 있으며, 들어가면 테스트가 실패합니다.</p>
+</section>
+
+<section>
+<h2><span data-lang="en">Lending a name to another module</span><span data-lang="ko">다른 모듈에 이름 빌려주기</span></h2>
+<pre><code class="language-toml">[aliases.&quot;pythonx.compose.material3&quot;]
+&quot;pythonx.compose.layout&quot; = [&quot;Column&quot;, &quot;Row&quot;, &quot;Spacer&quot;]</code></pre>
+<p data-lang="en">The notebook imports <code>Column</code>, <code>Row</code> and <code>Spacer</code> from <code>material3</code>, while Kotlin declares them in the layout package. This section makes <code>material3</code> answer for them too. It is data, not a wrapper: the object is the same one either way, and a name not listed is not borrowed.</p><p data-lang="ko">노트북은 <code>Column</code>, <code>Row</code>, <code>Spacer</code> 를 <code>material3</code> 에서 import 하지만, Kotlin 은 이들을 layout 패키지에 선언합니다. 이 섹션이 <code>material3</code> 도 이 이름들에 답하게 합니다. 래퍼가 아니라 데이터입니다: 어느 쪽에서 가져와도 같은 객체이고, 목록에 없는 이름은 빌려주지 않습니다.</p>
 </section>
 
 <section>

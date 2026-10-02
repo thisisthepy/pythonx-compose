@@ -7,7 +7,7 @@
 **Compose UI 를 파이썬으로 — Compose 의 위젯 그대로, 파이썬다운 이름으로.**
 
 [![License: MIT](https://img.shields.io/badge/license-MIT-7c4dff.svg)](../../LICENSE)
-[![Python](https://img.shields.io/badge/python-3.8%2B-7c4dff.svg)](../../pyproject.toml)
+[![Python](https://img.shields.io/badge/python-3.11%2B-7c4dff.svg)](../../pyproject.toml)
 [![pip](https://img.shields.io/badge/pip-pythonx--compose-7c4dff.svg)](../../pyproject.toml)
 [![Status](https://img.shields.io/badge/status-pre--alpha-lightgrey.svg)](#-현황)
 
@@ -34,19 +34,28 @@ def Greeting():
     Button(on_click=lambda: print("hi"), content=lambda: Text("Hello from Python"))
 ```
 
-<sub>목표로 하는 사용 형태입니다. 지금 동작하는 범위는 [현황](#-현황)을 보세요.</sub>
+<sub>이 이름들은 바인더를 임베딩한 앱 안에서 지금 규칙 하나로 해석됩니다. 위젯별 렌더링 증거는 아직
+대기 중입니다. [현황](#-현황)을 보세요.</sub>
 
 ## ✨ 원칙
 
 - **원래 API, 파이썬다운 이름.** 모든 매개변수는 Compose 자신의 매개변수이고, 이름만 `snake_case`
-  입니다: `onClick` → `on_click`, `horizontalAlignment` → `horizontal_alignment`.
-- **확장 함수는 메서드.** `Modifier.padding(16).size(24)` 가 Kotlin 에서와 똑같이 체이닝됩니다.
+  입니다: `onClick` → `on_click`, `horizontalAlignment` → `horizontal_alignment`. 대문자로 시작하는
+  이름(타입, 객체, 컴포저블)은 Kotlin 표기를 유지하고, 그 밖의 이름은 `snake_case` 로만 접근하며
+  (`fillMaxWidth` → `fill_max_width`, `toURLString` → `to_url_string`), 명시적 오버로드는 접미사를
+  유지합니다(`padding__Dp`).
+- **확장 함수는 메서드.** `Modifier.padding(16).size(24).fill_max_width()` 가 Kotlin 에서와 똑같이
+  체이닝됩니다. 이런 메서드의 키워드 인자는 아직 Kotlin 그대로이며(`m.padding(paddingValues=...)`),
+  모듈 함수는 `padding(m, padding_values=...)` 를 받습니다.
+- **Kotlin 객체는 네임스페이스.** `Alignment.Center`, `Arrangement.End` 는 괄호 없이 읽고, 그 안의
+  함수는 `snake_case` 입니다: `Arrangement.spaced_by(8)`.
 - **`@Composable` 은 그대로.** 화면은 데코레이터가 붙은 파이썬 함수입니다.
 - **실제 패키지.** `pythonx/` 는 `androidx.compose.*` 를 import 해 재구성하는 평범한 파이썬
   소스입니다. 바인더는 아무 이름도 바꾸지 않습니다 — 이름을 바꾸는 것은 이 패키지의 일입니다.
 - **하나의 매니페스트.** [`pythonx-map.toml`](../../pythonx/compose/pythonx-map.toml) 이 어떤 `pythonx.compose.*`
-  모듈이 어떤 Kotlin 패키지에 대응하는지 적습니다. 런타임과 `.pyi` 생성기가 같은 파일을 읽으므로,
-  편집기가 자동완성하는 이름과 인터프리터가 해석하는 이름이 어긋나지 않습니다.
+  모듈이 어떤 Kotlin 패키지에 대응하는지 적습니다. 이 파일은 패키지 안에 있으며 wheel 에 함께
+  담깁니다. 런타임과 `.pyi` 생성기가 같은 파일을 읽으므로, 편집기가 자동완성하는 이름과 인터프리터가
+  해석하는 이름이 어긋나지 않습니다.
 
 ## 🧩 한눈에 보는 구조
 
@@ -56,7 +65,7 @@ flowchart LR
     px --> ax["androidx.compose.*<br/>python-multiplatform 이 Kotlin 이름 그대로 노출"]
     ax --> compose["Jetpack / Compose Multiplatform"]
     map["pythonx-map.toml"] -.-> px
-    map -.-> pyi[".pyi 스텁<br/>(wheel 에 포함)"]
+    map -.-> pyi[".pyi 스텁<br/>(wheel 포함 예정)"]
 ```
 
 | 파이썬 모듈 | Kotlin 패키지 |
@@ -65,6 +74,10 @@ flowchart LR
 | `pythonx.compose.ui` | `androidx.compose.ui` |
 | `pythonx.compose.layout` | `androidx.compose.foundation.layout` |
 | `pythonx.compose.material3` | `androidx.compose.material3` |
+
+각 모듈은 재노출 규칙 하나를 부르는 `__init__.py` 를 가진 실제 파일이며, 이름은 처음 쓸 때
+해석됩니다. `Column`, `Row`, `Spacer` 는 노트북이 쓰는 대로 `pythonx.compose.layout` 뿐 아니라
+`pythonx.compose.material3` 에서도 import 됩니다(매니페스트의 `[aliases]`).
 
 ## 🚀 빠른 시작
 
@@ -103,14 +116,26 @@ manifest["value-classes"]["raw-primitive-allowed"]
 # ['androidx.compose.ui.unit.Dp']   ->  padding(16) 은 padding(16.dp) 를 뜻한다
 ```
 
+```python
+from pythonx.compose._reexport import python_name   # 이름 규칙, 바인더 없이 동작
+
+python_name("fillMaxWidth")   # 'fill_max_width'
+python_name("toURLString")    # 'to_url_string'
+python_name("Modifier")       # 'Modifier'
+```
+
+`pythonx.compose.material3.Text` 같은 Compose 이름을 읽으려면 Kotlin 호스트가 설치하는 바인더가
+필요합니다. 앱 밖에서는 그 사실을 알려 주는 `RuntimeError` 가 납니다.
+
 `Modifier` 체인과 오버로드 디스패치를 검사하는 테스트는 바인더의 적응 계층을 옆에 있는
 [python-multiplatform](https://github.com/thisisthepy/python-multiplatform) 체크아웃(또는
 `PYTHONMULTIPLATFORM_HOME`)에서 읽습니다. 없으면 건너뜁니다.
 
 ## 📦 설치
 
-pip 패키지 **`pythonx-compose`** 로 배포되며, import 패키지 `pythonx.compose` 와 `.pyi` 스텁을
-wheel 안에 담습니다. [python-multiplatform](https://github.com/thisisthepy/python-multiplatform)
+pip 패키지 **`pythonx-compose`**(파이썬 3.11 이상)로 배포되며, import 패키지 `pythonx.compose` 와
+매니페스트를 wheel 안에 담습니다. 실제 Compose 에서 생성한 `.pyi` 스텁과 `py.typed` 는 계획
+단계입니다. [python-multiplatform](https://github.com/thisisthepy/python-multiplatform)
 으로 CPython 을 임베딩한 앱 안에서 동작하며, 단독 데스크톱 툴킷이 아닙니다.
 
 ## 🧪 현황
@@ -119,11 +144,18 @@ wheel 안에 담습니다. [python-multiplatform](https://github.com/thisisthepy
 |---|---|
 | 매핑 매니페스트 `pythonx-map.toml` | ✅ 구현, 테스트됨 |
 | `@Composable` 데코레이터 | ✅ 구현, 테스트됨 |
-| 배포 메타데이터 (`pythonx-compose`) | 🟡 부분 — 설정됨; 스텁은 아직 생성 전, 매니페스트는 아직 패키지 밖 |
-| `Modifier` 체인, 오버로드 디스패치, 숫자로 쓰는 `Dp` | 🟡 부분 — 바인더 계층으로 테스트; 런타임 쪽을 다시 잇는 동안 실패 중 |
-| Material 3 위젯 (`Text`, `Button`, `Card`, `TextField`, …) | 🟡 부분 — python-multiplatform 에서 렌더링 증명, 이 패키지에서는 아직 재노출 전 |
-| `androidx.compose.*` 를 import 하는 실제 디스크 패키지 `pythonx` | ⏳ 계획 |
-| `remember_saveable`, `DefaultIcons`, 코루틴 스코프 | ⏳ 계획 |
+| `androidx.compose.*` 를 규칙 하나로 재노출하는 실제 디스크 패키지 `pythonx` | ✅ 구현, 테스트됨 |
+| snake_case 메서드를 쓰는 `Modifier` 체인, 오버로드 디스패치, 숫자로 쓰는 `Dp` | ✅ 구현, 바인더 계층으로 테스트됨 |
+| `layout` 뿐 아니라 `material3` 에서도 쓰는 `Column`, `Row`, `Spacer` | ✅ 구현, 테스트됨 |
+| `snake_case` 메서드 키워드 인자 | 🟡 부분 — 모듈 함수는 됨; 메서드는 아직 Kotlin 키워드 |
+| 빈 `Modifier` | 🟡 부분 — 클래스에서 시작하는 `Modifier.padding(16)` 은 실제 Compose 에서 앱이 제공하는 팩토리가 필요 |
+| `Alignment` / `Arrangement` | 🟡 부분 — `Alignment.Center`, `Arrangement.spaced_by(8)` 동작; 묶음 표기 `Alignment.Horizontal.End` 대기 |
+| Material 3 위젯 (`Text`, `Button`, `Card`, `TextField`, …) | 🟡 부분 — 규칙으로 재노출됨; 위젯별 렌더 증거 대기(#9) |
+| 배포 (`pythonx-compose`) | 🟡 부분 — wheel 에 매니페스트 포함; 실제 Compose 스텁과 `py.typed` 없음(#12) |
+| 갱신 호출 없는 선언형 앱 루트와 파이썬다운 상태 | ⏳ 계획(#11) |
+| `TextField` 입력기(IME) 처리 | ⏳ 계획(#10) |
+| `Icon`, `DefaultIcons`, 색 스킴 | ⏳ 계획(python-multiplatform #37) |
+| `remember_saveable`, 코루틴 스코프 | ⏳ 계획 |
 
 전체 목록은 가이드의 [현황 페이지](../guide/status.html)에 있습니다.
 
