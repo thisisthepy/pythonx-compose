@@ -21,28 +21,27 @@ Compose(`androidx.compose.*`)를 파이썬에서 쓰기 위한 pip 패키지 **`
 노트북의 함수 시그니처는 **이름 예시**다. 실제 규칙은 "Kotlin 원래 매개변수를 `snake_case` 로
 노출한다" 이다 (`onclick` 이 아니라 `on_click`).
 
-## 3. 현황 (2026-10-02)
+## 3. 현황 (2026-10-03)
 
 `docs/SPEC.md` 기준. 구현 = 이 저장소의 코드 + 읽고 통과를 확인한 테스트가 있는 것.
 
 | 상태 | 항목 |
 |---|---|
-| 구현 | 매핑 매니페스트 `pythonx-map.toml`, `@Composable` 항등 데코레이터 |
-| 부분 | 배포 설정(스텁·`py.typed` 없음, 매니페스트가 패키지 밖), `Modifier` 체인·오버로드·`Dp` 숫자 허용(바인더 계층 대상 테스트가 실패 중), Material 3 위젯(렌더 증거는 python-multiplatform 에만), `Icon`·색 스킴(import 만 됨), `Alignment`/`Arrangement` 상수(괄호 없이 읽는 표기로 확정, `pythonx.*` 재노출 전) |
-| 계획 | `pythonx` 를 실제 디스크 패키지로 재구성, `.pyi` 동봉, `remember_saveable`·`DefaultIcons`·코루틴 스코프 |
+| 구현 | 매핑 매니페스트 `pythonx-map.toml`, `@Composable` 항등 데코레이터, 실제 디스크 패키지 `pythonx` 와 모듈 수준 규칙 기반 재노출(snake_case 이름·키워드·시그니처, 오버로드 디스패치, 값 클래스 허용 목록) |
+| 부분 | 배포 설정(스텁·`py.typed` 없음, 매니페스트가 패키지 밖), proxy 위의 snake_case 확장 메서드(`m.fill_max_width()`, python-multiplatform #17 대기), Material 3 위젯(렌더 증거는 python-multiplatform 에만), `Icon`·색 스킴(import 만 됨), `Alignment`/`Arrangement` 상수(괄호 없이 읽음, 묶음 표기는 #9) |
+| 계획 | `.pyi` 동봉, 선언형 앱 루트(#11), `remember_saveable`·`DefaultIcons`·코루틴 스코프 |
 
 ### 테스트 기준선
 
 ```
 python3 -m pytest tests -q
-  PythonMultiplatform 체크아웃 없음       40 passed, 37 skipped
-  PYTHONMULTIPLATFORM_HOME 지정            44 passed, 33 failed  (재노출 전, #8)
+  PythonMultiplatform 체크아웃 없음       40 passed, 45 skipped
+  PYTHONMULTIPLATFORM_HOME 지정            81 passed, 4 skipped  (4 개는 python-multiplatform #17 대기)
 ```
 
-33 개 실패는 **예상된 것**이다. `test_chain.py`·`test_modifier_module.py` 가 바인더의 Kotlin 이름
-표면을 `pythonx` 처럼 다루는 옛 하네스 호출을 쓰고 있어서, 이 패키지의 재노출 규칙(#8)에 맞춰 다시
-써야 한다. 그래서 해당 항목은 "부분" 으로 기록한다.
-통과하는 40 개 중 다수는 *부재*(옛 토큰·삭제된 파일이 없음)를 확인하는 것이라 기능 진척으로 세지
+건너뛰는 4 개는 바인더가 돌려준 proxy 위의 camelCase 확장을 snake_case 이름으로 부르는 테스트다.
+바인더의 member resolver(python-multiplatform #17)가 들어오면 실행된다. 건너뜀은 통과가 아니다.
+체크아웃 없이 통과하는 40 개 중 다수는 *부재*(옛 토큰·삭제된 파일이 없음)를 확인하는 것이라 기능 진척으로 세지
 않는다.
 
 ### 마일스톤

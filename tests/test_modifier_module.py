@@ -16,7 +16,6 @@ Kotlin's value-class mangling suffix hashes the signature only, so `padding`, `s
 
 from __future__ import annotations
 
-import importlib.util
 import sys
 import unittest
 from pathlib import Path
@@ -30,31 +29,19 @@ REPO = Path(__file__).resolve().parents[1]
 MODIFIER_PY = REPO / "pythonx" / "compose" / "ui" / "modifier.py"
 
 
-def load_by_path(path, name):
-    """Load a `pythonx/...` file directly.
-
-    Not `import pythonx.compose.ui.modifier`: the host builds `sys.modules['pythonx']` with
-    `__path__ = []`, so nothing on disk under that name is importable.
-    `docs/pythonx-adapter-design.md` §2.5 is why, and it is open.
-    """
-    spec = importlib.util.spec_from_file_location(name, path)
-    module = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(module)
-    return module
-
-
 class TheModifierSeam(unittest.TestCase):
 
     def setUp(self):
         try:
-            source = adapter_loader.read_adapter_source()
+            self.binding = adapter_loader.install()
         except adapter_loader.AdapterUnavailable as unavailable:
             self.skipTest(str(unavailable))
         self.host = fake_host.FakeHost()
         self.host.bind()
-        self.pythonx = adapter_loader.install(source)
-        self.host.register(self.pythonx)
-        self.modifier = load_by_path(MODIFIER_PY, "_repo_modifier")
+        self.host.register(self.binding)
+        import pythonx.compose.ui.modifier as modifier
+
+        self.modifier = modifier
         self.addCleanup(self.host.unbind)
         self.addCleanup(adapter_loader.uninstall)
 

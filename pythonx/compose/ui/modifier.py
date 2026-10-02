@@ -12,8 +12,9 @@ mangle it.
 
 ## What replaced it, and where that lives
 
-Not here. `Modifier` is an ordinary proxy the adaptation layer builds from the upcall table:
-`pythonx._proxy_type('androidx.compose.ui.Modifier')`, reached as `pythonx.compose.ui.Modifier`.
+Not here. `Modifier` is an ordinary proxy the binder builds from the upcall table and serves as
+`androidx.compose.ui.Modifier`; `pythonx.compose.ui.Modifier` is that same class, re-exported by
+the naming rule in `pythonx/compose/_reexport.py`.
 Every one of its methods is a `Modifier` extension the artefact walker bound out of Compose's own
 jars -- 104 of them at last count (`docs/kotlin-extensions-in-python.md` §3.2) -- and each is
 attached to the proxy type on first read and never resolved again. So:
@@ -44,19 +45,20 @@ the consuming application -- `fun emptyModifier(): Modifier = Modifier`, picked 
 
 ## How this module is reached
 
-By path, for now. Under the host adaptation layer `sys.modules['pythonx']` is built by
-`PythonxAdapter.DELIVERY` with `__path__ = []`, so no `pythonx/...` file on disk is importable at
-all; `docs/pythonx-adapter-design.md` §2.5 ("where `pythonx`'s own `.py` files live") is open and
-this file is inside it. Until it closes, an application loads this module with
-`importlib.util.spec_from_file_location` and calls [install]. Nothing here depends on being imported
-as `pythonx.compose.ui.modifier`.
+As `pythonx.compose.ui.modifier`, an ordinary module of this package. It needs the binder's layer
+(`python_multiplatform.binding`) to be installed by the host before [install] can do anything.
 """
 
 from __future__ import annotations
 
+import importlib
 import sys
 
-KOTLIN_TYPE = "androidx.compose.ui.Modifier"
+BINDING_MODULE = "python_multiplatform.binding"
+
+KOTLIN_PACKAGE = "androidx.compose.ui"
+
+KOTLIN_TYPE = KOTLIN_PACKAGE + ".Modifier"
 """The Kotlin type the proxy stands for. The walker reports it as `receiverTypeName`."""
 
 PLACEHOLDER_EMPTY_FACTORY = "androidx.compose.ui.emptyModifier"
@@ -64,28 +66,26 @@ PLACEHOLDER_EMPTY_FACTORY = "androidx.compose.ui.emptyModifier"
 
 
 def adapter():
-    """The installed adaptation layer, or a `RuntimeError` that says what did not happen.
+    """The binder's installed binding layer, or a `RuntimeError` that says what did not happen.
 
-    `pythonx` is put into `sys.modules` by the Kotlin host, not by an import, so its absence means
-    the host never ran `PythonxAdapter.install()` -- which is a different failure from a missing
-    package and deserves a different message.
+    The Kotlin host installs it (`PythonxAdapter.install()`), not an import, so its absence means
+    the host never ran it -- a different failure from a missing package, with a different message.
     """
-    module = sys.modules.get("pythonx")
-    if module is None or not hasattr(module, "_proxy_type"):
+    module = sys.modules.get(BINDING_MODULE)
+    if module is None or not hasattr(module, "register_empty"):
         raise RuntimeError(
-            "the pythonx adaptation layer is not installed: the Kotlin host must run "
-            "PythonxAdapter.install() (which execs it into sys.modules['pythonx']) before "
-            "anything here can resolve a Modifier"
+            "the python-multiplatform binding layer is not installed: the Kotlin host must run "
+            "PythonxAdapter.install() before anything here can resolve a Modifier"
         )
     return module
 
 
 def modifier_type(layer=None):
-    """The `Modifier` proxy class -- the same object `pythonx.compose.ui.Modifier` is.
-
-    Created on first call and cached by the layer, so this is an accessor and not a factory.
-    """
-    return (layer or adapter())._proxy_type(KOTLIN_TYPE)
+    """The `Modifier` proxy class -- the same object `pythonx.compose.ui.Modifier` is."""
+    if layer is None:
+        adapter()
+    # Through this package's own module, so the manifest's value-class allowlist is in force.
+    return importlib.import_module("pythonx.compose.ui").Modifier
 
 
 def install(empty_factory=PLACEHOLDER_EMPTY_FACTORY, layer=None):

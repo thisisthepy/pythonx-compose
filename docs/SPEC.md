@@ -14,24 +14,20 @@ Each item carries a status:
 
 A behaviour change starts here, then becomes a failing test, then code (`AGENTS.md` §5).
 
-## 0. Test baseline (2026-10-03)
+## 0. Test baseline (2026-10-03, after issue #8)
 
 Run from a worktree with `python3 -m pytest tests -q` (pytest 8, CPython 3.13):
 
 | Environment | Result |
 |---|---|
-| No `PythonMultiplatform` checkout found | **40 passed, 37 skipped**, 44 subtests passed |
-| `PYTHONMULTIPLATFORM_HOME` → the `PythonMultiplatform` checkout | **44 passed, 33 failed**, 44 subtests passed |
+| No `PythonMultiplatform` checkout found | **40 passed, 45 skipped**, 44 subtests passed |
+| `PYTHONMULTIPLATFORM_HOME` → the `PythonMultiplatform` checkout | **81 passed, 4 skipped**, 44 subtests passed |
 
-Without a checkout, the 37 tests that install the binder's layers through `tests/adapter.py` skip.
-With one, 4 of them pass (`test_runtime_module.py::TheModuleIsTheFileOnDisk`: 2,
-`test_ui_init_module.py::TheUiInitModuleIsTheFileOnDisk`: 2) and 33 fail (`test_chain.py`: 28,
-`test_modifier_module.py::TheModifierSeam`: 5). The 33 still call the old harness signature and
-exercise the binder's Kotlin-named surface as if it were `pythonx`; they are rewritten against this
-package's re-export rule (issue #8). That failure is expected and is why the items below that depend
-on those tests are `partial`, not `implemented`.
+Without a checkout, the 45 tests that install the binder's layers through `tests/adapter.py` skip.
+With one, all pass except 4 that skip because they call a camelCase extension on a binder proxy by
+its snake_case name, which needs python-multiplatform #17 (§3). A skip is not a pass.
 
-Of the 40 that pass, most assert **absence** (a retired token, a deleted file, a docstring that
+Of the 40 that pass without a checkout, most assert **absence** (a retired token, a deleted file, a docstring that
 exists). Those are listed in §9 and are not counted as features.
 
 ---
@@ -82,34 +78,48 @@ notebook is git-ignored, so in a worktree or CI checkout it is absent, the expec
 and **the test passes without checking anything.** It is only meaningful in the maintainer's main
 checkout.
 
-## 3. `pythonx` is a real package — `planned`
+## 3. `pythonx` is a real package — `implemented` (module level)
 
 Required by INTENT §2.2: `import pythonx.compose.material3` (and every other mapped module) loads
 **this repository's files on disk**, and those files import the binder-exposed
 `androidx.compose.*` modules and present them Pythonically.
 
-Half of it holds. `import pythonx.compose.runtime` and `import pythonx.compose.ui` load this
-repository's files with the binder installed (`TheModuleIsTheFileOnDisk`, `TheUiInitModuleIsTheFileOnDisk`),
-because PythonMultiplatform `d00f413f` moved its layer to `python_multiplatform.binding`. The other
-half has not landed: no on-disk module re-exports anything from `androidx.compose.*` yet (issue #8).
+Every module in `pythonx-map.toml` is a file on disk whose `__init__.py` hands its name to one rule,
+`pythonx/compose/_reexport.py` (issue #8). A name read from it resolves, on first use, against the
+Kotlin package the manifest maps it to: upper-case names keep their Kotlin spelling, every other
+name is reached by its snake_case spelling only, keywords are matched to the declaration's own
+parameter names, `inspect.signature` reports snake_case names, and the manifest's value-class
+allowlist is handed to the binder. Names the package defines itself (`runtime.Composable`) win.
+
+Evidence: `tests/test_runtime_module.py::TheModuleIsTheFileOnDisk`,
+`tests/test_ui_init_module.py::TheUiInitModuleIsTheFileOnDisk`, and `tests/test_chain.py`
+(`Names`, `Laziness`, `OverloadDispatch::test_the_module_function_dispatches_with_snake_case_keywords`,
+`ValueClasses::test_the_manifest_allowlist_is_what_lets_a_number_through`), against the binder's
+real Python and the fake host. Disabling the name rule fails 15 tests, the keyword mapping 1, the
+allowlist priming 12.
+
+Not covered by this: **methods on a proxy the binder returned** (`m.fill_max_width()`). Those are
+attributes of the binder's own class, which this package can only reach through the member-resolver
+hook python-multiplatform #17 adds; until then a camelCase extension is reachable on a proxy only by
+its Kotlin name, and four tests skip (S4.1, S6.1, S6.4).
 
 ## 4. Naming
 
 ### S4.1 Kotlin parameters, `snake_case` — `partial`
 
 `onClick` → `on_click`, `fillMaxWidth` → `fill_max_width`, `zIndex` → `z_index`,
-`toURLString` → `to_url_string`; type names (`Modifier`) unchanged; a name the reverse rule cannot
-invert still resolves.
+`toURLString` → `to_url_string`; type names (`Modifier`) unchanged; an explicit overload keeps its
+type suffix (`padding__Dp_Dp`); a name the reverse rule cannot invert still resolves, because the
+rule is only ever applied forward to the module's real names; the camelCase spelling is not a second
+name.
 
-Evidence: `tests/test_chain.py::Names` (4 tests). These exercise the conversion in the binder's
-adaptation layer through `tests/adapter.py` and are currently skipped or failing (§0). No code in
-this repository performs the conversion.
+Implemented for module-level names and keywords (`tests/test_chain.py::Names`, 8 tests). Partial
+because receiver methods on a binder proxy need python-multiplatform #17 (§3, issue #20).
 
 ### S4.2 The notebook's spellings are examples, not the contract — `implemented` as a rule
 
 Where `UI.ipynb` writes `onclick`, the surface is `on_click`
-(`tests/test_chain.py::Names::test_on_click_not_onclick` records the decision; it is subject to the
-same failure as S4.1).
+(`tests/test_chain.py::Names::test_on_click_not_onclick` records the decision).
 
 ## 5. Composables
 
@@ -120,7 +130,7 @@ given, which still runs and keeps its name and docstring. Composer threading is 
 job.
 
 Tests: `tests/test_runtime_module.py::TheRuntimeSeam` (4 tests) and `::TheChaquopyMechanismIsGone`
-(3 tests). The module is loaded **by file path** in these tests, not by `import`, because of §3.
+(3 tests), importing `pythonx.compose.runtime` the ordinary way.
 
 ### S5.2 Material 3 composables reach Python without per-widget wrappers — `partial`
 
@@ -134,7 +144,9 @@ toggle family, `TextField`, `Checkbox` and `Switch` are meant to be reached thro
 - The evidence that the widgets actually render and deliver callbacks is in `python-multiplatform`
   (commits `a6742a1c`, `3fde8bd6`, `cac8243f`, cited in `pythonx/compose/material3/__init__.py`)
   and was not re-run for this document.
-- Nothing in this repository yet re-exports them under `pythonx.compose.material3` (§3).
+- `pythonx.compose.material3` re-exports `androidx.compose.material3` by the §3 rule, but the fake
+  host binds no material3 declaration, so no test here exercises one; the render proof per widget
+  is issue #9.
 
 ### S5.3 `Icon` and colour schemes — `partial`
 
@@ -148,13 +160,14 @@ the two colour-scheme factories take 36 `Color` parameters. The notebook uses `I
 
 ### S6.1 `Modifier` extensions are methods on the receiver proxy — `partial`
 
-`Modifier.padding(16).size(24)` chains; each link returns a new receiver; a method is attached to
-the proxy type once; an unbound name raises `AttributeError` naming where it looked; the
-class-object spelling without a registered empty factory raises `TypeError` naming
-`register_empty`.
+`Modifier.padding(16).size(24)` chains; each link returns a new receiver; an unbound name raises
+`AttributeError` naming where it looked; the class-object spelling without a registered empty
+factory raises `TypeError` naming `register_empty`; `pythonx.compose.ui.Modifier` is the binder's
+proxy class itself.
 
-Evidence: `tests/test_chain.py::TheChain` (6 tests) and
-`tests/test_modifier_module.py::TheModifierSeam` (5 tests) — currently skipped or failing (§0).
+Evidence: `tests/test_chain.py::TheChain` (6 tests, 1 skipped) and
+`tests/test_modifier_module.py::TheModifierSeam` (5 tests). Partial because a camelCase extension
+(`fill_max_width`) on a proxy waits for python-multiplatform #17.
 
 ### S6.2 The empty-`Modifier` seam — `partial`
 
@@ -166,24 +179,28 @@ one-line Kotlin factory. The instance spelling (`m.padding(16)` on a `Modifier` 
 does not need it. `tests/test_modifier_module.py::TheShellIsGone` (3 tests, passing) checks the old
 hand-written shell is gone.
 
-### S6.3 Overload dispatch — `partial`
+### S6.3 Overload dispatch — `implemented`
 
 Among Kotlin overloads of one name, a call is dispatched by keyword name, argument count, then
 declared type; a non-match names the candidates; an explicit overload spelling (`padding__Dp`)
-bypasses dispatch. Evidence: `tests/test_chain.py::OverloadDispatch` (6 tests), skipped/failing.
+bypasses dispatch; the module function takes snake_case keywords. Evidence:
+`tests/test_chain.py::OverloadDispatch` (7 tests). Status: `implemented`.
 
 ### S6.4 Value classes — `partial`
 
 A raw number is accepted for a `Dp` parameter; a `Dp` value is accepted too; a plain `Float`
 parameter is not treated as a value class; a packed value class (`TextUnit`) refuses a raw number and
 says why; the allow-list can be extended at run time. The allow-list itself is the manifest's
-(S2, implemented). Runtime evidence: `tests/test_chain.py::ValueClasses` (5 tests), skipped/failing.
+(S2, implemented) and reaches the binder when a `pythonx.compose` module first resolves a name.
+Runtime evidence: `tests/test_chain.py::ValueClasses` (6 tests, 3 skipped until python-multiplatform
+#17, because they call camelCase extensions on a proxy).
 
-### S6.5 Lazy resolution and handle lifetime — `partial`
+### S6.5 Lazy resolution and handle lifetime — `implemented`
 
-A mapped package with bindings is importable, one without is not; a name is adapted once and then
-lives in the module dict; `dir()` reports what is bound; dropping a proxy releases its Kotlin
-handle. Evidence: `tests/test_chain.py::Laziness` (4 tests), `::Handles` (1 test), skipped/failing.
+A mapped module is a file on disk and imports without a binder; one with no file is not importable;
+a name is adapted once and then lives in the module dict; `dir()` reports the Pythonic names only;
+without the binding layer a name read says the host never installed it; dropping a proxy releases
+its Kotlin handle. Evidence: `tests/test_chain.py::Laziness` (5 tests), `::Handles` (1 test).
 
 ## 7. Layout constants — `Alignment` and `Arrangement` — `partial`
 

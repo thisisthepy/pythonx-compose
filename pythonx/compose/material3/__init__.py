@@ -76,3 +76,7 @@ from .icon import *
 # is exactly what `CallbackDrivenRenderTest.kt` exercises above -- and the empty files cost nothing
 # and assert nothing; they are left as they are rather than deleted, so as not to conflate "always
 # empty" with "emptied on evidence" in the file history.
+
+from pythonx.compose._reexport import reexport
+
+__getattr__, __dir__ = reexport(__name__)

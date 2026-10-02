@@ -38,7 +38,6 @@ assert the opposite, because the binder owned `sys.modules['pythonx']` with `__p
 
 from __future__ import annotations
 
-import importlib.util
 import io
 import sys
 import tokenize
@@ -46,20 +45,13 @@ import unittest
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 import adapter as adapter_loader  # noqa: E402
 import fake_host  # noqa: E402
 
 REPO = Path(__file__).resolve().parents[1]
 RUNTIME_PY = REPO / "pythonx" / "compose" / "runtime" / "__init__.py"
-
-
-def load_by_path(path, name):
-    """Load a `pythonx/...` file without importing its package, for the tests that need no binder."""
-    spec = importlib.util.spec_from_file_location(name, path)
-    module = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(module)
-    return module
 
 
 class TheModuleIsTheFileOnDisk(unittest.TestCase):
@@ -97,7 +89,9 @@ class TheRuntimeSeam(unittest.TestCase):
     """What `Composable` does once loaded by path: nothing to the function it decorates."""
 
     def setUp(self):
-        self.runtime = load_by_path(RUNTIME_PY, "_repo_runtime")
+        import pythonx.compose.runtime as runtime
+
+        self.runtime = runtime
 
     def test_composable_is_importable_and_callable(self):
         self.assertTrue(callable(self.runtime.Composable))
@@ -152,7 +146,7 @@ class TheChaquopyMechanismIsGone(unittest.TestCase):
     def test_composable_takes_no_arguments_beyond_the_target(self):
         import inspect
 
-        runtime = load_by_path(RUNTIME_PY, "_repo_runtime_sig")
+        import pythonx.compose.runtime as runtime
         sig = inspect.signature(runtime.Composable)
         self.assertEqual(1, len(sig.parameters), "an identity decorator needs exactly one parameter")
 
