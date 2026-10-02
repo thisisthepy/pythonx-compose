@@ -39,6 +39,7 @@ name the module does not already have.
 from __future__ import annotations
 
 import importlib
+import importlib.util
 import inspect
 import re
 import sys
@@ -299,6 +300,11 @@ def reexport(module_name: str):
     def __getattr__(name):
         if name.startswith("__") and name.endswith("__"):
             raise AttributeError(name)
+        if importlib.util.find_spec(module_name + "." + name) is not None:
+            # A submodule file of this package (`ui.modifier`). `from package import name` asks for
+            # the attribute before it imports a submodule, and only an AttributeError lets it
+            # fall back -- so this has to answer before anything that needs the binder.
+            return importlib.import_module(module_name + "." + name)
         source = _aliases(module_name).get(name)
         if source is not None:
             value = getattr(importlib.import_module(source), name)

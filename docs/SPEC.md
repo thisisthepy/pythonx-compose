@@ -20,8 +20,8 @@ Run from a worktree with `python3 -m pytest tests -q` (pytest 8, CPython 3.13):
 
 | Environment | Result |
 |---|---|
-| No `PythonMultiplatform` checkout found | **53 passed, 56 skipped**, 66 subtests passed |
-| python-multiplatform `develop` at `ba4c6f49` or later (has `add_member_resolver`) | **109 passed**, 72 subtests passed |
+| No `PythonMultiplatform` checkout found | **55 passed, 56 skipped**, 66 subtests passed |
+| python-multiplatform `develop` at `ba4c6f49` or later (has `add_member_resolver`) | **111 passed**, 72 subtests passed |
 | an older checkout, without `add_member_resolver` | the same, with 5 of them skipped |
 
 Without a checkout, the 56 tests that install the binder's layers through `tests/adapter.py` skip.
@@ -29,7 +29,7 @@ Against a binder older than `ba4c6f49`, the 5 that call a snake_case method on a
 returned skip, because that needs its member resolver (python-multiplatform #17). A skip is not a
 pass.
 
-Of the 53 that pass without a checkout, most assert **absence** (a retired token, a deleted file, a docstring that
+Of the 55 that pass without a checkout, most assert **absence** (a retired token, a deleted file, a docstring that
 exists). Those are listed in §9 and are not counted as features.
 
 ---
