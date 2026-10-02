@@ -222,77 +222,22 @@ class ThePackageDoesNotImportTheRecords(unittest.TestCase):
         self.assertNotIn("Icon", vars(module))
 
 
-class TheTwoUnreachableWrappersLoadWithoutCrashing(unittest.TestCase):
-    """`icon.py` (`Icon`) and `color_scheme.py` (`ColorScheme`/`lightColorScheme`/`darkColorScheme`)
-    are the two declarations `PythonMultiplatform` commit `a6742a1c` pinned as *unreachable* through
-    the walked table, not merely unconfirmed: `Icon` needs an `ImageBitmap`/`ImageVector`/`Painter`
-    nothing walked can produce, and the two color-scheme factories need 36 `Color` parameters against
-    the binding's 6-parameter omission cap. "Pinned unreachable" is a different conclusion from the
-    evidence that deleted `text.py`, `icon_button.py` and now `text_field.py`: those were proven
-    *redundant* (the walked table draws the same declaration with no wrapper), so the wrapper could
-    go. `Icon`/`ColorScheme` were proven *uncallable any way at all*, which makes the hand-written
-    wrapper the only Python-facing record of that fact -- so `text_field.py`'s reasoning does not
-    apply and these two files stay, per this task's own instruction.
+class TheDeadFilesAreGone(unittest.TestCase):
+    """`material3/` holds the package `__init__.py` and nothing else.
 
-    Both files still wrote the 2024 shape, `class Icon(Composable):` /
-    `class ColorScheme(Composable):`, inheriting from `pythonx.compose.runtime.Composable`. Commit
-    `7d6c0a1` replaced that name's *class* with a plain identity-decorator *function* -- correct for
-    `UI.ipynb`'s `@Composable def Screen(): ...` usage, but a function cannot be a base class, so the
-    `class` statement itself now raises `TypeError` the moment either file is loaded. Because
-    `pythonx/compose/material3/__init__.py` imports both unconditionally (`from .icon import *`,
-    `from .color_scheme import *`), that `TypeError` previously took down `import
-    pythonx.compose.material3` as a whole -- every other, working declaration (`Button`, `Card`,
-    `Text`, ...) included, not just the two that are genuinely unreachable. That is the regression
-    this class checks is fixed: loading each file must not raise, which it can satisfy without
-    claiming `Icon`/`ColorScheme` now render (they still cannot -- see the class docstrings in each
-    file) by simply not inheriting from something that is no longer a class.
+    `icon.py` and `color_scheme.py` were dead reflection code (a mangled-name search INTENT section 3
+    excludes) that nothing imported any more, and 29 sibling files were zero bytes since before the
+    adaptation layer existed. What `icon.py` recorded -- `Icon` needs an `ImageVector` nothing bound
+    produces, and the colour-scheme factories need 36 `Color` parameters -- is in SPEC S5.3. Deleted
+    with the ecosystem lead's approval (pythonx-compose #31).
     """
 
-    def setUp(self):
-        # `androidx` is not installed in this pure-Python checkout (`docs/pythonx-adapter-design.md`
-        # explains why: the real binding lives across a JVM/native boundary this repository's test
-        # suite has no access to). Both files only *reference* a handful of attributes off
-        # `androidx.compose.material3` at module scope and never call anything on them at import
-        # time, so a bare stand-in that has those attributes is enough to reach the `class` statement
-        # this test is actually about.
-        stub = types.ModuleType("androidx.compose.material3")
-        stub.IconKt = object()
-        stub.ColorSchemeKt = object()
-        stub.ColorScheme = object()
-        self._previous = {
-            name: sys.modules.get(name)
-            for name in ("androidx", "androidx.compose", "androidx.compose.material3")
-        }
-        sys.modules["androidx"] = types.ModuleType("androidx")
-        sys.modules["androidx.compose"] = types.ModuleType("androidx.compose")
-        sys.modules["androidx.compose.material3"] = stub
-        self.addCleanup(self._restore_androidx)
+    def test_only_the_package_init_remains(self):
+        files = sorted(p.name for p in MATERIAL3_DIR.glob("*.py"))
+        self.assertEqual(["__init__.py"], files)
 
-    def _restore_androidx(self):
-        for name, previous in self._previous.items():
-            if previous is None:
-                sys.modules.pop(name, None)
-            else:
-                sys.modules[name] = previous
-
-    def test_icon_module_loads_without_raising(self):
-        module = _load_by_path(MATERIAL3_DIR / "icon.py", "_test_material3_icon")
-        self.assertTrue(hasattr(module, "Icon"))
-
-    def test_color_scheme_module_loads_without_raising(self):
-        module = _load_by_path(MATERIAL3_DIR / "color_scheme.py", "_test_material3_color_scheme")
-        self.assertTrue(hasattr(module, "ColorScheme"))
-        self.assertTrue(hasattr(module, "lightColorScheme"))
-        self.assertTrue(hasattr(module, "darkColorScheme"))
-
-    def test_neither_file_inherits_from_the_now_functional_composable(self):
-        for filename in ("icon.py", "color_scheme.py"):
-            source = (MATERIAL3_DIR / filename).read_text(encoding="utf-8")
-            self.assertNotIn(
-                "(Composable)", source,
-                f"{filename} still subclasses Composable, which 7d6c0a1 made a plain function -- "
-                "that raises TypeError the moment the class statement runs",
-            )
+    def test_the_wrapper_package_is_gone(self):
+        self.assertFalse((REPO / "pythonx" / "compose" / "wrapper").exists())
 
 
 if __name__ == "__main__":
