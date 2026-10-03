@@ -14,15 +14,15 @@ Each item carries a status:
 
 A behaviour change starts here, then becomes a failing test, then code (`AGENTS.md` §5).
 
-## 0. Test baseline (2026-10-03, after DefaultIcons)
+## 0. Test baseline (2026-10-03, after the a5028618 stubs)
 
 Run from a worktree with `python -m pytest tests -q -rs` (pytest 8, mypy 2.4, CPython 3.13), where
 `UI.ipynb` is absent and its one test skips:
 
 | Environment | Result |
 |---|---|
-| No `PythonMultiplatform` checkout found | **124 passed, 99 skipped**, 157 subtests passed |
-| python-multiplatform `develop` at `31c092f0` or later (property rows, #38; `describe_member`, #54; besides `add_member_resolver` and `describe(module, name)`) | **222 passed, 1 skipped**, 184 subtests passed |
+| No `PythonMultiplatform` checkout found | **132 passed, 99 skipped**, 165 subtests passed |
+| python-multiplatform `develop` at `31c092f0` or later (property rows, #38; `describe_member`, #54; besides `add_member_resolver` and `describe(module, name)`) | **230 passed, 1 skipped**, 196 subtests passed |
 | an older checkout, without `describe_member` (python-multiplatform #54) | the same, with 7 more skipped |
 | an older one, without `describe(module, name)` (python-multiplatform #36) | with 13 more skipped again |
 | an older one still, without `add_member_resolver` | with 5 more skipped again |
@@ -36,7 +36,7 @@ binder returned skip as well, because that needs its member resolver (python-mul
 `TheBinderPath` tests (S5.4). `tests/test_typing.py` skips where mypy is not installed. A skip is not a
 pass.
 
-Of the 124 that pass without a checkout, 51 check the type stubs and the wheel (S1.2); most of the
+Of the 132 that pass without a checkout, 59 check the type stubs and the wheel (S1.2); most of the
 rest assert **absence** (a retired token, a deleted file, a docstring that exists). Those are listed
 in §9 and are not counted as features.
 
@@ -63,8 +63,8 @@ and the name the interpreter resolves cannot drift.
 - **What is generated.** `pythonx/compose/**/__init__.pyi` for every module in `pythonx-map.toml`,
   beside its `__init__.py`, and an empty `pythonx/compose/py.typed`. The stubs are committed;
   regenerating them from the same input produces no diff.
-- **From what.** python-multiplatform's CI artefact `kotlin-stubs` (workflow run 37098191598,
-  commit `fa2558e3`): Kotlin-named stubs for Compose 1.11.1, one `androidx/compose/.../__init__.pyi`
+- **From what.** python-multiplatform's CI artefact `kotlin-stubs` (workflow run 37103737430,
+  commit `a5028618`): Kotlin-named stubs for Compose 1.11.1, one `androidx/compose/.../__init__.pyi`
   per Kotlin package. `python3 tools/gen_stubs.py <kotlin-stubs.zip or directory>` converts them;
   the first line of every generated stub records the artefact, run and commit it came from.
 - **The rule is the runtime's** (`_reexport.py`), applied by `tools/gen_stubs.py`:
@@ -91,10 +91,16 @@ and the name the interpreter resolves cannot drift.
     are the grouped-constant namespaces too (S7.1): `Alignment.End` and `Alignment.Horizontal.End`
     are both `Alignment.Horizontal`, and `Alignment.Horizontal.Top` is a type error. A reference to
     one from another module (`androidx.compose.ui.Alignment.Horizontal` in `Column`) names
-    `pythonx.compose.ui.Alignment.Horizontal`. A nested type that upstream derives from another
-    nested one (`Arrangement.HorizontalOrVertical(Horizontal)`) is `Any` wherever a signature or a
-    constant names it: Kotlin's is both a `Horizontal` and a `Vertical`, which one base class cannot
-    say, so any other typing would reject valid calls; its group still holds its constants;
+    `pythonx.compose.ui.Alignment.Horizontal`. A nested type that upstream lists with several nested
+    bases (`Arrangement.HorizontalOrVertical(Horizontal, Vertical)`, python-multiplatform #71) is
+    typed as itself, so `Arrangement.SpaceBetween` is an `Arrangement.HorizontalOrVertical` that a
+    `Column(vertical_arrangement=...)` and a `Row(horizontal_arrangement=...)` both take, and
+    `Arrangement.Start` (a `Horizontal`) is a type error for a `Column`. One that lists a single
+    nested base -- the first upstream format, which could not say it is both -- is still `Any`
+    wherever a signature or a constant names it, decided by reading the bases and no name;
+    a module function named in an explicit overload set that is also the name of a class of the same
+    stub (`DpRect__Dp_Dp_Dp_Dp` beside `class DpRect`, which now carries `__init__`) gets no base-name
+    overloads, the class being that name;
   - a property (`@property` with `@name.setter`, python-multiplatform #38) is renamed with
     `python_name` and so is the decorator: `layout_direction` and `@layout_direction.setter`;
   - a reference to another Kotlin package is rewritten to the `pythonx.compose` module the
@@ -110,13 +116,14 @@ and the name the interpreter resolves cannot drift.
 - **How it is verified.** `tests/test_stubs.py` converts three fixtures: the fake host's
   declarations in the old and the current upstream format (and the current format with an object
   in its parent stub), and a third in the format of python-multiplatform #53/#44/#38 (nested types,
-  object functions, property setters), and checks the generated signatures against `inspect.signature` at run time.
+  object functions, property setters), and a fourth in the format of #71/#68 (a nested type with two bases, icons as typed
+  properties), and checks the generated signatures against `inspect.signature` at run time.
   `TheCommittedStubs` regenerates from `.tmp/kotlin-stubs.zip` and requires the committed files to
   be identical (it skips where the artefact is absent, which includes CI). `tests/test_typing.py`
   runs mypy over small programs against the committed stubs: correct code passes, a misspelled
   keyword or function fails. `tests/test_wheel.py` finds `py.typed` and the stubs in the built wheel.
   Each generator step has a test that fails when the step is disabled (measured per change; see the
-  commit messages of #40, #45 and the run-37098191598 regeneration for the counts).
+  commit messages of #40, #45 and the run-37103737430 regeneration for the counts).
 - **What the newer input improved.** Object functions are stubbed (`Arrangement.spaced_by(8)`
   type-checks), object constants carry their nested types, an `*ItemColors` parameter is no longer
   `bool`, names that differ only in case and Python-keyword names no longer reach the stubs, and
@@ -127,8 +134,13 @@ and the name the interpreter resolves cannot drift.
   - Many parameter and return types are `Any`: upstream emits `Any` for a class that shares its
     name with a function (`PaddingValues`, `TextStyle`, `Color`), for packages it does not stub, and
     for an object's own type (`Alignment.Center: Alignment`, python-multiplatform's object self-type);
-    `Icons.Default` is typed `Icons.Filled`, but each icon on it (`Add`) is `Any` (python-multiplatform #68); `Dp` is `float`;
-    `Arrangement.HorizontalOrVertical` constants and `spaced_by` return `Any` (above).
+    `Dp` is `float`; `Arrangement.spaced_by` now returns `Arrangement.HorizontalOrVertical`. An icon is no longer `Any`: `Icons.Default` is `Icons.Filled`
+    and `Icons.Filled.Add` an `ImageVector` (python-multiplatform #68), since `pythonx.compose.ui.graphics.vector`
+    is mapped (S5.3). `androidx.compose.foundation.text.input` (`TextFieldState`, `rememberTextFieldState`,
+    python-multiplatform #73) is not mapped, so it has no stub here: the design of the text field
+    is issue #10, and a manifest row for it would emit the class with `__init__(initial_text, initial_selection)`,
+    a `text` property, `set_text_and_place_cursor_at_end` and `clear_text` as `ClassVar` protocols, and
+    `remember_text_field_state`.
   - The `pythonx.compose` root module maps `androidx.compose`, which has no stub, so its stub is
     empty.
   - Object constants named like a Python keyword (`FilterQuality.None`) cannot be written as an
@@ -301,8 +313,10 @@ says the intent is `DefaultIcons.Add`. The rows are shaped after python-multipla
 (`_PROPERTIES`, `_read_property`) and the ecosystem report for #37; no walked
 `material-icons-core` row exists here, and `Icon(DefaultIcons.Add, ...)` is drawn only in
 python-multiplatform's render test. Tests: `tests/test_chain.py::DefaultIconsAlias`; stubs: the
-`material3` stub assigns `DefaultIcons = Icons.Default` (typed `Icons.Filled`; `Add` is `Any` until
-python-multiplatform #68), checked by `tests/test_typing.py::test_default_icons_imports_from_material3`. `Icon` itself is a Material 3 composable, served by the §3 rule.
+`material3` stub assigns `DefaultIcons = Icons.Default` (typed `Icons.Filled`; `Add` is an `ImageVector`, python-multiplatform #68, whose package
+`androidx.compose.ui.graphics.vector` is the manifest row `pythonx.compose.ui.graphics.vector`), checked by
+`tests/test_typing.py::test_default_icons_imports_from_material3` and `test_a_default_icon_is_an_image_vector`
+(`DefaultIcons.Add` is an `ImageVector`, `DefaultIcons.NotAnIcon` an error). `Icon` itself is a Material 3 composable, served by the §3 rule.
 Still `planned`: the two colour-scheme factories take 36 `Color` parameters against
 the binding's omission cap (python-multiplatform `a6742a1c`). The hand-written `icon.py` /
 `color_scheme.py` that recorded this were dead code and are deleted (#31).
@@ -402,7 +416,8 @@ rule that names no declaration:
   annotated `Alignment.Horizontal` takes and the namespace `Alignment.Horizontal.End` reads. The
   trade-off: a nested type's members are its grouped constants only (by the exact-declared-type rule
   above), so `Arrangement.Horizontal` lacks the constants declared as `HorizontalOrVertical`; and
-  because upstream gives `HorizontalOrVertical` one base, the stubs type what names it as `Any`.
+  because the first upstream format gave `HorizontalOrVertical` one base, the stubs typed what names it as `Any`;
+  with every base listed (python-multiplatform #71) it is typed, and `SpaceBetween` is an `Arrangement.HorizontalOrVertical`.
 - `dir()` of an object lists its group names next to its members; `dir()` of a group lists its
   constants. A name a group does not hold raises `AttributeError` naming the group's Kotlin type
   (`androidx.compose.ui.Alignment.Horizontal`), so `Alignment.Horizontal.Top` fails: `Top` is an
