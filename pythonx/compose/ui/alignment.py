@@ -29,7 +29,19 @@ this file used to prescribe -- now raises `TypeError` because the value is not c
 
 `pythonx.compose.ui.Alignment` is the Kotlin object `androidx.compose.ui.Alignment` seen through the
 re-export rule (`pythonx/compose/_reexport.py`, `KotlinObject`): constants keep their Kotlin
-spelling and are read again on every access, as the binder serves them. The notebook's grouped
-spelling, `Alignment.Horizontal.End` (INTENT section 5.3), waits for the binder to describe a
-constant's declared type without reading it (python-multiplatform #36).
+spelling and are read again on every access, as the binder serves them.
+
+## Grouped by declared type
+
+The notebook's grouped spelling works beside Kotlin's flat one (INTENT section 5.3):
+
+    Alignment.Horizontal.End    # the same read as Alignment.End
+    Alignment.Vertical.Top      # the same read as Alignment.Top
+
+`Alignment.Horizontal` holds the constants declared as `Alignment.Horizontal` (`CenterHorizontally`,
+`End`, `Start`) and `Alignment.Vertical` those declared as `Alignment.Vertical` (`Bottom`,
+`CenterVertically`, `Top`). A constant declared as `Alignment` itself (`Center`, `TopStart`, ...) is
+in neither. The grouping is the re-export rule's (`ConstantGroup`), read from the declared types
+`python_multiplatform.describe(module, name)` reports without running a getter (python-multiplatform
+#36), so no list here drives it.
 """

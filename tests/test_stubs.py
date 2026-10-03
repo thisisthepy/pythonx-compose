@@ -298,6 +298,75 @@ class TheCurrentFormat(unittest.TestCase):
                 compile(text, str(path), "exec")
 
 
+def _nested(cls: ast.ClassDef) -> dict[str, ast.ClassDef]:
+    return {node.name: node for node in cls.body if isinstance(node, ast.ClassDef)}
+
+
+def _constants(cls: ast.ClassDef) -> set[str]:
+    return {n.target.id for n in cls.body if isinstance(n, ast.AnnAssign) and isinstance(n.target, ast.Name)}
+
+
+class TheConstantGroups(unittest.TestCase):
+    """SPEC S7.1: an object's constants grouped by the nested type their docstring declares."""
+
+    OBJECT_IN_PARENT = (
+        "import typing as _t\n\n"
+        "class Obj:\n"
+        "    \"\"\"Kotlin: a.b.Obj\"\"\"\n"
+        "    Left: _t.ClassVar[_t.Any]\n"
+        "    \"\"\"Kotlin: a.b.Obj.Left(): a.b.Obj.Side\"\"\"\n"
+        "    Right: _t.ClassVar[_t.Any]\n"
+        "    \"\"\"Kotlin: a.b.Obj.Right(): a.b.Obj.Side\"\"\"\n"
+        "    Whole: _t.ClassVar[_t.Any]\n"
+        "    \"\"\"Kotlin: a.b.Obj.Whole(): a.b.Obj\"\"\"\n"
+        "    Deep: _t.ClassVar[_t.Any]\n"
+        "    \"\"\"Kotlin: a.b.Obj.Deep(): a.b.Obj.Side.Inner\"\"\"\n"
+        "    Other: _t.ClassVar[_t.Any]\n"
+        "    \"\"\"Kotlin: a.b.Obj.Other(): a.c.Side\"\"\"\n"
+    )
+
+    def setUp(self):
+        self.stubs = _generated(KOTLIN_STUBS_V2)
+
+    def convert(self, source: str) -> dict[str, ast.ClassDef]:
+        return _classes(gen_stubs.Converter(gen_stubs.KotlinStubs(KOTLIN_STUBS_V2)).convert(source, "a.b"))
+
+    def test_constants_are_grouped_by_their_declared_nested_type(self):
+        arrangement = _classes(self.stubs[LAYOUT])["Arrangement"]
+        groups = _nested(arrangement)
+        self.assertEqual(["Horizontal", "HorizontalOrVertical", "Vertical"], sorted(groups))
+        self.assertEqual({"End", "Start"}, _constants(groups["Horizontal"]))
+        self.assertEqual({"Top"}, _constants(groups["Vertical"]))
+        self.assertEqual({"SpaceBetween"}, _constants(groups["HorizontalOrVertical"]))
+        self.assertEqual(
+            "_t.ClassVar[_t.Any]", ast.unparse(_members(groups["Horizontal"])["End"].annotation)
+        )
+
+    def test_the_flat_constants_stay(self):
+        arrangement = _members(_classes(self.stubs[LAYOUT])["Arrangement"])
+        self.assertTrue({"End", "Start", "Top", "SpaceBetween", "spaced_by"} <= set(arrangement))
+
+    def test_an_object_class_in_the_parent_stub_is_grouped_too(self):
+        obj = self.convert(self.OBJECT_IN_PARENT)["Obj"]
+        self.assertEqual(["Side"], sorted(_nested(obj)))
+        self.assertEqual({"Left", "Right"}, _constants(_nested(obj)["Side"]))
+        self.assertEqual({"Left", "Right", "Whole", "Deep", "Other"}, _constants(obj))
+
+    def test_a_member_named_like_the_type_wins(self):
+        source = self.OBJECT_IN_PARENT + (
+            "    Side: _t.ClassVar[_t.Any]\n"
+            "    \"\"\"Kotlin: a.b.Obj.Side(): a.b.Obj.Side\"\"\"\n"
+        )
+        obj = self.convert(source)["Obj"]
+        self.assertEqual({}, _nested(obj))
+        self.assertIn("Side", _constants(obj))
+
+    def test_a_class_with_no_such_constants_gets_no_groups(self):
+        for name, cls in _classes(self.stubs[UI]).items():
+            with self.subTest(cls=name):
+                self.assertEqual({}, _nested(cls))
+
+
 class TheCommittedStubs(unittest.TestCase):
     """What ships is what the generator makes of python-multiplatform's `kotlin-stubs` artefact."""
 
@@ -322,6 +391,15 @@ class TheCommittedStubs(unittest.TestCase):
         for path, text in generated.items():
             with self.subTest(stub=str(path.relative_to(REPO))):
                 self.assertEqual(text, path.read_text(encoding="utf-8"))
+
+    def test_the_committed_alignment_and_arrangement_carry_their_groups(self):
+        alignment = _nested(_classes(UI.read_text(encoding="utf-8"))["Alignment"])
+        self.assertEqual({"CenterHorizontally", "End", "Start"}, _constants(alignment["Horizontal"]))
+        self.assertEqual({"Bottom", "CenterVertically", "Top"}, _constants(alignment["Vertical"]))
+        arrangement = _nested(_classes(LAYOUT.read_text(encoding="utf-8"))["Arrangement"])
+        self.assertEqual(
+            {"Center", "SpaceAround", "SpaceBetween", "SpaceEvenly"}, _constants(arrangement["HorizontalOrVertical"])
+        )
 
 
 class TheStubMatchesTheRuntime(unittest.TestCase):
@@ -378,6 +456,18 @@ class TheStubMatchesTheRuntime(unittest.TestCase):
             for constant in _members(_classes(stubs[stub])[name]):
                 with self.subTest(constant=f"{name}.{constant}"):
                     self.assertIsNotNone(getattr(getattr(module, name), constant))
+
+    def test_a_group_in_the_stub_holds_what_the_runtime_group_holds(self):
+        import python_multiplatform
+        import pythonx.compose.layout as layout
+
+        if len(inspect.signature(python_multiplatform.describe).parameters) < 2:
+            self.skipTest("the binder has no describe(module, name) yet (python-multiplatform #36)")
+        groups = _nested(_classes(_generated(KOTLIN_STUBS_V2)[LAYOUT])["Arrangement"])
+        self.assertTrue(groups)
+        for name, group in groups.items():
+            with self.subTest(group=name):
+                self.assertEqual(sorted(_constants(group)), dir(getattr(layout.Arrangement, name)))
 
 
 if __name__ == "__main__":

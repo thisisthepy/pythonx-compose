@@ -14,24 +14,26 @@ Each item carries a status:
 
 A behaviour change starts here, then becomes a failing test, then code (`AGENTS.md` §5).
 
-## 0. Test baseline (2026-10-03, after issue #12)
+## 0. Test baseline (2026-10-03, after issue #9's grouped constants)
 
 Run from a worktree with `python -m pytest tests -q -rs` (pytest 8, mypy 2.4, CPython 3.13), where
 `UI.ipynb` is absent and its one test skips:
 
 | Environment | Result |
 |---|---|
-| No `PythonMultiplatform` checkout found | **84 passed, 60 skipped**, 115 subtests passed |
-| python-multiplatform `develop` at `ba4c6f49` or later (has `add_member_resolver`) | **143 passed, 1 skipped**, 139 subtests passed |
-| an older checkout, without `add_member_resolver` | the same, with 5 more skipped |
+| No `PythonMultiplatform` checkout found | **91 passed, 73 skipped**, 122 subtests passed |
+| python-multiplatform `develop` at `d6d39787` or later (has `add_member_resolver` and `describe(module, name)`) | **163 passed, 1 skipped**, 149 subtests passed |
+| an older checkout, without `describe(module, name)` (python-multiplatform #36) | the same, with 13 more skipped |
+| an older one still, without `add_member_resolver` | with 5 more skipped again |
 
-Without a checkout, the 59 tests that install the binder's layers through `tests/adapter.py` skip.
-Against a binder older than `ba4c6f49`, the 5 that call a snake_case method on a proxy the binder
-returned skip, because that needs its member resolver (python-multiplatform #17). The 1 skip in both
+Without a checkout, the 72 tests that install the binder's layers through `tests/adapter.py` skip.
+Against a binder without `describe(module, name)`, the 13 that check grouped constants (§7, S7.1)
+skip. Against a binder older than `ba4c6f49`, the 5 that call a snake_case method on a proxy the
+binder returned skip as well, because that needs its member resolver (python-multiplatform #17). The 1 skip in both
 rows is `UI.ipynb`'s (§2). `tests/test_typing.py` skips where mypy is not installed. A skip is not a
 pass.
 
-Of the 84 that pass without a checkout, 30 check the type stubs and the wheel (S1.2); most of the
+Of the 91 that pass without a checkout, 37 check the type stubs and the wheel (S1.2); most of the
 rest assert **absence** (a retired token, a deleted file, a docstring that exists). Those are listed
 in §9 and are not counted as features.
 
@@ -261,7 +263,7 @@ a name is adapted once and then lives in the module dict; `dir()` reports the Py
 without the binding layer a name read says the host never installed it; dropping a proxy releases
 its Kotlin handle. Evidence: `tests/test_chain.py::Laziness` (5 tests), `::Handles` (1 test).
 
-## 7. Layout constants — `Alignment` and `Arrangement` — `partial`
+## 7. Layout constants — `Alignment` and `Arrangement` — `implemented`
 
 The bound constant names are documented in `pythonx/compose/ui/alignment.py` (15 `Alignment`
 names) and `pythonx/compose/layout/arrangement.py` (8 `Arrangement` names), checked by
@@ -277,11 +279,55 @@ the Kotlin module does not list is tried as a Kotlin object sub-package and serv
 `KotlinObject` namespace by the §3 rule. Constants keep their Kotlin spelling and are read again on
 every access; a function inside the object is snake_case (`Arrangement.spaced_by`). Evidence:
 `tests/test_chain.py::ObjectNamespaces` (6 tests); without the sub-package step 6 fail. The binder
-will list these objects itself (python-multiplatform #35).
+now lists these objects itself (python-multiplatform #35), and either way reaches them.
 
-Decided (INTENT §5.3) and not built: the notebook's grouping by type, `Alignment.Horizontal.End`.
-It needs a constant's declared type without reading it, `python_multiplatform.describe(module,
-name)` (python-multiplatform #36; issue #9).
+### S7.1 Grouped constants — `Alignment.Horizontal.End` — `implemented`
+
+INTENT §5.3: the notebook groups constants by type, `Alignment.Horizontal.End`, and Kotlin writes
+them flat, `Alignment.End` (which *is* an `Alignment.Horizontal`). Both spellings are served, by one
+rule that names no declaration:
+
+- Inside the `KotlinObject` for a Kotlin object `P`, an upper-case name `G` that is **not** a member
+  of `P` but is the simple name of a type nested in `P` -- some constant of `P` is declared as
+  exactly `P.G` -- is a **group**: a namespace whose members are exactly the constants of `P` whose
+  declared type is `P.G`. `Alignment.Horizontal` holds `CenterHorizontally`, `End`, `Start`;
+  `Alignment.Vertical` holds `Bottom`, `CenterVertically`, `Top`; `Arrangement.HorizontalOrVertical`
+  holds `Center`, `SpaceAround`, `SpaceBetween`, `SpaceEvenly`.
+- A constant's declared type is read with `python_multiplatform.describe(module, name)`
+  (python-multiplatform #36), which answers from the binder's table and never runs the getter. A
+  constant's value is never read to classify it. The classification is metadata and is computed
+  once per object; values are not cached.
+- Reading a group member reads that constant then and there, exactly as the flat spelling does:
+  `Alignment.Horizontal.End` and `Alignment.End` are the same read of the same Kotlin getter.
+- **A group holds a constant only under its exact declared type.** A constant declared as a
+  supertype is in no narrower group: `Alignment.Center` (declared `Alignment`) is in none, and
+  `Arrangement.SpaceBetween` (declared `Arrangement.HorizontalOrVertical`) is in
+  `Arrangement.HorizontalOrVertical` only, not in `Arrangement.Horizontal`, although Kotlin accepts
+  it wherever an `Arrangement.Horizontal` is expected. The notebook groups by declared type, and the
+  declared type is what the binder describes; subtyping is not modelled.
+- **Kotlin members win.** If `P` has a member named `G` (a constant, a function, a nested object
+  the binder lists), that member is what `P.G` reads, and there is no group of that name.
+- `dir()` of an object lists its group names next to its members; `dir()` of a group lists its
+  constants. A name a group does not hold raises `AttributeError` naming the group's Kotlin type
+  (`androidx.compose.ui.Alignment.Horizontal`), so `Alignment.Horizontal.Top` fails: `Top` is an
+  `Alignment.Vertical`.
+- On a binder without `describe(module, name)` there are no groups; the flat spelling is unchanged.
+- **Stubs.** `tools/gen_stubs.py` emits each group as a class nested in the object's stub class,
+  holding the same `ClassVar` constants, grouped by the declared type the upstream stub's docstring
+  carries (`"""Kotlin: androidx.compose.ui.Alignment.End(): androidx.compose.ui.Alignment.Horizontal"""`),
+  so a type checker accepts `Alignment.Horizontal.End` and rejects `Alignment.Horizontal.Top`. A
+  reference to the Kotlin type `Alignment.Horizontal` in a signature stays `typing.Any`: the group
+  class is a namespace, not the type of the constants.
+
+Evidence: `tests/test_chain.py::GroupedObjectConstants` (12 tests, runtime, against the fake host;
+with the group lookup disabled 11 fail, and the one that stays green checks the binder without
+`describe(module, name)`), `tests/test_stubs.py::TheConstantGroups` (5 tests, generator),
+`::TheCommittedStubs::test_the_committed_alignment_and_arrangement_carry_their_groups`,
+`::TheStubMatchesTheRuntime::test_a_group_in_the_stub_holds_what_the_runtime_group_holds`, and
+`tests/test_typing.py::TheStubsTypeCheck::test_a_grouped_constant_type_checks` (mypy). In the real
+`kotlin-stubs` artefact only `Alignment` and `Arrangement` have such groups. Nothing in the walked
+Compose surface is an extension receiver named `Alignment.Horizontal` or `Arrangement.Horizontal`, so
+the binder lists no member that would win over these groups.
 
 ## 8. The notebook surface not yet covered — `planned`
 
@@ -330,7 +376,7 @@ Found in the repository; not covered by `docs/INTENT.md`, or in conflict with it
    `pythonx.compose.foundation.layout` (plus `pythonx.compose.foundation` and `pythonx.compose`)
    "while the spelling settles".
 5. *(Resolved, #31.)* `material3/icon.py` and `color_scheme.py`, dead reflection code, are deleted.
-6. *(Decided, INTENT §5.3.)* Grouped alignment constants: both spellings are to be served; the grouped one is not built yet (§7).
+6. *(Resolved, INTENT §5.3, issue #9.)* Grouped alignment constants: both spellings are served (§7, S7.1).
 7. The submodule `pythonx/compose/native` → `thisisthepy/swing-graalvm-demo`, which INTENT does not
    mention. (The 29 empty `material3/*.py` files are deleted, #31.)
 8. **The `test/` directory** — a 2023–2024 Kotlin Multiplatform sample (`pycomposeui`, chaquopy

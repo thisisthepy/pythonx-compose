@@ -188,8 +188,9 @@ worktree so a test can see it. Read it in place.
   `.tmp/` (rule 2), not in the home directory.
 - Tests that exercise the binder's adaptation layer read it, read-only, from a `PythonMultiplatform`
   checkout: the sibling directory `../PythonMultiplatform`, or `PYTHONMULTIPLATFORM_HOME`. Without
-  one they **skip**; with a checkout older than python-multiplatform `ba4c6f49`, 5 of them skip for
-  want of its member resolver (see `docs/SPEC.md` §0). Report both numbers and say which environment you ran in. A skip is not
+  one they **skip**; against an older python-multiplatform some still skip, each saying which binder
+  feature it needs (the member resolver, `ba4c6f49`; `describe(module, name)`, #36; see
+  `docs/SPEC.md` §0). Report both numbers and say which environment you ran in. A skip is not
   a pass.
 - The suite runs on GitHub Actions (`.github/workflows/tests.yml`) in both environments, without and
   with a python-multiplatform checkout, for every pull request into `develop`. Local runs are for

@@ -48,7 +48,8 @@ def Greeting():
   체이닝됩니다. 이런 메서드의 키워드 인자는 아직 Kotlin 그대로이며(`m.padding(paddingValues=...)`),
   모듈 함수는 `padding(m, padding_values=...)` 를 받습니다.
 - **Kotlin 객체는 네임스페이스.** `Alignment.Center`, `Arrangement.End` 는 괄호 없이 읽고, 그 안의
-  함수는 `snake_case` 입니다: `Arrangement.spaced_by(8)`.
+  함수는 `snake_case` 입니다: `Arrangement.spaced_by(8)`. 노트북처럼 선언된 타입별로 묶어서 읽을
+  수도 있습니다: `Alignment.Horizontal.End` 는 `Alignment.End` 입니다.
 - **`@Composable` 은 그대로.** 화면은 데코레이터가 붙은 파이썬 함수입니다.
 - **실제 패키지.** `pythonx/` 는 `androidx.compose.*` 를 import 해 재구성하는 평범한 파이썬
   소스입니다. 바인더는 아무 이름도 바꾸지 않습니다 — 이름을 바꾸는 것은 이 패키지의 일입니다.
@@ -149,7 +150,7 @@ pip 패키지 **`pythonx-compose`**(파이썬 3.11 이상)로 배포되며, impo
 | `layout` 뿐 아니라 `material3` 에서도 쓰는 `Column`, `Row`, `Spacer` | ✅ 구현, 테스트됨 |
 | `snake_case` 메서드 키워드 인자 | 🟡 부분 — 모듈 함수는 됨; 메서드는 아직 Kotlin 키워드 |
 | 빈 `Modifier` | 🟡 부분 — 클래스에서 시작하는 `Modifier.padding(16)` 은 실제 Compose 에서 앱이 제공하는 팩토리가 필요 |
-| `Alignment` / `Arrangement` | 🟡 부분 — `Alignment.Center`, `Arrangement.spaced_by(8)` 동작; 묶음 표기 `Alignment.Horizontal.End` 대기 |
+| `Alignment` / `Arrangement` | ✅ 구현 및 테스트 — `Alignment.Center`, `Arrangement.spaced_by(8)`, 그리고 `Alignment.End` 와 나란히 묶음 표기 `Alignment.Horizontal.End` |
 | Material 3 위젯 (`Text`, `Button`, `Card`, `TextField`, …) | 🟡 부분 — 규칙으로 재노출됨; 위젯별 렌더 증거 대기(#9) |
 | 실제 Compose 1.11.1 에서 생성한 타입 스텁(`.pyi`), `py.typed` | ✅ 구현, mypy 로 검사; 아직 많은 타입이 `Any` 이고 메서드 키워드는 Kotlin 이름(#12) |
 | 배포 (`pythonx-compose`) | 🟡 부분 — wheel 에 매니페스트, 재노출 규칙, 스텁, `py.typed` 포함 |

@@ -119,6 +119,22 @@ class TheStubsTypeCheck(unittest.TestCase):
             Modifier.padding(16).fillMaxWidth()
         """, '"fillMaxWidth"', "[attr-defined]")
 
+    def test_a_grouped_constant_type_checks(self):
+        """SPEC S7.1: `Alignment.Horizontal.End` beside `Alignment.End`; `Top` is no `Horizontal`."""
+        self.assertPasses("""
+            from pythonx.compose.ui import Alignment
+            from pythonx.compose.layout import Arrangement
+
+            a = Alignment.Horizontal.End
+            b = Alignment.End
+            c = Arrangement.HorizontalOrVertical.SpaceBetween
+        """)
+        self.assertFails("""
+            from pythonx.compose.ui import Alignment
+
+            Alignment.Horizontal.Top
+        """, '"Top"', "[attr-defined]")
+
     def test_a_kotlin_spelled_module_function_fails(self):
         self.assertFails("""
             from pythonx.compose.layout import fillMaxWidth

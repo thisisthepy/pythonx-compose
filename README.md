@@ -48,7 +48,9 @@ proofs are still pending. See [Status](#-status).</sub>
   exactly as it does in Kotlin. Keyword arguments to such a method are still Kotlin's own
   (`m.padding(paddingValues=...)`); the module function takes `padding(m, padding_values=...)`.
 - **Kotlin objects are namespaces.** `Alignment.Center` and `Arrangement.End` are read without
-  parentheses; functions inside them are `snake_case`: `Arrangement.spaced_by(8)`.
+  parentheses; functions inside them are `snake_case`: `Arrangement.spaced_by(8)`. Constants can
+  also be reached grouped by their declared type, as the notebook writes them:
+  `Alignment.Horizontal.End` is `Alignment.End`.
 - **`@Composable` stays.** Screens are decorated Python functions.
 - **A real package.** `pythonx/` is ordinary Python source that imports `androidx.compose.*` and
   reshapes it. The binder never renames anything — renaming is this package's job.
@@ -150,7 +152,7 @@ standalone desktop toolkit.
 | `Column`, `Row`, `Spacer` from `material3` as well as `layout` | ✅ implemented and tested |
 | Method keyword arguments in `snake_case` | 🟡 partial — module functions yes; methods still take Kotlin's keywords |
 | The empty `Modifier` | 🟡 partial — `Modifier.padding(16)` from the class needs an app-supplied factory against real Compose |
-| `Alignment` / `Arrangement` | 🟡 partial — `Alignment.Center`, `Arrangement.spaced_by(8)` work; grouped `Alignment.Horizontal.End` pending |
+| `Alignment` / `Arrangement` | ✅ implemented and tested — `Alignment.Center`, `Arrangement.spaced_by(8)`, and grouped `Alignment.Horizontal.End` beside `Alignment.End` |
 | Material 3 widgets (`Text`, `Button`, `Card`, `TextField`, …) | 🟡 partial — re-exported by rule; render proofs per widget pending (#9) |
 | Type stubs (`.pyi`) from real Compose 1.11.1, `py.typed` | ✅ implemented and checked with mypy; many types are still `Any`, and method keywords are Kotlin's (#12) |
 | Distribution (`pythonx-compose`) | 🟡 partial — the wheel carries the manifest, the re-export rule, the stubs and `py.typed` |

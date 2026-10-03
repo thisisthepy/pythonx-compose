@@ -25,6 +25,9 @@ Kotlin package it maps to and writes the Pythonic one next to the module's `__in
   (python-multiplatform #44). A sub-package directory holding only `__init__.pyi` would be a
   namespace package at run time and shadow the `KotlinObject` the re-export rule serves. An object
   whose name the parent uses for a function is left out: at run time that name is the function;
+- an object's constants are also grouped by the type nested in it that their docstring declares
+  them as (`Alignment.End(): Alignment.Horizontal`), as a class nested in the object's class
+  (`Alignment.Horizontal.End`), the runtime's `ConstantGroup` rule; a member of that name wins;
 - a reference to another Kotlin package names the `pythonx.compose` module the manifest lists first
   for it, and its import is rewritten to match; a package the manifest does not map, or a name the
   target stub does not declare as a class, becomes `typing.Any`;
@@ -203,6 +206,44 @@ def _mark_ignores(tree: ast.Module) -> None:
             node.type_ignore = tags[node.lineno]
 
 
+_DECLARED_CONSTANT = re.compile(r"Kotlin: (?P<owner>[\w.]+)\.\w+\(\): (?P<type>[\w.]+)$")
+
+
+def _add_constant_groups(cls: ast.ClassDef, kotlin_name: str) -> None:
+    """Nest in [cls] a class per type nested in it that its constants are declared as (SPEC S7.1).
+
+    The runtime's `ConstantGroup` rule, read off the stub: a constant whose docstring
+    (`Kotlin: <kotlin_name>.End(): <kotlin_name>.Horizontal`) declares it as exactly
+    `<kotlin_name>.<G>`, for one simple upper-case name `G`, is repeated in `class G`, which is
+    emitted unless [cls] already has a member named `G` (a Kotlin member wins). A constant declared
+    as anything else -- [cls] itself, a deeper or a foreign type -- stays flat only.
+    """
+    members = {_name_of(node) for node in cls.body} - {None}
+    groups: dict[str, list[ast.stmt]] = {}
+    for index, node in enumerate(cls.body):
+        if not (isinstance(node, ast.AnnAssign) and isinstance(node.target, ast.Name)):
+            continue
+        following = cls.body[index + 1] if index + 1 < len(cls.body) else None
+        if not (isinstance(following, ast.Expr) and isinstance(following.value, ast.Constant)
+                and isinstance(following.value.value, str)):
+            continue
+        declared = _DECLARED_CONSTANT.match(following.value.value.strip())
+        if declared is None or declared["owner"] != kotlin_name:
+            continue
+        group = declared["type"][len(kotlin_name) + 1:] if declared["type"].startswith(kotlin_name + ".") else ""
+        if not group[:1].isupper() or "." in group or group in members:
+            continue
+        groups.setdefault(group, []).extend(
+            ast.parse(ast.unparse(statement)).body[0] for statement in (node, following)
+        )
+    for group in sorted(groups):
+        doc = f"Kotlin: the constants of {kotlin_name} declared as {kotlin_name}.{group}"
+        cls.body.append(ast.ClassDef(
+            name=group, bases=[], keywords=[], decorator_list=[],
+            body=[ast.Expr(ast.Constant(doc))] + groups[group],
+        ))
+
+
 # -------------------------------------------------------------------------------------- references
 
 
@@ -310,6 +351,9 @@ class Converter:
 
         for name in self.stubs.objects(kotlin_package) if kotlin_package else ():
             self._add_object(body, kotlin_package, name, imported)
+        for node in body:
+            if isinstance(node, ast.ClassDef) and not _is_protocol(node):
+                _add_constant_groups(node, f"{kotlin_package}.{node.name}")
 
         self._check_unique(body, kotlin_package)
         references = _References(self, kotlin_package, imported)

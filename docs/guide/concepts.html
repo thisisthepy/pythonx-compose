@@ -80,8 +80,9 @@ from pythonx.compose.layout import Arrangement
 
 Alignment.Center
 Arrangement.End
-Arrangement.spaced_by(8)</code></pre>
-<p data-lang="en">The notebook's grouping by type, <code>Alignment.Horizontal.End</code>, is decided but not built yet; write <code>Alignment.End</code>.</p><p data-lang="ko">노트북의 타입별 묶음 표기 <code>Alignment.Horizontal.End</code> 는 결정되었지만 아직 만들어지지 않았습니다. <code>Alignment.End</code> 로 쓰세요.</p>
+Arrangement.spaced_by(8)
+Alignment.Horizontal.End      # the same constant as Alignment.End</code></pre>
+<p data-lang="en">A constant can also be read grouped by its declared type, as the notebook writes it: <code>Alignment.Horizontal.End</code> is <code>Alignment.End</code>, read the same way. A group holds only the constants declared as exactly that type, so <code>Alignment.Center</code> (declared <code>Alignment</code>) is in no group, and <code>Arrangement.SpaceBetween</code> is under <code>Arrangement.HorizontalOrVertical</code>, not <code>Arrangement.Horizontal</code>.</p><p data-lang="ko">노트북처럼 상수를 선언된 타입별로 묶어서 읽을 수도 있습니다. <code>Alignment.Horizontal.End</code> 는 <code>Alignment.End</code> 이며 같은 방식으로 읽힙니다. 묶음에는 정확히 그 타입으로 선언된 상수만 들어가므로 <code>Alignment.Center</code>(선언 타입 <code>Alignment</code>)는 어느 묶음에도 없고, <code>Arrangement.SpaceBetween</code> 은 <code>Arrangement.Horizontal</code> 이 아니라 <code>Arrangement.HorizontalOrVertical</code> 아래에 있습니다.</p>
 </section>
 
 <section>
