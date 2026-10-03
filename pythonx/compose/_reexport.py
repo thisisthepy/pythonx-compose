@@ -36,7 +36,10 @@ and every name in it then resolves against the Kotlin package `pythonx-map.toml`
 
 A module may also answer for names the manifest's `[aliases]` section lends it from another mapped
 module (`material3` answers for `Column`, `Row`, `Spacer` from `layout`, as the notebook imports
-them); the object is the same one either way.
+them); the object is the same one either way. An alias may also lend a name under a different one,
+through an attribute path (`DefaultIcons` is `Icons.Default` of `pythonx.compose.material.icons`,
+INTENT section 5.7); a path with attribute steps is read afresh on every access, as the binder
+serves a live property.
 
 Nothing here names a Kotlin declaration. Names defined in the package's own `__init__.py` (such as
 `runtime.Composable`) are ordinary module attributes and win, because `__getattr__` only runs for a
@@ -434,12 +437,33 @@ class ConstantGroup:
 
 
 def _aliases(module_name: str) -> dict:
-    """Name -> the `pythonx.compose` module it is borrowed from, per the manifest's `[aliases]`."""
+    """Name -> `(source module, attribute path in it)`, per the manifest's `[aliases]`.
+
+    An entry under a source module is a list of names (lent under the same name, path = the name) or
+    a table `{ lent = "Path.To.Attr" }` (a different name, through an attribute path).
+    """
     borrowed = {}
-    for source, names in manifest().get("aliases", {}).get(module_name, {}).items():
-        for name in names:
-            borrowed[name] = source
+    for source, lent in manifest().get("aliases", {}).get(module_name, {}).items():
+        pairs = ((name, name) for name in lent) if isinstance(lent, list) else lent.items()
+        for name, path in pairs:
+            borrowed[name] = (source, path)
     return borrowed
+
+
+def _borrow(module_name: str, name: str, source: str, path: str):
+    """The value of the alias [name]: [path] read in [source].
+
+    A bare name is resolved once and kept in the owner's namespace. A path with attribute steps is
+    read on every access and not kept, because what it ends in may be a live property -- the binder
+    serves `Icons.Default` afresh on every read and this layer does not freeze it either.
+    """
+    head, *rest = path.split(".")
+    value = getattr(importlib.import_module(source), head)
+    for step in rest:
+        value = getattr(value, step)
+    if not rest:
+        setattr(sys.modules[module_name], name, value)
+    return value
 
 
 def reexport(module_name: str):
@@ -457,11 +481,9 @@ def reexport(module_name: str):
             # the attribute before it imports a submodule, and only an AttributeError lets it
             # fall back -- so this has to answer before anything that needs the binder.
             return importlib.import_module(module_name + "." + name)
-        source = _aliases(module_name).get(name)
-        if source is not None:
-            value = getattr(importlib.import_module(source), name)
-            setattr(sys.modules[module_name], name, value)
-            return value
+        borrowed = _aliases(module_name).get(name)
+        if borrowed is not None:
+            return _borrow(module_name, name, *borrowed)
         try:
             kotlin = kotlin_module(module_name)
         except ImportError as missing:

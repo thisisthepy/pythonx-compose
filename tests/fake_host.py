@@ -52,6 +52,11 @@ KOTLIN_ANY = "kotlin.Any"
 RUNTIME = "androidx.compose.runtime"
 MUTABLE_STATE = RUNTIME + ".MutableState"
 
+ICONS_PACKAGE = "androidx.compose.material.icons"
+ICONS = ICONS_PACKAGE + ".Icons"
+ICONS_FILLED = ICONS + ".Filled"
+IMAGE_VECTOR = "androidx.compose.ui.graphics.vector.ImageVector"
+
 EMPTY_MODIFIER = "androidx.compose.ui.emptyModifier"
 """The one entry the real walker does **not** produce; see `ComposeShapedFragment.EMPTY_MODIFIER`.
 
@@ -84,6 +89,12 @@ class StubConstant:
 
     def __init__(self, label):
         self.label = label
+
+
+class StubIconSet:
+    """`Icons.Filled`: the one object `Icons.Default` resolves to, so a test can tell it was reached."""
+
+    __slots__ = ()
 
 
 class StubPaddingValues:
@@ -124,6 +135,7 @@ class FakeHost:
         self._order = []
         self._handles = {}
         self._next_handle = 1
+        self.filled = StubIconSet()
         self._build()
 
     # ------------------------------------------------------------------ the boundary (3 names)
@@ -340,6 +352,21 @@ class FakeHost:
             lambda args: StubConstant(f"spacedBy({_dp(args[0])})"),
         )
 
+        # Icons, shaped after python-multiplatform #37/#38 as the ecosystem reports them: `Icons.Default`
+        # is a `STATIC_GETTER` of the object `Icons` whose declared type is `Icons.Filled` (the
+        # property's type, not `Default`'s own), and `Icons.Default.Add` is the top-level extension
+        # property `AddKt.getAdd(Icons$Filled)` -- a `GETTER` named by its package and property, read on
+        # `Icons.Filled`, whose receiver is `args[0]` and not a slot, returning an `ImageVector`.
+        self._add(
+            f"{ICONS}.Default", 0, (), (), (), "OBJECT", ICONS_FILLED, False, None, (),
+            lambda args: self.filled, kind="STATIC_GETTER",
+        )
+        for icon in ("Add", "Edit"):
+            self._add(
+                f"{ICONS_PACKAGE}.filled.{icon}", 0, (), (), (), "OBJECT", IMAGE_VECTOR, False,
+                ICONS_FILLED, (),
+                lambda args, icon=icon: self._read_icon(icon), kind="GETTER",
+            )
         self._add(
             # A generic function: `T` is unbounded, so its slot is declared `kotlin.Any`.
             f"{RUNTIME}.mutableStateOf", 1, ("value",), ("OBJECT",), (KOTLIN_ANY,),
@@ -355,6 +382,10 @@ class FakeHost:
             "UNIT", "kotlin.Unit", False, MUTABLE_STATE, (False,),
             lambda args: args[0].write(args[1]), kind="SETTER",
         )
+
+    def _read_icon(self, icon):
+        self.calls.append(f"Icons.Filled.{icon}")
+        return StubConstant(icon)
 
     def _constant(self, name, declared):
         self._add(name, 0, (), (), (), "OBJECT", declared, False, None, (),

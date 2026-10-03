@@ -48,6 +48,7 @@ LONG_LAYOUT = COMPOSE / "foundation" / "layout" / "__init__.pyi"
 UI = COMPOSE / "ui" / "__init__.pyi"
 TEXT = COMPOSE / "ui" / "text" / "__init__.pyi"
 MATERIAL3 = COMPOSE / "material3" / "__init__.pyi"
+ICONS = COMPOSE / "material" / "icons" / "__init__.pyi"
 
 
 def _generated(root: Path = KOTLIN_STUBS) -> dict[Path, str]:
@@ -248,7 +249,10 @@ class TheCurrentFormat(unittest.TestCase):
         )
         self.assertEqual(
             ["import typing as _t", "import pythonx.compose.ui", "import pythonx.compose.ui.text"],
-            [line for line in _imports(self.stubs[MATERIAL3]) if not line.startswith("from ")],
+            [
+                line for line in _imports(self.stubs[MATERIAL3])
+                if not line.startswith("from ") and " as _alias_" not in line  # the DefaultIcons path alias
+            ],
         )
 
     def test_an_object_sub_package_becomes_a_class_in_its_parent(self):
@@ -288,6 +292,19 @@ class TheCurrentFormat(unittest.TestCase):
         imports = _imports(self.stubs[MATERIAL3])
         for name in ("Column", "Row", "Spacer"):
             self.assertIn(f"from pythonx.compose.layout import {name} as {name}", imports)
+
+    def test_a_renamed_path_alias_is_the_same_path_in_the_owners_stub(self):
+        # `DefaultIcons` is `Icons.Default` of the icons module: not an import of that name (it
+        # differs), but the same expression, so a checker reads what the icons stub says it is.
+        text = self.stubs[MATERIAL3]
+        self.assertIn("import pythonx.compose.material.icons as _alias_0", text)
+        assigned = {
+            n.targets[0].id: ast.unparse(n.value)
+            for n in gen_stubs.parse(text).body
+            if isinstance(n, ast.Assign) and isinstance(n.targets[0], ast.Name)
+        }
+        self.assertEqual("_alias_0.Icons.Default", assigned.get("DefaultIcons"))
+        self.assertNotIn("DefaultIcons as", text)
 
     def test_a_constant_named_like_a_python_keyword_is_left_out(self):
         source = (
@@ -485,6 +502,11 @@ class TheCommittedStubs(unittest.TestCase):
         for path, text in generated.items():
             with self.subTest(stub=str(path.relative_to(REPO))):
                 self.assertEqual(text, path.read_text(encoding="utf-8"))
+
+    def test_the_committed_icons_stub_declares_icons_and_material3_declares_default_icons(self):
+        icons = ICONS.read_text(encoding="utf-8")
+        self.assertIn("Icons", _classes(icons))
+        self.assertIn("DefaultIcons = _alias_0.Icons.Default", MATERIAL3.read_text(encoding="utf-8"))
 
     def test_the_committed_alignment_and_arrangement_carry_their_groups(self):
         alignment = _nested(_classes(UI.read_text(encoding="utf-8"))["Alignment"])

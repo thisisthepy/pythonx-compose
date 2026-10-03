@@ -76,6 +76,13 @@ class TestEveryNotebookImportIsMapped(unittest.TestCase):
         )
 
 
+def _lent_names(lent) -> dict:
+    """Both forms of one source's entry as {name lent: attribute path in the source}."""
+    if isinstance(lent, list):
+        return {name: name for name in lent}
+    return dict(lent)
+
+
 class TestAliasSection(unittest.TestCase):
     def test_every_alias_points_between_mapped_modules(self) -> None:
         manifest = _manifest()
@@ -86,9 +93,47 @@ class TestAliasSection(unittest.TestCase):
                 for source in sources:
                     self.assertIn(source, modules)
 
+    def test_an_entry_is_a_list_of_names_or_a_table_of_name_to_path(self) -> None:
+        for owner, sources in _manifest().get("aliases", {}).items():
+            for source, lent in sources.items():
+                with self.subTest(owner=owner, source=source):
+                    if isinstance(lent, list):
+                        self.assertTrue(lent and all(isinstance(name, str) for name in lent))
+                    else:
+                        self.assertIsInstance(lent, dict)
+                        for name, path in lent.items():
+                            self.assertTrue(name.isidentifier(), name)
+                            self.assertTrue(
+                                all(part.isidentifier() for part in path.split(".")),
+                                f"{name} = {path!r} is not an attribute path",
+                            )
+
+    def test_no_owner_lends_one_name_twice(self) -> None:
+        for owner, sources in _manifest().get("aliases", {}).items():
+            names = [name for lent in sources.values() for name in _lent_names(lent)]
+            with self.subTest(owner=owner):
+                self.assertEqual(sorted(set(names)), sorted(names))
+
     def test_material3_answers_for_the_layout_composables_the_notebook_imports(self) -> None:
         aliases = _manifest()["aliases"]["pythonx.compose.material3"]["pythonx.compose.layout"]
         self.assertEqual(["Column", "Row", "Spacer"], aliases)
+
+    def test_material3_answers_for_default_icons_as_icons_default(self) -> None:
+        # INTENT 5.7: a different name, through an attribute path, and the icons package is mapped.
+        manifest = _manifest()
+        lent = manifest["aliases"]["pythonx.compose.material3"]["pythonx.compose.material.icons"]
+        self.assertEqual({"DefaultIcons": "Icons.Default"}, lent)
+        self.assertEqual(
+            "androidx.compose.material.icons", manifest["modules"]["pythonx.compose.material.icons"]
+        )
+
+    def test_every_mapped_module_is_a_package_on_disk(self) -> None:
+        # AGENTS.md 12: `pythonx/` is a real package; a manifest row without its file is a module
+        # the stubs describe and the interpreter cannot import.
+        for module in _manifest()["modules"]:
+            with self.subTest(module=module):
+                init = REPO.joinpath(*module.split(".")) / "__init__.py"
+                self.assertTrue(init.is_file(), f"{module} has a manifest row but no {init}")
 
 
 class TestValueClassSection(unittest.TestCase):

@@ -21,6 +21,11 @@
 "pythonx.compose.runtime"   = "androidx.compose.runtime"
 "pythonx.compose.ui"        = "androidx.compose.ui"
 
+# `DefaultIcons` (INTENT section 5.7) is `Icons.Default`, which lives here: `Icons` is an object of
+# `material-icons-core`, and `Icons.Default.Add` is an extension property read on `Icons.Filled`.
+"pythonx.compose.material"       = "androidx.compose.material"
+"pythonx.compose.material.icons" = "androidx.compose.material.icons"
+
 # Reached through the four above rather than imported directly: a `Modifier` chain returns into
 # `ui.unit` and `ui.graphics`, and `ui.text` is where `TextStyle` lives.
 "pythonx.compose.ui.unit"     = "androidx.compose.ui.unit"
@@ -52,3 +57,10 @@ raw-primitive-allowed = [
 # `androidx.compose.foundation.layout`. Each is the same object as in its home module; this is data,
 # not a wrapper, and the rule that serves it is the one in `_reexport.py`.
 "pythonx.compose.layout" = ["Column", "Row", "Spacer"]
+#
+# An entry is a list of names lent under the SAME name, or a table `{ lent name = "Path.To.Attr" }`
+# that lends an attribute path of the source under a DIFFERENT name: the notebook's `DefaultIcons`
+# is Kotlin's `Icons.Default` (INTENT section 5.7). The first segment is a name of the source module,
+# each further one an attribute read. A path with a dot is read afresh on every access and never kept,
+# the way the binder serves `Icons.Default` (a live property); a plain name is resolved once.
+"pythonx.compose.material.icons" = { DefaultIcons = "Icons.Default" }

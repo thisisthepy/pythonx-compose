@@ -165,6 +165,25 @@ class TheStubsTypeCheck(unittest.TestCase):
                 scene.layout_direction = scene.layout_direction
         """)
 
+    def test_default_icons_imports_from_material3(self):
+        """INTENT 5.7: the alias is `Icons.Default`, which the stub types as `Icons.Filled`.
+        `Icons.Filled.Add` is typed `Any` until python-multiplatform #68 stubs it properly."""
+        self.assertPasses("""
+            from pythonx.compose.material3 import DefaultIcons, Icon
+            from pythonx.compose.material.icons import Icons
+
+            same: Icons.Filled = DefaultIcons
+            Icon(DefaultIcons.Add, content_description=None)
+            Icon(Icons.Default.Add, content_description=None)
+        """)
+
+    def test_an_unknown_default_icon_fails(self):
+        self.assertFails("""
+            from pythonx.compose.material3 import DefaultIcons
+
+            DefaultIcons.NoSuchIcon
+        """, "NoSuchIcon", "[attr-defined]")
+
     def test_a_kotlin_spelled_module_function_fails(self):
         self.assertFails("""
             from pythonx.compose.layout import fillMaxWidth

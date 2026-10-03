@@ -39,7 +39,8 @@ Kotlin package it maps to and writes the Pythonic one next to the module's `__in
   for it, and its import is rewritten to match; a package the manifest does not map, or a name the
   target stub does not declare as a class, becomes `typing.Any`;
 - a module that maps a Kotlin package an earlier module already maps re-exports that module, and
-  the manifest's `[aliases]` are re-exported, because at run time those names are the same objects;
+  the manifest's `[aliases]` are re-exported, because at run time those names are the same objects
+  (a name lent under another one, through an attribute path, is assigned that path of the source's stub);
 - names the module's own `__init__.py` defines (`runtime.Composable`) are carried over, because a
   `.pyi` beside a module replaces everything a type checker knows about it; so is a bare
   annotation (`app_root: State`), the way a module declares a name its `__getattr__` creates.
@@ -445,9 +446,22 @@ class Converter:
 
         lines = [header(self.stubs.provenance), "import typing as _t\n"]
         lines.extend(f"import {module}\n" for module in sorted(references.used))
-        for source_module, names in sorted(manifest().get("aliases", {}).get(module_name, {}).items()):
-            lines.extend(f"from {source_module} import {name} as {name}\n" for name in sorted(names))
+        declared: list[str] = []
+        for source_module, lent in sorted(manifest().get("aliases", {}).get(module_name, {}).items()):
+            pairs = {name: name for name in lent} if isinstance(lent, list) else dict(lent)
+            for name, path in sorted(pairs.items()):
+                if path == name:
+                    lines.append(f"from {source_module} import {name} as {name}\n")
+                else:
+                    # A name lent under another one, through an attribute path (`DefaultIcons` is
+                    # `Icons.Default`): not an import but the same expression, so the type checker
+                    # reads whatever the source's own stub says `Icons.Default` is.
+                    lines.append(f"import {source_module} as _alias_{len(declared)}\n")
+                    declared.append(f"{name} = _alias_{len(declared)}.{path}\n")
         lines.append("\n")
+        lines.extend(declared)
+        if declared:
+            lines.append("\n")
         lines.append(_emit_module(body))
         return "".join(lines)
 
