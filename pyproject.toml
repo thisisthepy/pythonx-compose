@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "pythonx-compose"
 version = "0.1.0a1"
-description = "Pythonic Compose UI for Python on Kotlin Multiplatform, through python-multiplatform"
+description = "Build Compose Multiplatform UIs in Python: Python Declarative UI Framework"
 readme = {file = "README.md", content-type = "text/markdown"}
 license = "Apache-2.0"
 license-files = ["LICENSE"]
