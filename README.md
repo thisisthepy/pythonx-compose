@@ -45,8 +45,10 @@ proofs are still pending. See [Status](#-status).</sub>
   only (`fillMaxWidth` → `fill_max_width`, `toURLString` → `to_url_string`), and an explicit
   overload keeps its suffix (`padding__Dp`).
 - **Extension functions are methods.** `Modifier.padding(16).size(24).fill_max_width()` chains
-  exactly as it does in Kotlin. Keyword arguments to such a method are still Kotlin's own
-  (`m.padding(paddingValues=...)`); the module function takes `padding(m, padding_values=...)`.
+  exactly as it does in Kotlin. Keyword arguments to such a method are `snake_case`
+  too (`m.padding(padding_values=...)`), as they are on the module function
+  `padding(m, padding_values=...)`; Kotlin's own spelling still works at run time, and the type
+  stubs offer only the Pythonic one.
 - **Kotlin objects are namespaces.** `Alignment.Center` and `Arrangement.End` are read without
   parentheses; functions inside them are `snake_case`: `Arrangement.spaced_by(8)`. Constants can
   also be reached grouped by their declared type, as the notebook writes them:
@@ -150,11 +152,11 @@ standalone desktop toolkit.
 | `pythonx` as a real on-disk package re-exporting `androidx.compose.*` by one rule | ✅ implemented and tested |
 | `Modifier` chains with snake_case methods, overload dispatch, `Dp` as a number | ✅ implemented and tested against the binder's layer |
 | `Column`, `Row`, `Spacer` from `material3` as well as `layout` | ✅ implemented and tested |
-| Method keyword arguments in `snake_case` | 🟡 partial — module functions yes; methods still take Kotlin's keywords |
+| Method keyword arguments in `snake_case` | ✅ implemented and tested — module functions and methods (methods need python-multiplatform's `describe_member`) |
 | The empty `Modifier` | 🟡 partial — `Modifier.padding(16)` from the class needs an app-supplied factory against real Compose |
 | `Alignment` / `Arrangement` | ✅ implemented and tested — `Alignment.Center`, `Arrangement.spaced_by(8)`, and grouped `Alignment.Horizontal.End` beside `Alignment.End` |
 | Material 3 widgets (`Text`, `Button`, `Card`, `TextField`, …) | 🟡 partial — re-exported by rule; render proofs per widget pending (#9) |
-| Type stubs (`.pyi`) from real Compose 1.11.1, `py.typed` | ✅ implemented and checked with mypy; many types are still `Any`, and method keywords are Kotlin's (#12) |
+| Type stubs (`.pyi`) from real Compose 1.11.1, `py.typed` | ✅ implemented and checked with mypy; many types are still `Any` (#12) |
 | Distribution (`pythonx-compose`) | 🟡 partial — the wheel carries the manifest, the re-export rule, the stubs and `py.typed` |
 | Declared app root (`@app`) and Pythonic state (`state`), no update call | 🟡 partial — binder path tested against a fake host shaped after python-multiplatform #38; real Compose is the E2E module (#11, #19); `state(1)` is refused by the binder (int in an `Any?` slot) |
 | `TextField` input-method (IME) handling | ⏳ planned (#10) |

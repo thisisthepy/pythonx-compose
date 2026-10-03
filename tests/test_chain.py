@@ -206,6 +206,107 @@ class OverloadDispatch(AdapterCase):
         self.assertEqual("padding(pv(8.0))", self.describe(result))
 
 
+class MethodKeywords(AdapterCase):
+    """SPEC S4.1: a method's keywords are snake_case like a module function's.
+
+    The member resolver answers `(kotlin_name, {python_keyword: kotlinParameter})`, built from
+    `python_multiplatform.describe_member(type, member)` (python-multiplatform #54).
+    """
+
+    def setUp(self):
+        super().setUp()
+        import python_multiplatform
+
+        self.needs_member_resolver()
+        if not hasattr(python_multiplatform, "describe_member"):
+            self.skipTest("the binder has no describe_member(type, member) yet (python-multiplatform #54)")
+
+    def values(self):
+        import pythonx.compose.foundation.layout as layout
+
+        return layout.padding_values_of(8)
+
+    def test_a_snake_case_keyword_reaches_the_kotlin_parameter_of_the_overload(self):
+        result = self.empty().padding(padding_values=self.values())
+        self.assertEqual(["padding__PaddingValues"], self.host.calls)
+        self.assertEqual("padding(pv(8.0))", self.describe(result))
+
+    def test_keywords_that_are_already_one_word_are_unchanged(self):
+        result = self.empty().padding(horizontal=8, vertical=4)
+        self.assertEqual(["padding__Dp_Dp"], self.host.calls)
+        self.assertEqual("padding(h=8.0, v=4.0)", self.describe(result))
+
+    def test_the_kotlin_spelling_still_works_at_run_time(self):
+        self.empty().padding(paddingValues=self.values())
+        self.assertEqual(["padding__PaddingValues"], self.host.calls)
+
+    def test_a_snake_case_method_takes_snake_case_keywords(self):
+        """The name is resolved (`z_index`) and the keyword is mapped on it too (`z_index=`)."""
+        result = self.empty().z_index(z_index=1.5)
+        self.assertEqual("zIndex(1.5)", self.describe(result))
+        self.assertEqual(["zIndex"], self.host.calls)
+
+    def test_an_unknown_keyword_still_reaches_the_binders_refusal_with_its_candidates(self):
+        with self.assertRaises(TypeError) as raised:
+            self.empty().padding(padding_valuez=1)
+        message = str(raised.exception)
+        self.assertIn("Candidates", message)
+        self.assertIn("padding__PaddingValues", message)
+
+    def test_the_map_is_metadata_and_is_asked_for_once_per_member(self):
+        import python_multiplatform
+
+        original, asked = python_multiplatform.describe_member, []
+
+        def counting(*args):
+            asked.append(args)
+            return original(*args)
+
+        python_multiplatform.describe_member = counting
+        self.addCleanup(setattr, python_multiplatform, "describe_member", original)
+        modifier = self.empty()
+        modifier.padding(padding_values=self.values())
+        modifier.padding(padding_values=self.values())
+        self.assertEqual([(fake_host.MODIFIER, "padding")], asked)
+
+    def test_the_map_lists_every_overloads_parameters_and_not_the_receiver(self):
+        from pythonx.compose._reexport import member_name
+
+        answer = member_name(fake_host.MODIFIER, "padding", ["padding"])
+        self.assertEqual("padding", answer[0])
+        self.assertEqual("paddingValues", answer[1]["padding_values"])
+        self.assertNotIn("receiver", answer[1])
+        self.assertNotIn("horizontal", answer[1])  # one word: Kotlin's spelling is the same
+
+
+class MethodKeywordsNeedTheBindersDescription(AdapterCase):
+    """Without `describe_member` a method's keywords are Kotlin's and its names still resolve."""
+
+    def setUp(self):
+        super().setUp()
+        import python_multiplatform
+
+        self.needs_member_resolver()
+        original = getattr(python_multiplatform, "describe_member", None)
+        if original is not None:
+            del python_multiplatform.describe_member
+            self.addCleanup(setattr, python_multiplatform, "describe_member", original)
+
+    def test_the_name_resolves_and_kotlin_keywords_work(self):
+        import pythonx.compose.foundation.layout as layout
+
+        modifier = self.empty().fill_max_width()
+        self.assertEqual("fillMaxWidth", self.describe(modifier))
+        self.empty().padding(paddingValues=layout.padding_values_of(8))
+        self.assertEqual("padding__PaddingValues", self.host.calls[-1])
+
+    def test_a_snake_case_keyword_is_the_binders_refusal(self):
+        import pythonx.compose.foundation.layout as layout
+
+        with self.assertRaises(TypeError):
+            self.empty().padding(padding_values=layout.padding_values_of(8))
+
+
 class Names(AdapterCase):
     """PascalCase for types, snake_case for everything else, forward by rule and never inverted."""
 

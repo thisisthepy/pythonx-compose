@@ -45,8 +45,9 @@ def Greeting():
   (`fillMaxWidth` → `fill_max_width`, `toURLString` → `to_url_string`), 명시적 오버로드는 접미사를
   유지합니다(`padding__Dp`).
 - **확장 함수는 메서드.** `Modifier.padding(16).size(24).fill_max_width()` 가 Kotlin 에서와 똑같이
-  체이닝됩니다. 이런 메서드의 키워드 인자는 아직 Kotlin 그대로이며(`m.padding(paddingValues=...)`),
-  모듈 함수는 `padding(m, padding_values=...)` 를 받습니다.
+  체이닝됩니다. 이런 메서드의 키워드 인자도 `snake_case` 이며(`m.padding(padding_values=...)`),
+  모듈 함수 `padding(m, padding_values=...)` 와 같습니다. Kotlin 이름도 실행 시에는 그대로 통하지만
+  타입 스텁은 Pythonic 이름만 제시합니다.
 - **Kotlin 객체는 네임스페이스.** `Alignment.Center`, `Arrangement.End` 는 괄호 없이 읽고, 그 안의
   함수는 `snake_case` 입니다: `Arrangement.spaced_by(8)`. 노트북처럼 선언된 타입별로 묶어서 읽을
   수도 있습니다: `Alignment.Horizontal.End` 는 `Alignment.End` 입니다.
@@ -148,11 +149,11 @@ pip 패키지 **`pythonx-compose`**(파이썬 3.11 이상)로 배포되며, impo
 | `androidx.compose.*` 를 규칙 하나로 재노출하는 실제 디스크 패키지 `pythonx` | ✅ 구현, 테스트됨 |
 | snake_case 메서드를 쓰는 `Modifier` 체인, 오버로드 디스패치, 숫자로 쓰는 `Dp` | ✅ 구현, 바인더 계층으로 테스트됨 |
 | `layout` 뿐 아니라 `material3` 에서도 쓰는 `Column`, `Row`, `Spacer` | ✅ 구현, 테스트됨 |
-| `snake_case` 메서드 키워드 인자 | 🟡 부분 — 모듈 함수는 됨; 메서드는 아직 Kotlin 키워드 |
+| `snake_case` 메서드 키워드 인자 | ✅ 구현, 테스트됨 — 모듈 함수와 메서드(메서드는 python-multiplatform 의 `describe_member` 필요) |
 | 빈 `Modifier` | 🟡 부분 — 클래스에서 시작하는 `Modifier.padding(16)` 은 실제 Compose 에서 앱이 제공하는 팩토리가 필요 |
 | `Alignment` / `Arrangement` | ✅ 구현 및 테스트 — `Alignment.Center`, `Arrangement.spaced_by(8)`, 그리고 `Alignment.End` 와 나란히 묶음 표기 `Alignment.Horizontal.End` |
 | Material 3 위젯 (`Text`, `Button`, `Card`, `TextField`, …) | 🟡 부분 — 규칙으로 재노출됨; 위젯별 렌더 증거 대기(#9) |
-| 실제 Compose 1.11.1 에서 생성한 타입 스텁(`.pyi`), `py.typed` | ✅ 구현, mypy 로 검사; 아직 많은 타입이 `Any` 이고 메서드 키워드는 Kotlin 이름(#12) |
+| 실제 Compose 1.11.1 에서 생성한 타입 스텁(`.pyi`), `py.typed` | ✅ 구현, mypy 로 검사; 아직 많은 타입이 `Any` 입니다(#12) |
 | 배포 (`pythonx-compose`) | 🟡 부분 — wheel 에 매니페스트, 재노출 규칙, 스텁, `py.typed` 포함 |
 | 갱신 호출 없는 선언형 앱 루트(`@app`)와 파이썬다운 상태(`state`) | 🟡 부분 — 바인더 경로는 python-multiplatform #38 모양의 가짜 호스트로 테스트됨, 실제 Compose 는 E2E 모듈(#11, #19), 바인더가 `Any?` 칸의 int 를 거부해 `state(1)` 은 거부됨 |
 | `TextField` 입력기(IME) 처리 | ⏳ 계획(#10) |

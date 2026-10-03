@@ -24,8 +24,10 @@ and every name in it then resolves against the Kotlin package `pythonx-map.toml`
 - **Value classes.** The manifest's `raw-primitive-allowed` list is handed to the binder once per
   installed binding layer, so `padding(16)` reaches a `Dp` parameter.
 - **Methods on a proxy.** The same name rule is registered as the binder's member resolver, so
-  `Modifier.padding(16).fill_max_width()` reaches `fillMaxWidth` on a proxy Kotlin returned. The
-  binder caches the alias in its own registry; its proxy classes keep Kotlin names in `dir()`.
+  `Modifier.padding(16).fill_max_width()` reaches `fillMaxWidth` on a proxy Kotlin returned, and
+  `m.padding(padding_values=...)` reaches `paddingValues`: the resolver also answers a keyword map,
+  read from `python_multiplatform.describe_member`. The Kotlin spelling still works. The binder
+  caches the alias in its own registry; its proxy classes keep Kotlin names in `dir()`.
 
 - **Grouped constants.** Inside a Kotlin object served as a namespace, a type nested in it that
   is not one of its members groups the constants declared as exactly that type, so the notebook's
@@ -111,15 +113,62 @@ def binding_layer():
 _PRIMED = weakref.WeakSet()
 
 
-def member_name(kotlin_type_name: str, requested: str, kotlin_member_names) -> str | None:
-    """The binder's member-resolver hook: the Kotlin member a Pythonic name means on a proxy.
+_MEMBER_KEYWORDS: "weakref.WeakKeyDictionary" = weakref.WeakKeyDictionary()
 
-    The binder asks this only for a name its proxy has no Kotlin member of
-    (`python_multiplatform.binding.add_member_resolver`). The rule is the module rule, applied
-    forward to the proxy's real member names: `fill_max_width` finds `fillMaxWidth`.
+
+def _method_keywords(kotlin_type_name: str, kotlin_member_name: str) -> dict:
+    """`{snake_case(p): p}` for every parameter `p` of every declaration of a proxy's member.
+
+    Read with `python_multiplatform.describe_member`, which lists each overload's parameters without
+    invoking anything (the receiver slot is not among them). It is metadata, so it is kept per
+    (type, member), under the `describe_member` of the binding layer that answered: a new layer
+    starts with an empty table. A keyword whose snake_case spelling is its own is left out, and a
+    binder without `describe_member`, or a member it does not describe, has no map.
     """
-    matches = [name for name in kotlin_member_names if python_name(name) == requested]
-    return matches[0] if len(matches) == 1 else None
+    describe_member = getattr(sys.modules.get(ROOT_MODULE), "describe_member", None)
+    if describe_member is None:
+        return {}
+    try:
+        known = _MEMBER_KEYWORDS.setdefault(describe_member, {})
+    except TypeError:  # something that cannot be weakly referenced: nothing to key a cache by
+        known = {}
+    key = (kotlin_type_name, kotlin_member_name)
+    if key not in known:
+        keywords: dict = {}
+        try:
+            declarations = describe_member(kotlin_type_name, kotlin_member_name)
+        except (TypeError, AttributeError):
+            declarations = ()
+        for declaration in declarations:
+            for parameter in declaration.get("parameters", ()):
+                kotlin_parameter = parameter.get("name")
+                if kotlin_parameter and snake_case(kotlin_parameter) != kotlin_parameter:
+                    keywords.setdefault(snake_case(kotlin_parameter), kotlin_parameter)
+        known[key] = keywords
+    return known[key]
+
+
+def member_name(kotlin_type_name: str, requested: str, kotlin_member_names):
+    """The binder's member-resolver hook: the Kotlin member a Pythonic name means on a proxy, and
+    the keywords it takes.
+
+    The binder asks for a name its proxy has no Kotlin member of
+    (`python_multiplatform.binding.add_member_resolver`): the rule is the module rule applied
+    forward to the proxy's real member names, so `fill_max_width` finds `fillMaxWidth`. It asks
+    again for a Kotlin member name when a call passes keywords. The answer is then
+    `(kotlin_name, {python_keyword: kotlinParameter})`, the parameters of every overload of that
+    member, so `m.padding(padding_values=...)` reaches `paddingValues`. Without a keyword to map the
+    answer is the name alone, which is all a binder without `describe_member` can be given.
+    """
+    if requested in kotlin_member_names:
+        target = requested
+    else:
+        matches = [name for name in kotlin_member_names if python_name(name) == requested]
+        target = matches[0] if len(matches) == 1 else None
+    if target is None:
+        return None
+    keywords = _method_keywords(kotlin_type_name, target)
+    return (target, keywords) if keywords else target
 
 
 def _prime(binding) -> None:
