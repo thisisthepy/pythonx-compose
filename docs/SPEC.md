@@ -21,8 +21,8 @@ Run from a worktree with `uv run --with pytest --with mypy pytest tests -q -rs` 
 
 | Environment | Result |
 |---|---|
-| No `PythonMultiplatform` checkout found | **151 passed, 123 skipped**, 186 subtests passed |
-| python-multiplatform `develop` at `31c092f0` or later (property rows, #38; `describe_member`, #54; besides `add_member_resolver` and `describe(module, name)`) | **273 passed, 1 skipped**, 232 subtests passed |
+| No `PythonMultiplatform` checkout found | **152 passed, 123 skipped**, 186 subtests passed |
+| python-multiplatform `develop` at `31c092f0` or later (property rows, #38; `describe_member`, #54; besides `add_member_resolver` and `describe(module, name)`) | **274 passed, 1 skipped**, 232 subtests passed |
 | an older checkout, before python-multiplatform #131 (no binder-side snake_case names) | the same, with the snake_case method tests skipped |
 | an older one, without `describe(module, name)` (python-multiplatform #36) | with 13 more skipped again |
 | an older one still, without `add_member_resolver` | with 5 more skipped again |
