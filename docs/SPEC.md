@@ -21,16 +21,16 @@ Run from a worktree with `python -m pytest tests -q -rs` (pytest 8, mypy 2.4, CP
 
 | Environment | Result |
 |---|---|
-| No `PythonMultiplatform` checkout found | **106 passed, 75 skipped**, 122 subtests passed |
-| python-multiplatform `develop` at `d6d39787` or later (has `add_member_resolver` and `describe(module, name)`) | **178 passed, 3 skipped**, 149 subtests passed |
+| No `PythonMultiplatform` checkout found | **106 passed, 78 skipped**, 122 subtests passed |
+| python-multiplatform `develop` at `31c092f0` or later (has property rows, #38, besides `add_member_resolver` and `describe(module, name)`) | **183 passed, 1 skipped**, 149 subtests passed |
 | an older checkout, without `describe(module, name)` (python-multiplatform #36) | the same, with 13 more skipped |
 | an older one still, without `add_member_resolver` | with 5 more skipped again |
 
-Without a checkout, the 72 tests that install the binder's layers through `tests/adapter.py` skip.
+Without a checkout, the 75 tests that install the binder's layers through `tests/adapter.py` skip.
 Against a binder without `describe(module, name)`, the 13 that check grouped constants (§7, S7.1)
 skip. Against a binder older than `ba4c6f49`, the 5 that call a snake_case method on a proxy the
-binder returned skip as well, because that needs its member resolver (python-multiplatform #17). The 3 skips against a current checkout are `UI.ipynb`'s (§2) and the 2 that need
-python-multiplatform #38 (S5.4). `tests/test_typing.py` skips where mypy is not installed. A skip is not a
+binder returned skip as well, because that needs its member resolver (python-multiplatform #17). The skip against a current checkout is `UI.ipynb`'s (§2). A binder older than #38 skips the 5
+`TheBinderPath` tests (S5.4). `tests/test_typing.py` skips where mypy is not installed. A skip is not a
 pass.
 
 Of the 106 that pass without a checkout, 38 check the type stubs and the wheel (S1.2); most of the
@@ -194,7 +194,7 @@ job.
 Tests: `tests/test_runtime_module.py::TheRuntimeSeam` (4 tests) and `::TheChaquopyMechanismIsGone`
 (3 tests), importing `pythonx.compose.runtime` the ordinary way.
 
-### S5.4 The app root, `app` and `state` — `partial` (logic tested; the binder path waits for python-multiplatform #38)
+### S5.4 The app root, `app` and `state` — `partial` (the binder path is tested against a fake host shaped after python-multiplatform #38; real Compose is the E2E module, issue #19)
 
 The host draws with `PythonContent("pythonx.compose.runtime", "app_root")` (python-multiplatform #18,
 issue #11). `pythonx.compose.runtime` provides:
@@ -213,10 +213,18 @@ Both states come from one internal function, `_new_state`. When the binder canno
 fallback: it would not make Compose recompose. Names other than `app_root` still resolve through the
 re-export rule, and the module's own names win.
 
-Tests: `tests/test_app_root.py::TheLogic` (11) and `::TheStateFactory` (4) run against a test-only
-fake state patched in for `_new_state`; `::TheBinderPath` (2) uses the real one and skips, "needs
-python-multiplatform #38", until the binder binds `mutableStateOf`. The stub carries `app`, `state`
-and `app_root` (`tests/test_stubs.py`).
+Evidence: python-multiplatform #38 (`31c092f0`) binds generic functions and property getters and
+setters, and an `Any?` slot carries a Python object as itself, so `mutableStateOf(x)` is callable and
+the returned `MutableState`'s `.value` reads and writes. One consequence: the binder refuses an
+`int` in an `Any?` slot (it would cross as an object handle), so `state(1)` raises `TypeError` today
+and `pythonx` does not box it. python-multiplatform #69 makes the binder box scalars in an `Any`
+slot (bool, int, float, str) and unbox them on read; when it lands this refusal and its test flip. Tests: `tests/test_app_root.py::TheLogic` (11) and `::TheStateFactory`
+(4) run against a test-only fake state patched in for `_new_state`; `::TheBinderPath` (5) uses the
+real `_new_state` through the binder's Python layer and `tests/fake_host.py`, whose `mutableStateOf`
+and `MutableState.value` rows are shaped after #38 (`KotlinSurface.kt`, `PythonxAdapter.kt`), not
+walked from a jar. It skips against a binder older than #38. That Compose observes a write and
+recomposes is not shown here; it is the E2E module (python-multiplatform #26, issue #19). The stub carries `app`,
+`state` and `app_root` (`tests/test_stubs.py`).
 
 ### S5.2 Material 3 composables reach Python without per-widget wrappers — `partial`
 
@@ -359,7 +367,7 @@ the binder lists no member that would win over these groups.
 
 | Name | Notebook use | Note |
 |---|---|---|
-| `remember_saveable` | imported from `pythonx.compose.runtime`; state read/written with `getValue()` / `setValue()` | INTENT §5.1: `state(initial)` read and written through `.value` (S5.4, `partial`, #38); keeping a value across recreation is not provided |
+| `remember_saveable` | imported from `pythonx.compose.runtime`; state read/written with `getValue()` / `setValue()` | INTENT §5.1: `state(initial)` read and written through `.value` (S5.4, `partial`, #11; an `int` initial value is refused by the binder until python-multiplatform #69); keeping a value across recreation is not provided |
 | `DefaultCoroutineScope`, `MainCoroutineScope` | imported from `pythonx.compose.runtime` | INTENT §4.1, open |
 | `DefaultIcons` | `DefaultIcons.Add()` | INTENT §5.7: `Icons.Default` by alias, once python-multiplatform #37 binds `material-icons-core` |
 | `modifier` | lower-case instance from `pythonx.compose.ui` | INTENT §5.4: not provided; written `Modifier` |
