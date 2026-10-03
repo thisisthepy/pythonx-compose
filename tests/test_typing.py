@@ -225,6 +225,36 @@ class TheStubsTypeCheck(unittest.TestCase):
             DefaultIcons.NotAnIcon
         """, "NotAnIcon", "[attr-defined]")
 
+    def test_a_text_field_state_types_the_state_overload(self):
+        """Issue #10: `TextField(state=...)`, the state made by `pythonx.compose.foundation.text.input`."""
+        self.assertPasses("""
+            from pythonx.compose.foundation.text.input import TextFieldState, remember_text_field_state
+            from pythonx.compose.material3 import TextField
+            from pythonx.compose.ui import Modifier
+
+            f = TextFieldState("hi")
+            s: str = f.text
+            f.set_text_and_place_cursor_at_end("x")
+            f.clear_text()
+            g: TextFieldState = remember_text_field_state("")
+            TextField(state=f)
+            TextField(state=f, modifier=Modifier.padding(8))
+        """)
+
+    def test_a_text_field_without_a_kotlin_counterpart_fails(self):
+        """The notebook's `text_state=` and `padding=` are written `state=` and `modifier=`."""
+        self.assertFails("""
+            from pythonx.compose.foundation.text.input import TextFieldState
+            from pythonx.compose.material3 import TextField
+
+            TextField(text_state=TextFieldState("hi"))
+        """, "text_state", "[call-overload]")
+        self.assertFails("""
+            from pythonx.compose.foundation.text.input import TextFieldState
+
+            n: int = TextFieldState("hi").text
+        """, "[assignment]")
+
     def test_a_kotlin_spelled_module_function_fails(self):
         self.assertFails("""
             from pythonx.compose.layout import fillMaxWidth

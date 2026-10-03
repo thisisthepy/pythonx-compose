@@ -34,6 +34,11 @@
 # `ImageVector`, what an icon is (`Icons.Default.Add`): without this row its stub types it `Any`.
 "pythonx.compose.ui.graphics.vector" = "androidx.compose.ui.graphics.vector"
 
+# `TextFieldState` and `rememberTextFieldState`, what `TextField(state=...)` takes (INTENT section
+# 5.8). The state-based overload keeps the buffer and the IME composing region inside Compose, so
+# nothing crosses into Python per keystroke; Python makes the state and reads or writes it on demand.
+"pythonx.compose.foundation.text.input" = "androidx.compose.foundation.text.input"
+
 # The long spelling, kept beside the short one because both are real: the generated stubs use
 # `pythonx.compose.layout`, and the render fixtures in `python-multiplatform` were written against
 # the fully-qualified form. Mapping both means neither is wrong while the spelling settles.

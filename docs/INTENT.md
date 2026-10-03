@@ -162,3 +162,14 @@ them.
    intent is written `Spacer(modifier=Modifier.padding(...))`.
 7. **`DefaultIcons` is `Icons.Default`,** served by name once the binder walks
    `material-icons-core` (python-multiplatform #37).
+8. **`TextField` takes a `TextFieldState`; no `text_state`, no `padding`.** The notebook's
+   `TextField(text_state=..., padding=8)` has no Kotlin counterpart, so under 5.6 it is written
+   `TextField(state=..., modifier=Modifier.padding(8))`. Compose 1.11's state-based overload keeps
+   the text buffer and the input method's composing region inside Compose, so nothing crosses into
+   Python per keystroke; the `value` / `on_value_change` overloads send a `str` back on every key
+   and lose the composing range. Python makes the state with `remember_text_field_state("")` (inside
+   composition) or `TextFieldState("hi")` (outside, such as a notebook cell), from
+   `pythonx.compose.foundation.text.input`, and reads or writes it on demand: `field.text`,
+   `field.set_text_and_place_cursor_at_end("x")`, `field.clear_text()`. `TextField` itself is
+   androidx's, re-exported by rule, with no per-widget wrapper (§2.4). The input field's state is
+   separate from state a screen streams output into.

@@ -24,6 +24,23 @@ adapter sends its handle in `args[0]`), returning OBJECT `kotlin.Any`; and
 itself and a Kotlin object as its handle, as `_coerce` does; the stub keeps the Python object.
 No walked row for these exists in this repository, so the shape is only as faithful as that reading.
 
+**The text-field rows are shaped after the stubs, not a walked jar** (python-multiplatform `26485a02`,
+which includes #73; the `kotlin-stubs` artefact's `androidx/compose/foundation/text/input/__init__.pyi`
+and the TextField overloads of `androidx/compose/material3/__init__.pyi`). Modelled:
+`TextFieldState__String_TextRange` (the constructor, named like a constructor-shaped function, both
+slots defaulted, returning OBJECT `TextFieldState`); `rememberTextFieldState` (a `@Composable`:
+`initialText`, `initialSelection`, then `$composer`, `$changed`, `$default` -- the slot names
+`PythonxAdapter` reads as the composable flag); `TextFieldState.text` (GETTER, receiver in `args[0]`,
+returning STRING declared `kotlin.CharSequence`, which the stub types `str`);
+`setTextAndPlaceCursorAtEnd` and `clearText` (FUNCTION, extension, `<receiver>` slot 0 typed
+`TextFieldState`, as the stub's module functions take `receiver, /`); and two `TextField`
+overloads, `TextField__TextFieldState` (`state`, `modifier`, `enabled`, `readOnly`, `isError`, composable)
+and `TextField__String` (`value`, `modifier`, composable). Those two keep a subset of the real
+parameters: `label` and `onValueChange` are function-typed slots, and a function slot needs the
+binder's `NewFunction` rows, which this host does not carry. Neither draws; a call is logged in
+`composable_calls`. `TextRange` is an opaque OBJECT here; the binder's #78 caveat (a companion
+module shadowing `TextRange(2)`) is not modelled.
+
 What this does **not** prove: that the Kotlin half marshals correctly, that Compose's own `padding`
 runs, or that a handle is released on the Kotlin side. Those are
 `WalkedArtifactComposeModifierTest` and `PythonxAdapterTest`, and they live in the other repository
@@ -56,6 +73,11 @@ ICONS_PACKAGE = "androidx.compose.material.icons"
 ICONS = ICONS_PACKAGE + ".Icons"
 ICONS_FILLED = ICONS + ".Filled"
 IMAGE_VECTOR = "androidx.compose.ui.graphics.vector.ImageVector"
+
+TEXT_INPUT = "androidx.compose.foundation.text.input"
+TEXT_FIELD_STATE = TEXT_INPUT + ".TextFieldState"
+TEXT_RANGE = "androidx.compose.ui.text.TextRange"
+MATERIAL3 = "androidx.compose.material3"
 
 EMPTY_MODIFIER = "androidx.compose.ui.emptyModifier"
 """The one entry the real walker does **not** produce; see `ComposeShapedFragment.EMPTY_MODIFIER`.
@@ -97,6 +119,15 @@ class StubIconSet:
     __slots__ = ()
 
 
+class StubTextFieldState:
+    """A `TextFieldState` for this fixture: the committed text, which is all Python ever reads."""
+
+    __slots__ = ("text",)
+
+    def __init__(self, text=""):
+        self.text = text
+
+
 class StubPaddingValues:
     """An ordinary object parameter, so two arity-2 overloads differ by declared type alone."""
 
@@ -136,6 +167,10 @@ class FakeHost:
         self._handles = {}
         self._next_handle = 1
         self.filled = StubIconSet()
+        self.composable_calls = []
+        self.last_text_field_flags = None
+        self.last_text_field_modifier = None
+        self._composer = None
         self._build()
 
     # ------------------------------------------------------------------ the boundary (3 names)
@@ -172,8 +207,8 @@ class FakeHost:
         return result
 
     def _unpack(self, value, tag, type_name):
-        if tag != "OBJECT":
-            return value
+        if tag != "OBJECT" or value is None:
+            return value  # a null reference crosses as None
         if type_name == KOTLIN_ANY and not self._is_handle(value):
             return value  # a Python object crossing an `Any?` slot as itself
         return self._object(value)
@@ -219,6 +254,12 @@ class FakeHost:
             raise AssertionError(f"no live handle {handle!r}")
         return self._handles[handle]
 
+    def composer(self):
+        """A handle standing in for the `Composer` a composition would push (`push_composer`)."""
+        if self._composer is None:
+            self._composer = self._handle(object())
+        return self._composer
+
     def live_handles(self):
         return set(self._handles)
 
@@ -261,6 +302,7 @@ class FakeHost:
 
     def _build(self):
         self._scalar_boxes()
+        self._build_text_field()
         self._add(
             EMPTY_MODIFIER, 0, (), (), (), "OBJECT", MODIFIER, False, None, (),
             lambda args: StubModifier(),
@@ -389,6 +431,85 @@ class FakeHost:
             f"{MUTABLE_STATE}.value=", 1, ("value",), ("OBJECT",), (KOTLIN_ANY,),
             "UNIT", "kotlin.Unit", False, MUTABLE_STATE, (False,),
             lambda args: args[0].write(args[1]), kind="SETTER",
+        )
+
+    def _composable(self, name, params, body, returns=None):
+        """A `@Composable` row: `params` are (name, tag, type, has_default), then the synthetic slots.
+
+        `$composer`, `$changed` and `$default` close the row the way the Compose compiler spells
+        them; `PythonxAdapter` recognises a composable by `$composer` alone and fills the three.
+        """
+        names = tuple(p[0] for p in params) + ("$composer", "$changed", "$default")
+        tags = tuple(p[1] for p in params) + ("OBJECT", "INT", "INT")
+        types = tuple(p[2] for p in params) + ("androidx.compose.runtime.Composer", "kotlin.Int", "kotlin.Int")
+        defaults = tuple(p[3] for p in params) + (False, False, False)
+        label = name.rpartition(".")[2]
+
+        def run(args):
+            self.composable_calls.append(label)
+            return body(args)
+
+        return_tag, return_type = ("UNIT", "kotlin.Unit") if returns is None else ("OBJECT", returns)
+        self._add(name, len(names), names, tags, types, return_tag, return_type, False, None,
+                  defaults, run)
+
+    def _build_text_field(self):
+        text_args = (("initialText", "STRING", "kotlin.String", True),
+                     ("initialSelection", "OBJECT", TEXT_RANGE, True))
+        self._add(
+            f"{TEXT_FIELD_STATE}__String_TextRange", 2, ("initialText", "initialSelection"),
+            ("STRING", "OBJECT"), ("kotlin.String", TEXT_RANGE), "OBJECT", TEXT_FIELD_STATE,
+            False, None, (True, True),
+            lambda args: StubTextFieldState("" if args[0] is None else args[0]),
+        )
+        self._composable(
+            f"{TEXT_INPUT}.rememberTextFieldState", text_args,
+            lambda args: StubTextFieldState("" if args[0] is None else args[0]), TEXT_FIELD_STATE,
+        )
+        self._add(
+            f"{TEXT_FIELD_STATE}.text", 0, (), (), (), "STRING", "kotlin.CharSequence", False,
+            TEXT_FIELD_STATE, (), lambda args: args[0].text, kind="GETTER",
+        )
+
+        def write(label, effect):
+            def body(args):
+                self.calls.append(label)
+                effect(args)
+
+            return body
+
+        def place_at_end(args):
+            args[0].text = args[1]
+
+        def clear(args):
+            args[0].text = ""
+
+        for leaf, names, tags, types, effect in (
+            ("setTextAndPlaceCursorAtEnd", ("<receiver>", "text"), ("OBJECT", "STRING"),
+             (TEXT_FIELD_STATE, "kotlin.String"), place_at_end),
+            ("clearText", ("<receiver>",), ("OBJECT",), (TEXT_FIELD_STATE,), clear),
+        ):
+            self._add(
+                f"{TEXT_INPUT}.{leaf}", len(names), names, tags, types, "UNIT", "kotlin.Unit", True,
+                TEXT_FIELD_STATE, (False,) * len(names), write(leaf, effect),
+            )
+
+        def remember_flags(args):
+            self.last_text_field_flags = {"readOnly": args[3], "isError": args[4]}
+            self.last_text_field_modifier = None if args[1] is None else args[1].describe()
+
+        self._composable(
+            f"{MATERIAL3}.TextField__TextFieldState",
+            (("state", "OBJECT", TEXT_FIELD_STATE, False), ("modifier", "OBJECT", MODIFIER, True),
+             ("enabled", "BOOLEAN", "kotlin.Boolean", True),
+             ("readOnly", "BOOLEAN", "kotlin.Boolean", True),
+             ("isError", "BOOLEAN", "kotlin.Boolean", True)),
+            remember_flags,
+        )
+        self._composable(
+            f"{MATERIAL3}.TextField__String",
+            (("value", "STRING", "kotlin.String", False), ("modifier", "OBJECT", MODIFIER, True)),
+            lambda args: None,
         )
 
     def _read_icon(self, icon):

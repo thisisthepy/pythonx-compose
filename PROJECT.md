@@ -28,15 +28,15 @@ Compose(`androidx.compose.*`)를 파이썬에서 쓰기 위한 pip 패키지 **`
 | 상태 | 항목 |
 |---|---|
 | 구현 | 매핑 매니페스트 `pythonx-map.toml`, `@Composable` 항등 데코레이터, 실제 디스크 패키지 `pythonx` 와 모듈 수준 규칙 기반 재노출(snake_case 이름·키워드·시그니처, 오버로드 디스패치, 값 클래스 허용 목록), 실제 Compose 1.11.1 에서 생성한 `.pyi` 스텁과 `py.typed`(wheel 포함, mypy 로 검사), `Alignment`/`Arrangement` 상수(평면 `Alignment.End` 와 묶음 `Alignment.Horizontal.End` 모두, #9), proxy 메서드의 snake_case 키워드 인자(`m.padding(padding_values=...)`, python-multiplatform `describe_member` 필요; Kotlin 이름도 실행 시 그대로 통하고 스텁은 snake_case 만) |
-| 부분 | 선언형 앱 루트 `@app`·`state`·`app_root`(#11; 로직은 테스트됨, 바인더 경로는 #38 모양의 가짜 호스트로 테스트됨, 실제 Compose 증거는 E2E 모듈 #19; 숫자·문자열 상태는 python-multiplatform #69 부터 왕복됨), 배포 설정, Material 3 위젯(렌더 증거는 python-multiplatform 에만), `Icon`(import 만 됨)·`DefaultIcons`(`Icons.Default` alias, 가짜 호스트로만 테스트됨, 스텁에서는 `DefaultIcons.Add` 가 `ImageVector`; `DefaultIcons.Add` 로 쓴다 — 노트북의 `DefaultIcons.Add()` 가 아님) |
+| 부분 | 선언형 앱 루트 `@app`·`state`·`app_root`(#11; 로직은 테스트됨, 바인더 경로는 #38 모양의 가짜 호스트로 테스트됨, 실제 Compose 증거는 E2E 모듈 #19; 숫자·문자열 상태는 python-multiplatform #69 부터 왕복됨), 배포 설정, Material 3 위젯(렌더 증거는 python-multiplatform 에만), `Icon`(import 만 됨)·`DefaultIcons`(`Icons.Default` alias, 가짜 호스트로만 테스트됨, 스텁에서는 `DefaultIcons.Add` 가 `ImageVector`; `DefaultIcons.Add` 로 쓴다 — 노트북의 `DefaultIcons.Add()` 가 아님), `TextField(state=...)`·`TextFieldState`(#10; `pythonx.compose.foundation.text.input`, 가짜 호스트로 테스트됨, 노트북의 `text_state=`/`padding=` 는 `state=`/`modifier=Modifier.padding(8)`; IME 조합 증거는 python-multiplatform E2E #26) |
 | 계획 | `remember_saveable`·색 스킴·코루틴 스코프 |
 
 ### 테스트 기준선
 
 ```
 python3 -m pytest tests -q
-  PythonMultiplatform 체크아웃 없음       132 passed, 99 skipped
-  python-multiplatform develop 31c092f0+    230 passed, 1 skipped
+  PythonMultiplatform 체크아웃 없음       134 passed, 112 skipped
+  python-multiplatform develop 31c092f0+    245 passed, 1 skipped
   describe_member 없는 체크아웃             같은 수, 그중 7 개 건너뜀  (python-multiplatform #54 이전)
   describe(module, name) 없는 체크아웃      같은 수, 그중 13 개 건너뜀  (python-multiplatform #36 이전)
   그보다 오래된 체크아웃                    거기에 5 개 더 건너뜀  (member resolver 없음)
@@ -45,7 +45,7 @@ python3 -m pytest tests -q
 `describe_member`(python-multiplatform #54)가 없는 바인더에서는 메서드 키워드를 확인하는 7 개가(Kotlin 키워드로 되돌아가는 2 개는 실행됨), `describe(module, name)`(python-multiplatform #36)이 없는 바인더에서는 묶음 상수를 확인하는 13 개가,
 member resolver(python-multiplatform `ba4c6f49`)가 없는 바인더에서는 proxy 의 snake_case 메서드를 부르는
 5 개가 더 건너뛴다. 두 환경 모두의 건너뜀 1 개는 worktree 에 없는 `UI.ipynb` 의 테스트다. 건너뜀은 통과가 아니다.
-체크아웃 없이 통과하는 132 개 중 59 개는 타입 스텁과 wheel 을 검사하고(SPEC S1.2), 나머지 다수는 *부재*(옛 토큰·삭제된
+체크아웃 없이 통과하는 134 개 중 61 개는 타입 스텁과 wheel 을 검사하고(SPEC S1.2), 나머지 다수는 *부재*(옛 토큰·삭제된
 파일이 없음)를 확인하는 것이라 기능 진척으로 세지 않는다.
 
 ### 마일스톤
@@ -61,7 +61,7 @@ GitHub 마일스톤과 같은 내용이다. 날짜는 2026-10-03 에 정했고, 
 날짜 근거:
 
 - **M1 (2주):** 바인더 계약(`inspect.signature`, `python_multiplatform.describe`)이 PythonMultiplatform `d00f413f` 에 착지했다. 남은 일은 이 저장소의 순수 Python 과 가짜 호스트 하네스뿐이라 JVM 빌드가 필요 없다.
-- **M2 (M1 뒤 3주):** 위젯마다 JVM 렌더 테스트가 필요하다. 처음엔 Gradle 캐시 링크가 끊겼다고 보고 4주로 잡았으나, 캐시는 `PythonMultiplatform/.caches` 로 다시 걸려 Compose 픽스처가 통과하고 있었고, 노트북 관련 질문도 INTENT §5 로 결정됐다. 남은 위험은 Compose 1.11 의 `TextFieldState` 확인과, 앱 루트 교체를 Kotlin 컴포지션이 관찰하는 진입점(바인더 몫일 수 있음)이다.
+- **M2 (M1 뒤 3주):** 위젯마다 JVM 렌더 테스트가 필요하다. 처음엔 Gradle 캐시 링크가 끊겼다고 보고 4주로 잡았으나, 캐시는 `PythonMultiplatform/.caches` 로 다시 걸려 Compose 픽스처가 통과하고 있었고, 노트북 관련 질문도 INTENT §5 로 결정됐다. 남은 위험은 `TextField(state=...)` 의 IME 조합 증거(python-multiplatform E2E #26)와, 앱 루트 교체를 Kotlin 컴포지션이 관찰하는 진입점(바인더 몫일 수 있음)이다.
 - **M3 (M2 뒤 2주):** 스텁은 M1 규칙만 있으면 만들 수 있어 M2 와 겹쳐 진행할 수 있다. 다만 노트북 위젯의 최종 이름이 M2 에서 정해지므로 마감은 M2 뒤로 둔다.
 
 ## 4. 구조
