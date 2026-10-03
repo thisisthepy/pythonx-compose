@@ -35,6 +35,21 @@ A plain `def Screen(): Button(...)` already works with no wrapper, no base class
 slot detection; `@Composable` changes nothing about that and exists only so the notebook's own
 spelling keeps working.
 
+## The app root and `state`
+
+`@app` declares the screen the host draws; `state(initial)` makes a value Compose observes. The host
+is configured once with `PythonContent("pythonx.compose.runtime", "app_root")`: it reads the module
+attribute `app_root`, a Compose `MutableState` whose `.value` is a zero-argument callable or `None`
+(nothing is drawn). `app(fn)` writes `app_root.value = fn` and returns `fn` unchanged, so declaring
+the root again -- in a notebook cell, say -- replaces the screen. There is deliberately no update or
+refresh function (`docs/INTENT.md` section 5.1).
+
+Both states come from `_new_state`, the one place that asks the binder for
+`androidx.compose.runtime.mutableStateOf`. `app_root` is created on first read, because the binder may
+be installed after `pythonx` is imported. A Python object with a `.value` would not make Compose
+recompose, so when the binder cannot supply `mutableStateOf` (python-multiplatform #38) `_new_state`
+raises instead of falling back to one.
+
 ## How it is reached
 
 By its own dotted name: `import pythonx.compose.runtime` loads this file. The binder used to put a
@@ -46,6 +61,8 @@ synthetic `pythonx` with `__path__ = []` into `sys.modules`, which made every fi
 
 from __future__ import annotations
 
+import sys
+
 
 def Composable(target):
     """Identity. `UI.ipynb` writes `@Composable def Screen(): ...`; nothing needs to happen to
@@ -56,6 +73,56 @@ def Composable(target):
     """
     return target
 
+
+
+app_root: State
+"""The state the host reads (`PythonContent("pythonx.compose.runtime", "app_root")`); annotated
+only, created on first read by `__getattr__` below."""
+
+
+def _new_state(initial):
+    """A Compose `MutableState` holding `initial`, from the binder's `mutableStateOf`.
+
+    Never a Python stand-in: only a state Compose created is observed by composition.
+    """
+    try:
+        import androidx.compose.runtime as kotlin_runtime
+
+        make = kotlin_runtime.mutableStateOf
+    except (ImportError, AttributeError) as missing:
+        raise RuntimeError(
+            "androidx.compose.runtime.mutableStateOf is not available from the binder: "
+            "calling it from Python needs python-multiplatform #38"
+        ) from missing
+    return make(initial)
+
+
+def state(initial):
+    """A Compose state holding `initial`; read and write it through `.value`."""
+    return _new_state(initial)
+
+
+def app(root):
+    """Declare `root`, a zero-argument function, as the screen the host draws; returns it unchanged.
+
+    Declaring again replaces the screen; there is no update call.
+    """
+    sys.modules[__name__].app_root.value = root
+    return root
+
+
 from pythonx.compose._reexport import reexport
 
-__getattr__, __dir__ = reexport(__name__)
+_reexported_getattr, _reexported_dir = reexport(__name__)
+
+
+def __getattr__(name):
+    if name == "app_root":
+        created = _new_state(None)
+        globals()["app_root"] = created
+        return created
+    return _reexported_getattr(name)
+
+
+def __dir__():
+    return sorted(set(_reexported_dir()) | {"app_root"})

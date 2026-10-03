@@ -34,7 +34,8 @@ Kotlin package it maps to and writes the Pythonic one next to the module's `__in
 - a module that maps a Kotlin package an earlier module already maps re-exports that module, and
   the manifest's `[aliases]` are re-exported, because at run time those names are the same objects;
 - names the module's own `__init__.py` defines (`runtime.Composable`) are carried over, because a
-  `.pyi` beside a module replaces everything a type checker knows about it.
+  `.pyi` beside a module replaces everything a type checker knows about it; so is a bare
+  annotation (`app_root: State`), the way a module declares a name its `__getattr__` creates.
 
 Nothing here names a Kotlin declaration; it is the same rule `_reexport.py` applies at run time.
 The output is deterministic: the same input regenerates the same text.
@@ -529,6 +530,14 @@ def own_definitions(init_py: Path) -> list[str]:
         if isinstance(node, ast.FunctionDef) and not node.name.startswith("_"):
             node.body = [ast.Expr(ast.Constant(...))]
             node.decorator_list = []
+            stubs.append(ast.unparse(node) + "\n")
+        elif (
+            isinstance(node, ast.AnnAssign)
+            and node.value is None
+            and isinstance(node.target, ast.Name)
+            and not node.target.id.startswith("_")
+        ):
+            # A name the module answers through its own `__getattr__` (`runtime.app_root`).
             stubs.append(ast.unparse(node) + "\n")
         elif isinstance(node, ast.ClassDef) and not node.name.startswith("_"):
             stubs.append(f"class {node.name}: ...\n")

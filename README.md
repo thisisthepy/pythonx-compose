@@ -156,7 +156,7 @@ standalone desktop toolkit.
 | Material 3 widgets (`Text`, `Button`, `Card`, `TextField`, …) | 🟡 partial — re-exported by rule; render proofs per widget pending (#9) |
 | Type stubs (`.pyi`) from real Compose 1.11.1, `py.typed` | ✅ implemented and checked with mypy; many types are still `Any`, and method keywords are Kotlin's (#12) |
 | Distribution (`pythonx-compose`) | 🟡 partial — the wheel carries the manifest, the re-export rule, the stubs and `py.typed` |
-| Declared app root and Pythonic state, no update call | ⏳ planned (#11) |
+| Declared app root (`@app`) and Pythonic state (`state`), no update call | 🟡 partial — logic tested; the binder path waits for python-multiplatform #38 (#11) |
 | `TextField` input-method (IME) handling | ⏳ planned (#10) |
 | `Icon`, `DefaultIcons`, colour schemes | ⏳ planned (python-multiplatform #37) |
 | `remember_saveable`, coroutine scopes | ⏳ planned |
