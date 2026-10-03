@@ -182,6 +182,12 @@ worktree so a test can see it. Read it in place.
 - `python-multiplatform` exposes Kotlin declarations under their **Kotlin** names
   (`androidx.compose.material3`). It must never map `androidx` to `pythonx` or rename any Kotlin
   namespace. Do not propose, add, or depend on such a feature there, including in test harnesses.
+- What the rule forbids is renaming a **namespace**. Turning a Kotlin member name or keyword into
+  `snake_case` (`fillMaxWidth` to `fill_max_width`, `onClick` to `on_click`) is the binder's own
+  feature since python-multiplatform #131, by the same rule as `pythonx.compose._reexport.python_name`;
+  depending on it is allowed, and this package keeps no member resolver or keyword wrapper of its
+  own. What stays here: the module grouping, the snake-case-only `pythonx` surface, aliases, objects
+  and grouped constants, the value-class allowlist, the app root and the Pythonic stubs.
 - `pythonx/` is a **real package on disk**. Its modules import the `androidx.compose.*` modules the
   binder exposes and restructure them Pythonically. A design in which something else synthesises
   `pythonx.*` (for example with `__path__ = []`) and the on-disk files cannot be imported is ruled

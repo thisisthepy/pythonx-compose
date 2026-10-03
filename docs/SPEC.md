@@ -74,8 +74,8 @@ and the name the interpreter resolves cannot drift.
 - **What is generated.** `pythonx/compose/**/__init__.pyi` for every module in `pythonx-map.toml`,
   beside its `__init__.py`, and an empty `pythonx/compose/py.typed`. The stubs are committed;
   regenerating them from the same input produces no diff.
-- **From what.** python-multiplatform's CI artefact `kotlin-stubs` (workflow run 37103737430,
-  commit `a5028618`): Kotlin-named stubs for Compose 1.11.1, one `androidx/compose/.../__init__.pyi`
+- **From what.** python-multiplatform's CI artefact `kotlin-stubs` (workflow run 37131041879,
+  commit `452cc807`, python-multiplatform #131): Kotlin-named stubs for Compose 1.11.1, one `androidx/compose/.../__init__.pyi`
   per Kotlin package. `uv run python scripts/gen_stubs.py <kotlin-stubs.zip or directory>` converts them;
   the first line of every generated stub records the artefact, run and commit it came from.
 - **The rule is the runtime's** (`_reexport.py`), applied by `scripts/gen_stubs.py`:
@@ -84,11 +84,21 @@ and the name the interpreter resolves cannot drift.
     snake_case, except the positional-only `receiver` and anonymous `__aN` slots; keyword-only
     markers and the binder's `@overload` sets, in the binder's order, are kept;
   - a stub class keeps its name. Its extension members (`Modifier.fill_max_width`, a
-    `ClassVar` of a callable `Protocol`) are renamed with `python_name`, the member resolver's rule,
+    `ClassVar` of a callable `Protocol`) are renamed with `python_name`, the binder's rule since #131,
     and the protocol's `__call__` parameters are snake_case like a module function's (the receiver and
     anonymous slots keep their names), because the runtime translates a method's keywords (S4.1);
     the stubs are Pythonic-only, so a method's Kotlin keyword, which still works at run time, fails
     a type check;
+  - one name per declaration. Since python-multiplatform #131 the binder's stubs name a name twice:
+    a module stub carries `fill_max_width = fillMaxWidth` beside the Kotlin-named def, a proxy class
+    an alias `ClassVar` or property per member, and its signature keywords are already `snake_case`
+    where it has an alias. The generator drops the alias lines and the repeated member, because
+    renaming the Kotlin-named declaration by the same rule yields the same name, so no Kotlin
+    second name and no line such as `fill_max_width = fill_max_width` reaches the stubs;
+    `python_name` and `snake_case` are idempotent on a `snake_case` name, so a keyword the binder
+    already spells that way is unchanged. A name the binder declares as a callable module
+    (`PaddingValues: _PaddingValues_callable_module`, whose `__call__` holds the explicit overloads
+    and whose members are its constants) is that declaration, with no base-name `def` beside it;
   - a Kotlin object served as a sub-package (`Alignment`, `Arrangement`) becomes a class of that
     name in its parent module's stub, its constants `ClassVar`s and its functions snake_case
     static methods (an explicit overload set, `spaced_by__Dp`, also gets its base name `spaced_by`). A sub-package directory holding only `__init__.pyi` would be a namespace
@@ -124,11 +134,12 @@ and the name the interpreter resolves cannot drift.
     from `pythonx.compose.layout`; a name lent under another one is assigned its path in the
     source's stub, `DefaultIcons = Icons.Default`, which upstream types as `Icons.Filled`); names a package defines itself (`runtime.Composable`) are
     carried over.
-- **How it is verified.** `tests/test_stubs.py` converts three fixtures: the fake host's
+- **How it is verified.** `tests/test_stubs.py` converts five fixtures: the fake host's
   declarations in the old and the current upstream format (and the current format with an object
   in its parent stub), and a third in the format of python-multiplatform #53/#44/#38 (nested types,
   object functions, property setters), and a fourth in the format of #71/#68 (a nested type with two bases, icons as typed
-  properties), and checks the generated signatures against `inspect.signature` at run time.
+  properties), and a fifth in the format of #131 (alias lines, alias members, a callable module), and checks
+  the generated signatures against `inspect.signature` at run time.
   `TheCommittedStubs` regenerates from `.tmp/kotlin-stubs.zip` and requires the committed files to
   be identical (it skips where the artefact is absent, which includes CI). `tests/test_typing.py`
   runs mypy over small programs against the committed stubs: correct code passes, a misspelled
@@ -229,6 +240,13 @@ working, and lists Kotlin names only in `dir()`. This package no longer register
 the same. The stubs are Pythonic-only (§1, S1.2), so a type checker flags a Kotlin keyword the
 runtime accepts.
 
+Division of labour since #131: the binder renames names and keywords (it never renames a namespace,
+INTENT §2.3). This package keeps the module grouping (`pythonx-map.toml`), the snake-case-only
+`pythonx` surface (a module lists and serves `snake_case` names only, where the binder's own
+`androidx.*` serves both), the aliases, the objects and their grouped constants, the value-class
+allowlist, the app root, and the Pythonic stubs. pythonx-compose needs python-multiplatform at #131 or
+later for `snake_case` names and keywords on a proxy; on an older binder those calls skip in the suite.
+
 ## 4. Naming
 
 ### S4.1 Kotlin parameters, `snake_case`: `implemented`
@@ -238,6 +256,11 @@ runtime accepts.
 type suffix (`padding__Dp_Dp`); a name the reverse rule cannot invert still resolves, because the
 rule is only ever applied forward to the module's real names; the camelCase spelling is not a second
 name.
+
+Who does it: the binder renames names and keywords since python-multiplatform #131, with this
+package's rule (`pythonx.compose._reexport.python_name`, pinned equal to the binder's by
+`tests/test_chain.py::TheBindersNamingRuleIsThisPackages`). This package keeps the policy that a
+`pythonx` module lists and serves the `snake_case` spelling only, and the stubs name only it.
 
 Implemented for module-level names and keywords and for method names on a binder proxy
 (`tests/test_chain.py::Names`, 8 tests; `TheChain`) and for a method's keywords on a binder proxy
@@ -379,7 +402,7 @@ proxy class itself.
 
 Evidence: `tests/test_chain.py::TheChain` (8 tests) and
 `tests/test_modifier_module.py::TheModifierSeam` (5 tests), against python-multiplatform `ba4c6f49`.
-A snake_case method resolved through the member rule leaves the binder's class Kotlin-named.
+A snake_case method is served by the binder (python-multiplatform #131) and leaves its class Kotlin-named in `dir()`.
 
 ### S6.2 The empty-`Modifier` seam: `partial`
 

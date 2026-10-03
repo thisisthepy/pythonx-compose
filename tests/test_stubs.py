@@ -40,6 +40,7 @@ KOTLIN_STUBS = HERE / "fixtures" / "kotlin_stubs"
 KOTLIN_STUBS_V2 = HERE / "fixtures" / "kotlin_stubs_v2"
 KOTLIN_STUBS_V3 = HERE / "fixtures" / "kotlin_stubs_v3"
 KOTLIN_STUBS_V4 = HERE / "fixtures" / "kotlin_stubs_v4"
+KOTLIN_STUBS_V5 = HERE / "fixtures" / "kotlin_stubs_v5"
 ARTEFACT = REPO / ".tmp" / "kotlin-stubs.zip"
 PACKAGE = REPO / "pythonx"
 COMPOSE = PACKAGE / "compose"
@@ -409,6 +410,65 @@ class TheConstantGroups(unittest.TestCase):
         for name, cls in _classes(self.stubs[UI]).items():
             with self.subTest(cls=name):
                 self.assertEqual({}, _nested(cls))
+
+
+class TheBindersOwnAliases(unittest.TestCase):
+    """The format of python-multiplatform #131: the binder writes its snake_case aliases itself.
+
+    A module stub carries `fill_max_width = fillMaxWidth` beside the Kotlin-named def, and a proxy
+    class carries an extra `ClassVar` or property per member. The pythonx stubs stay Pythonic-only:
+    one name per declaration, no Kotlin second name, no self-referential line.
+    """
+
+    def setUp(self):
+        self.stubs = _generated(KOTLIN_STUBS_V5)
+
+    def test_a_module_function_has_one_declaration_under_its_pythonic_name(self):
+        functions = _functions(self.stubs[LAYOUT])
+        for name in ("fill_max_width", "fill_max_height", "scrollable"):
+            with self.subTest(name=name):
+                self.assertEqual(1, len(functions[name]))
+        self.assertNotIn("fillMaxWidth", functions)
+
+    def test_the_binders_alias_lines_are_not_carried_over(self):
+        tree = ast.parse(self.stubs[LAYOUT])
+        self.assertEqual([], [ast.unparse(n) for n in tree.body if isinstance(n, ast.Assign)])
+
+    def test_a_module_the_binder_calls_has_no_second_declaration_of_its_name(self):
+        """`PaddingValues: _PaddingValues_callable_module` is the name; its explicit overloads add no `def`."""
+        text = self.stubs[LAYOUT]
+        self.assertNotIn("PaddingValues", _functions(text))
+        self.assertEqual(1, sum(line.startswith("PaddingValues:") for line in text.splitlines()))
+        self.assertIn("class _PaddingValues_callable_module", text)
+
+    def test_no_line_assigns_a_name_to_itself(self):
+        for path, text in self.stubs.items():
+            for line in text.splitlines():
+                left, sep, right = line.partition(" = ")
+                with self.subTest(path=path.relative_to(PACKAGE).as_posix(), line=line):
+                    self.assertFalse(sep and left.isidentifier() and left == right.strip())
+
+    def test_a_proxy_class_has_each_member_once_under_its_pythonic_name(self):
+        modifier = _classes(self.stubs[UI])["Modifier"]
+        names = [n.target.id for n in modifier.body if isinstance(n, ast.AnnAssign)]
+        self.assertEqual(["fill_max_width", "on_click"], names)
+
+    def test_a_property_and_its_setter_are_kept_once(self):
+        scene = _classes(self.stubs[UI])["Scene"]
+        functions = [n for n in scene.body if isinstance(n, ast.FunctionDef)]
+        self.assertEqual(["layout_direction", "layout_direction", "is_minimized"], [f.name for f in functions])
+        self.assertEqual(
+            [["property"], ["layout_direction.setter"], ["property"]],
+            [[ast.unparse(d) for d in f.decorator_list] for f in functions],
+        )
+
+    def test_keywords_the_binder_already_wrote_in_snake_case_stay_unchanged(self):
+        scrollable = _functions(self.stubs[LAYOUT])["scrollable"][0]
+        self.assertEqual(["receiver", "state", "enabled", "on_click"], _parameter_names(scrollable))
+        for name in ("on_click", "fill_max_width", "max_height", "index_in_line", "always_show_label"):
+            with self.subTest(name=name):
+                self.assertEqual(name, gen_stubs.python_name(name))
+                self.assertEqual(name, gen_stubs.snake_case(name))
 
 
 class TheObjectAndPropertyFormat(unittest.TestCase):
