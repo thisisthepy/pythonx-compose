@@ -85,18 +85,18 @@ class TheStubsTypeCheck(unittest.TestCase):
             modules = sorted(tomllib.load(handle)["modules"])
         self.assertPasses("".join(f"import {module}\n" for module in modules))
 
-    def test_a_methods_keywords_are_kotlins(self):
-        """As at run time (SPEC section 3): the method is snake_case, its keywords are not yet."""
+    def test_a_methods_keywords_are_snake_case_in_the_stubs(self):
+        """SPEC S4.1: the stubs are Pythonic-only; the runtime also accepts Kotlin's spelling."""
         self.assertPasses("""
             from pythonx.compose.ui import Modifier
 
-            Modifier.padding(paddingValues=None)
+            Modifier.padding(padding_values=None)
         """)
         self.assertFails("""
             from pythonx.compose.ui import Modifier
 
-            Modifier.padding(padding_values=None)
-        """, '"padding_values"', 'did you mean "paddingValues"')
+            Modifier.padding(paddingValues=None)
+        """, '"paddingValues"', 'did you mean "padding_values"')
 
     def test_a_modifier_chain_on_the_class_passes(self):
         self.assertPasses("""

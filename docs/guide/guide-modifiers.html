@@ -54,12 +54,13 @@ m.padding__Dp(16)                      # explicit overload: no dispatch</code></
 
 <section>
 <h2><span data-lang="en">Keywords: method or module function</span><span data-lang="ko">키워드: 메서드와 모듈 함수</span></h2>
-<p data-lang="en">The member resolver maps names, not keywords, so a keyword argument to a method is still Kotlin's own. The same extension called as a module function takes <code>snake_case</code> keywords, and <code>inspect.signature</code> shows them:</p><p data-lang="ko">멤버 리졸버는 키워드가 아니라 이름을 대응시키므로, 메서드의 키워드 인자는 아직 Kotlin 그대로입니다. 같은 확장 함수를 모듈 함수로 부르면 <code>snake_case</code> 키워드를 받고, <code>inspect.signature</code> 도 그 이름을 보여 줍니다:</p>
+<p data-lang="en">The member resolver maps keywords as well as names, so a method takes <code>snake_case</code> keywords exactly as the same extension does when called as a module function; <code>inspect.signature</code> shows them. Kotlin's own spelling still works at run time, the type stubs offer only the Pythonic one, and the mapping needs python-multiplatform's <code>describe_member</code> (on an older binder a method's keywords are Kotlin's):</p><p data-lang="ko">멤버 리졸버는 이름뿐 아니라 키워드도 대응시키므로, 메서드는 같은 확장 함수를 모듈 함수로 부를 때와 똑같이 <code>snake_case</code> 키워드를 받고, <code>inspect.signature</code> 도 그 이름을 보여 줍니다. Kotlin 이름도 실행 시에는 그대로 통하고 타입 스텁은 Pythonic 이름만 제시하며, 이 대응에는 python-multiplatform 의 <code>describe_member</code> 가 필요합니다(오래된 바인더에서는 메서드의 키워드가 Kotlin 이름입니다):</p>
 <pre><code class="language-python">import inspect
 import pythonx.compose.layout as layout
 
 values = layout.padding_values_of(8)
-m.padding(paddingValues=values)               # method: Kotlin keyword
+m.padding(padding_values=values)              # method: snake_case keyword
+m.padding(paddingValues=values)               # Kotlin spelling still accepted at run time
 layout.padding(m, padding_values=values)      # module function: snake_case keyword
 
 inspect.signature(layout.padding__PaddingValues)
