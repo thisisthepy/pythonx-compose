@@ -70,6 +70,11 @@ class TheWheel(unittest.TestCase):
         )
         self.assertEqual([], missing, "a mapped module with no file cannot be imported once installed")
 
+    def test_no_build_tooling_or_tests_ship(self):
+        for prefix in ("scripts/", "tests/", "docs/", ".github/"):
+            with self.subTest(prefix=prefix):
+                self.assertEqual([], sorted(n for n in self.names if n.startswith(prefix)))
+
     def test_the_re_export_rule_ships(self):
         self.assertIn("pythonx/compose/_reexport.py", self.names)
 

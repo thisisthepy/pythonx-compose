@@ -35,8 +35,8 @@ Compose(`androidx.compose.*`)를 파이썬에서 쓰기 위한 pip 패키지 **`
 
 ```
 python3 -m pytest tests -q
-  PythonMultiplatform 체크아웃 없음       139 passed, 112 skipped
-  python-multiplatform develop 31c092f0+    250 passed, 1 skipped
+  PythonMultiplatform 체크아웃 없음       140 passed, 112 skipped
+  python-multiplatform develop 31c092f0+    251 passed, 1 skipped
   describe_member 없는 체크아웃             같은 수, 그중 7 개 건너뜀  (python-multiplatform #54 이전)
   describe(module, name) 없는 체크아웃      같은 수, 그중 13 개 건너뜀  (python-multiplatform #36 이전)
   그보다 오래된 체크아웃                    거기에 5 개 더 건너뜀  (member resolver 없음)
@@ -74,7 +74,7 @@ pythonx/compose/          import 패키지 (현재 대부분 독스트링만 있
   ui/                     modifier.py (빈 Modifier 등록 지점), alignment.py
   layout/                 arrangement.py
   material3/              __init__.py 하나 (위젯은 모두 재노출 규칙으로)
-pythonx/_build/           gen_stubs.py (스텁 생성기, wheel 에 싣지 않음)
+scripts/                  gen_stubs.py (스텁 생성기, wheel 에 싣지 않음)
 tests/                    pytest (unittest 스타일), 유일한 테스트 폴더
 docs/INTENT.md  docs/SPEC.md  docs/locale/  docs/guide/
 .github/workflows/        CI
@@ -118,7 +118,7 @@ python3 .github/scripts/check_guide.py           # 가이드: HTML 파싱, 링�
 - **저장소 정리.** `test/`(2023–2024 샘플), `pythonx/compose/lite/`(은퇴한 JPype 프로토타입),
   서브모듈 `pythonx/compose/native`(→ thisisthepy/swing-graalvm-demo @ 090f0190)는 삭제했고,
   태그 `archive/pre-restructure` 로 되찾을 수 있다. `tools/` 는 없앴다: 스텁 생성기는
-  `pythonx/_build/`, 가이드 검사기와 릴리스 스크립트는 `.github/scripts/`.
+  `scripts/`(메인테이너 승인), 가이드 검사기와 릴리스 스크립트는 `.github/scripts/`.
 
 ### 결정됨 (2026-10-03, #62) — 첫 PyPI 릴리스
 
