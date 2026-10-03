@@ -170,7 +170,7 @@ standalone desktop toolkit.
 | Material 3 widgets (`Text`, `Button`, `Card`, `TextField`, …) | 🟡 partial: re-exported by rule; render proofs per widget pending (#9) |
 | Type stubs (`.pyi`) from real Compose 1.11.1, `py.typed` | ✅ implemented and checked with mypy; many types are still `Any` (#12) |
 | Distribution (`pythonx-compose`) | 🟡 partial: the wheel carries the manifest, the re-export rule, the stubs and `py.typed` |
-| Declared app root (`@app`) and Pythonic state (`state`), no update call | 🟡 partial: binder path tested against a fake host shaped after python-multiplatform #38; real Compose is the E2E module (#11, #19); numbers and strings round-trip through `state` |
+| Declared app root (`@app`), no update call; state through Kotlin's `mutable_state_of` | 🟡 partial: binder path tested against a fake host shaped after python-multiplatform #38; against real Compose, python-multiplatform's notebook E2E passes (#11, #19); numbers and strings round-trip |
 | `TextField(state=...)` with `TextFieldState` (`pythonx.compose.foundation.text.input`) | 🟡 partial: tested against a fake host shaped after python-multiplatform #73; the input-method (IME) composing proof is python-multiplatform E2E #26 (#10) |
 | `DefaultIcons` (`Icons.Default`), written `DefaultIcons.Add` | 🟡 partial: tested against a fake host shaped after python-multiplatform #37/#38; `Icon(DefaultIcons.Add, …)` is drawn in python-multiplatform's render test |
 | Colour schemes | ⏳ planned |

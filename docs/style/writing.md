@@ -32,7 +32,7 @@ visible string of the guide in `data-lang="en"` and `data-lang="ko"`).
   use the plain declarative, 한다체: "한다", "두었다".
 - **Terms.** Code identifiers, Kotlin names, commands and file names stay in their original spelling
   inside code formatting, in both languages. A particle follows code with a space: "`UI.ipynb` 를",
-  "`state()` 로". Common technical words are written as Korean loanwords when that is how Korean
+  "`mutable_state_of()` 로". Common technical words are written as Korean loanwords when that is how Korean
   developers say them ("바인더", "스텁", "컴포저블", "모듈"); otherwise the English term stays
   ("snake_case", "wheel", "proxy").
 - **Status words** pair one to one: implemented / 구현, partial / 부분, planned / 계획.

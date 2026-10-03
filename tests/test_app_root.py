@@ -1,4 +1,4 @@
-"""`@app`, `state` and `app_root` in `pythonx.compose.runtime` (issue #11, docs/INTENT.md section 5.1).
+"""`@app` and `app_root` in `pythonx.compose.runtime` (issue #11, docs/INTENT.md section 5.1).
 
 The host draws with
 `PythonAppView(module = "pythonx.compose.runtime", attribute = "app_root")`: it reads the module
@@ -12,6 +12,9 @@ file: a pure-Python state in shipped code would not make Compose recompose, so n
 `TheBinderPath` runs the real `_new_state` through the binder's Python layer and `fake_host.py`,
 whose `mutableStateOf` and `MutableState.value` rows are shaped after python-multiplatform
 `31c092f0` (#38). It skips only while the installed table binds no `mutableStateOf`.
+
+`state()` is gone (INTENT section 5.11, issue #101): Kotlin's `mutable_state_of` does the same job, so
+a screen's own state is `mutable_state_of` or `remember_saveable`, and `_new_state` stays internal.
 """
 
 from __future__ import annotations
@@ -113,14 +116,14 @@ class TheLogic(unittest.TestCase):
         self.assertEqual(1, len(self.created))
         self.assertEqual(3, len(root.writes))
 
-    def test_state_round_trips_through_value(self):
-        counter = self.runtime.state(0)
-        self.assertEqual(0, counter.value)
-        counter.value = 5
-        self.assertEqual(5, counter.value)
+    def test_state_is_not_a_name_of_the_module(self):
+        # INTENT 5.11: no alias and no shim; `mutable_state_of` is Kotlin's own name for it.
+        self.assertNotIn("state", vars(self.runtime))
+        self.assertNotIn("state", dir(self.runtime))
 
-    def test_each_state_call_makes_its_own_state(self):
-        self.assertIsNot(self.runtime.state(0), self.runtime.state(0))
+    def test_the_internal_factory_is_not_exported(self):
+        public = {n for n in dir(self.runtime) if not n.startswith("_")}
+        self.assertNotIn("new_state", public)
 
     def test_no_update_or_refresh_name_is_public(self):
         public = [n for n in dir(self.runtime) if not n.startswith("_")]
@@ -131,7 +134,7 @@ class TheLogic(unittest.TestCase):
             self.assertNotIn(banned, vars(self.runtime))
 
     def test_dir_lists_the_new_names(self):
-        for name in ("app", "state", "app_root", "Composable"):
+        for name in ("app", "app_root", "Composable"):
             self.assertIn(name, dir(self.runtime))
 
     def test_unknown_names_still_go_to_the_reexport_path(self):
@@ -180,10 +183,8 @@ class TheStateFactory(unittest.TestCase):
                 self.runtime._new_state(0)
         self.assertIn("#38", str(raised.exception))
 
-    def test_state_and_app_root_use_the_factory_not_a_python_stand_in(self):
+    def test_app_root_uses_the_factory_not_a_python_stand_in(self):
         with self._binder_with():
-            with self.assertRaises(RuntimeError):
-                self.runtime.state(0)
             with self.assertRaises(RuntimeError):
                 self.runtime.app_root  # noqa: B018
         self.assertNotIn("app_root", vars(self.runtime), "a failed creation must not be cached")
@@ -253,8 +254,15 @@ class TheBinderPath(unittest.TestCase):
     def host_states(self):
         return [o for o in self.host._handles.values() if isinstance(o, fake_host.StubState)]
 
-    def test_state_round_trips_through_the_binder(self):
-        label = self.runtime.state("a")
+    def test_state_is_not_served_even_with_a_binder(self):
+        with self.assertRaises(AttributeError):
+            self.runtime.state  # noqa: B018
+        with self.assertRaises(ImportError):
+            from pythonx.compose.runtime import state  # noqa: F401
+
+    def test_mutable_state_of_round_trips_through_the_binder(self):
+        # The Kotlin name a screen uses for its own state now that `state()` is gone (INTENT 5.11).
+        label = self.runtime.mutable_state_of("a")
         label.value = "b"
         self.assertEqual("b", label.value)
         self.assertEqual(["a", "b"], self.host_states()[0].writes)
@@ -266,13 +274,13 @@ class TheBinderPath(unittest.TestCase):
         """
         if not hasattr(self.binding, "_box_scalar"):
             self.skipTest("needs python-multiplatform #69 (scalar boxing for Any slots)")
-        counter = self.runtime.state(0)
+        counter = self.runtime.mutable_state_of(0)
         self.assertEqual(0, counter.value)
         counter.value = counter.value + 1
         self.assertEqual(1, counter.value)
         for value in (True, 2**40, 1.5, "text"):
             with self.subTest(value=value):
-                holder = self.runtime.state(value)
+                holder = self.runtime.mutable_state_of(value)
                 self.assertEqual(value, holder.value)
                 self.assertIs(type(value), type(holder.value))
 
@@ -280,7 +288,7 @@ class TheBinderPath(unittest.TestCase):
         if not hasattr(self.binding, "_box_scalar"):
             self.skipTest("needs python-multiplatform #69 (scalar boxing for Any slots)")
         with self.assertRaises(TypeError) as raised:
-            self.runtime.state(2**64)
+            self.runtime.mutable_state_of(2**64)
         self.assertIn("64 bits", str(raised.exception))
 
 

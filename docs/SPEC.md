@@ -21,14 +21,14 @@ Run from a worktree with `uv run --with pytest --with mypy pytest tests -q -rs` 
 
 | Environment | Result |
 |---|---|
-| No `PythonMultiplatform` checkout found | **148 passed, 113 skipped**, 167 subtests passed |
-| python-multiplatform `develop` at `31c092f0` or later (property rows, #38; `describe_member`, #54; besides `add_member_resolver` and `describe(module, name)`) | **260 passed, 1 skipped**, 198 subtests passed |
+| No `PythonMultiplatform` checkout found | **148 passed, 114 skipped**, 164 subtests passed |
+| python-multiplatform `develop` at `31c092f0` or later (property rows, #38; `describe_member`, #54; besides `add_member_resolver` and `describe(module, name)`) | **261 passed, 1 skipped**, 195 subtests passed |
 | an older checkout, before python-multiplatform #131 (no binder-side snake_case names) | the same, with the snake_case method tests skipped |
 | an older one, without `describe(module, name)` (python-multiplatform #36) | with 13 more skipped again |
 | an older one still, without `add_member_resolver` | with 5 more skipped again |
 
 Measured in a worktree, which has `.tmp/kotlin-stubs.zip` but no `UI.ipynb`. Without a checkout, the
-112 tests that install the binder's layers through `tests/adapter.py` skip (one of them against the
+113 tests that install the binder's layers through `tests/adapter.py` skip (one of them against the
 installed wheel, #88), plus the notebook test.
 Against a binder without `describe(module, name)`, the 13 that check grouped constants (§7, S7.1)
 skip. Against a binder before python-multiplatform #131, the tests that call a snake_case method or
@@ -297,11 +297,14 @@ python-multiplatform #26 diagnosis). `pythonx.compose.runtime` provides:
   is imported; afterwards it is an ordinary module attribute, the same object every time.
 - `@app`: `app(fn)` sets `app_root.value = fn` and returns `fn` unchanged. Declaring the root again
   replaces the value, so the screen follows. There is no update or refresh function (INTENT §5.1).
-- `state(initial)` is **removed** (INTENT §5.11, issue #101; `planned` until that lands): Kotlin's
-  `mutable_state_of` does the same job. A screen keeps state with `remember_saveable` inside `App`
-  (S5.6) or with `mutable_state_of`. `_new_state` stays as the internal function behind `app_root`.
+- `state(initial)` is **removed** (INTENT §5.11, issue #101): Kotlin's `mutable_state_of` does the
+  same job. A screen keeps state with `remember_saveable` inside `App` (S5.6) or with
+  `mutable_state_of`. `_new_state` stays as the internal function behind `app_root`. Tests:
+  `tests/test_app_root.py::TheLogic::test_state_is_not_a_name_of_the_module`,
+  `::TheBinderPath::test_state_is_not_served_even_with_a_binder`, and the stub check in
+  `tests/test_stubs.py`.
 
-Until #101 lands, both states come from one internal function, `_new_state`. When the binder cannot supply
+`app_root` comes from one internal function, `_new_state`. When the binder cannot supply
 `mutableStateOf` it raises `RuntimeError` naming python-multiplatform #38. No pure-Python state is a
 fallback: it would not make Compose recompose. Names other than `app_root` still resolve through the
 re-export rule, and the module's own names win.
@@ -310,7 +313,7 @@ Evidence: python-multiplatform #38 (`31c092f0`) binds generic functions and prop
 setters, and an `Any?` slot carries a Python object as itself, so `mutableStateOf(x)` is callable and
 the returned `MutableState`'s `.value` reads and writes. Since python-multiplatform #69 (PR #81) the
 binder boxes a Python scalar for an `Any` slot (bool, int within 64 bits, float, str) and unboxes it
-on read, so `state(0)` and `counter.value += 1` work; an int beyond 64 bits is refused with the
+on read, so `mutable_state_of(0)` and `counter.value += 1` work; an int beyond 64 bits is refused with the
 reason. `pythonx` does none of this itself. Tests: `tests/test_app_root.py::TheLogic` (11) and `::TheStateFactory`
 (4) run against a test-only fake state patched in for `_new_state`; `::TheBinderPath` (5) uses the
 real `_new_state` through the binder's Python layer and `tests/fake_host.py`, whose `mutableStateOf`
