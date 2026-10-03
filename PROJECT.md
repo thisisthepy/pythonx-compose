@@ -109,7 +109,7 @@ uv run python .github/scripts/check_guide.py    # 가이드: HTML 파싱, 링크
 
 ## 7. 열린 질문 (메인테이너 결정 필요)
 
-1. **코루틴 스코프**: 노트북이 import 하는 `DefaultCoroutineScope`·`MainCoroutineScope`.
+1. *(결정됨, 아래.)* 코루틴 스코프와 `state()` 유지 여부.
 2. **`pythonx-map.toml` 의 이중 표기**: `pythonx.compose.layout` 과
    `pythonx.compose.foundation.layout` 를 둘 다 유지할지.
 3. **릴리스·Pages 활성화**: `.github/scripts/release/` 와 `.github/workflows/`(release-sync, pages)는
@@ -139,9 +139,20 @@ uv run python .github/scripts/check_guide.py    # 가이드: HTML 파싱, 링크
 
 ### 결정됨 (2026-10-03, `docs/INTENT.md` §5)
 
-- **선언형 앱 루트, 갱신 함수 없음.** 노트북의 `main.App.update(...)`·`getValue()`/`setValue()` 는
-  당시 구현의 제약이었다. 루트는 선언하고 다시 정의하면 화면이 따라가며, 상태는 Compose 상태 모델을
-  따른다(#11).
+- **선언형 앱 루트, 갱신 함수 없음.** 노트북의 `main.App.update(...)` 는 당시 구현의 제약이었다. 루트는
+  선언하고 다시 정의하면 화면이 따라간다(#11). 결정은 여기까지다. **정정(2026-10-04):** 상태를 모듈
+  수준(`main.messages`)으로 옮긴 것, `remember_saveable` 을 "제공하지 않음"으로 둔 것, `getValue()`/
+  `setValue()` 를 구현 제약으로 본 것은 메인테이너 결정이 아니었다(전달 과정의 과장, #100).
+- **`remember_saveable` 과 노트북의 상태 표기 그대로**(2026-10-04, INTENT §5.9). Compose
+  `rememberSaveable` 의미(회전·프로세스 재시작 후 유지), int/long/bool/float/str 부터. 앱이 2024 데모처럼
+  `App.messages = messages = remember_saveable("")` 로 루트에 직접 붙이고, 노트북 9~13 셀이
+  `main.App.messages.getValue()`/`setValue(...)` 로 쓰인 그대로 동작한다. `.value` 는 별칭. Kotlin 쪽은
+  python-multiplatform-compose 의 `@Composable rememberSaveableWrapper`(리더의 PMP 이슈).
+- **코루틴 스코프**(2026-10-04, INTENT §5.10): `DefaultCoroutineScope`·`MainCoroutineScope` 는
+  pythonx-concurrent 위에 얹는 이름이며, pythonx-concurrent 이후에 구현한다.
+- **`state()` 폐기**(2026-10-04, INTENT §5.11, #101). Kotlin 의 `mutable_state_of` 가 같은 일을 하므로 공개
+  API 에서 지우며 별칭·호환은 두지 않는다. 화면 상태는 `App` 안의 `remember_saveable` 이나
+  `mutable_state_of` 로 둔다. `app_root` 의 상태는 패키지 내부 함수로 남긴다.
 - **`Column`·`Row`·`Spacer`** 는 `pythonx.compose.material3` 와 `pythonx.compose.layout` 양쪽에서
   import 된다.
 - **정렬 상수** 는 `Alignment.End` 와 `Alignment.Horizontal.End` 둘 다 지원한다.

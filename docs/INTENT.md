@@ -128,30 +128,33 @@ types) even though the runtime resolves bindings on demand.
 
 These are recorded so that `docs/SPEC.md` does not settle them by accident.
 
-1. **Coroutine scopes** the notebook imports, `DefaultCoroutineScope` / `MainCoroutineScope`.
-   (The other convenience spellings are decided, §5.4–5.7.)
+1. *(Decided, §5.10.)* **Coroutine scopes** the notebook imports, `DefaultCoroutineScope` /
+   `MainCoroutineScope`.
 2. *(Decided, #60.)* **The `test/` directory**: a 2023–2024 Kotlin Multiplatform sample
    (`pycomposeui`). Deleted; the tag `archive/pre-restructure` keeps it.
+3. *(Decided, §5.11.)* **Whether `state()` stays.**
 
-## 5. Decided (2026-10-03)
+## 5. Decided (2026-10-03, 2026-10-04)
 
 Settled by the maintainer, relayed through the ecosystem lead, and recorded here so the spec follows
 them.
 
-1. **A declared app root, no update function.** The notebook's `main.App.update(...)` and
-   `getValue()` / `setValue()` calls were the constraints of the implementation at the time, not the
-   specification. The maintainer, verbatim:
+1. **A declared app root, no update function.** The notebook's `main.App.update(...)` was the
+   constraint of the implementation at the time, not the specification. The maintainer, verbatim:
 
    > "main.App.update() 말고 좀 더 선언형으로 갈 수 있는 API로 해줘. UI.ipynb에 그렇게 되어 있는건
    > 어쩔 수 없는 구현이었고 내가 원한는건 좀 더 선언형 형식이었어. 업데이트 함수가 명시적으로
    > 존재하면 안되는거잖아."
 
-   What the notebook shows is the intent: redefining the UI in a cell changes the screen, and the
-   notebook and the screen see the same state. So the public API has **no explicit refresh call**.
-   The root is *declared*; redefining it is what changes the screen. State follows Compose's state
-   model: a composable that reads a state object recomposes when it changes, and state is read and
-   written through Pythonic attributes rather than Java-style accessors. `main` itself is the
+   The decision is exactly that: the root is *declared*, redefining it in a cell is what changes
+   the screen, and the public API has **no explicit update or refresh call**. `main` itself is the
    application's module, not this package; this package provides the mechanism.
+
+   **Correction (2026-10-04).** An earlier version of this item went further than the words above.
+   It treated the notebook's `getValue()` / `setValue()` as the old implementation's constraint, it
+   moved the state from the root (`main.App.messages`) to module level (`main.messages`), and it
+   made `remember_saveable` "not provided". The maintainer decided none of these; the relay
+   overstated the instruction. The state's spelling and place are §5.9.
 2. **`Column`, `Row`, `Spacer` are importable from `pythonx.compose.material3`** as the notebook
    writes, and from their Kotlin home (`pythonx.compose.layout`) as well.
 3. **Alignment constants in both spellings:** Kotlin's flat `Alignment.End`, and the notebook's
@@ -178,3 +181,24 @@ them.
    `field.set_text_and_place_cursor_at_end("x")`, `field.clear_text()`. `TextField` itself is
    androidx's, re-exported by rule, with no per-widget wrapper (§2.4). The input field's state is
    separate from state a screen streams output into.
+9. **`remember_saveable`, and the notebook's state spelling as written** (2026-10-04). In 2024 the
+   demo the notebook ran against (PyREPL `abc6952`, `main.py`) attached its state to its root
+   itself: `cls.messages = messages = remember_saveable("")`.
+   - `remember_saveable(initial)` has Compose `rememberSaveable`'s meaning: the value survives
+     rotation and process restart. `int`, `long` (an `int` beyond 32 bits), `bool`, `float` and
+     `str` come first, as in pycomposeui. It works only inside a composition, as in Kotlin; called
+     outside one, it is an error.
+   - Notebook cells 9 to 13 work as written. The app attaches the state to its root, as the 2024
+     demo did (`App.messages = messages = remember_saveable("")` inside `def App():`; no framework
+     lookup), and the notebook reads and writes it as `main.App.messages.getValue()` and
+     `main.App.messages.setValue(...)`. `.value` reads and writes the same state, as the Pythonic
+     alias.
+   - The root stays declared with `@app`, with no update function (§5.1).
+10. **Coroutine scopes are built on pythonx-concurrent** (2026-10-04). `DefaultCoroutineScope` and
+   `MainCoroutineScope` are names in `pythonx.compose.runtime` on top of `pythonx.concurrent`
+   (scopes, jobs, `Dispatchers`). They are implemented after pythonx-concurrent.
+11. **`state()` is removed** (2026-10-04). Kotlin's `mutableStateOf` (`mutable_state_of`) does the
+   same job, so `pythonx.compose.runtime` does not export a second name for it, and there is no
+   alias or compatibility shim. A screen keeps state the notebook's way, with `remember_saveable`
+   inside `App` (§5.9), or with `mutable_state_of`. The app root's own state stays internal to this
+   package.
