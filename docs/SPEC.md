@@ -21,8 +21,8 @@ Run from a worktree with `python -m pytest tests -q -rs` (pytest 8, mypy 2.4, CP
 
 | Environment | Result |
 |---|---|
-| No `PythonMultiplatform` checkout found | **139 passed, 112 skipped**, 167 subtests passed |
-| python-multiplatform `develop` at `31c092f0` or later (property rows, #38; `describe_member`, #54; besides `add_member_resolver` and `describe(module, name)`) | **250 passed, 1 skipped**, 198 subtests passed |
+| No `PythonMultiplatform` checkout found | **140 passed, 112 skipped**, 167 subtests passed |
+| python-multiplatform `develop` at `31c092f0` or later (property rows, #38; `describe_member`, #54; besides `add_member_resolver` and `describe(module, name)`) | **251 passed, 1 skipped**, 198 subtests passed |
 | an older checkout, without `describe_member` (python-multiplatform #54) | the same, with 7 more skipped |
 | an older one, without `describe(module, name)` (python-multiplatform #36) | with 13 more skipped again |
 | an older one still, without `add_member_resolver` | with 5 more skipped again |
@@ -36,7 +36,7 @@ binder returned skip as well, because that needs its member resolver (python-mul
 `TheBinderPath` tests (S5.4). A binder without the `@Composable` binding (`push_composer`) skips the 13 text-field tests (S5.5). `tests/test_typing.py` skips where mypy is not installed. A skip is not a
 pass.
 
-Of the 139 that pass without a checkout, 73 check the type stubs and the wheel (S1.2); most of the
+Of the 140 that pass without a checkout, 73 check the type stubs and the wheel (S1.2); most of the
 rest assert **absence** (a retired token, a deleted file, a docstring that exists). Those are listed
 in §9 and are not counted as features.
 
@@ -75,9 +75,9 @@ and the name the interpreter resolves cannot drift.
   regenerating them from the same input produces no diff.
 - **From what.** python-multiplatform's CI artefact `kotlin-stubs` (workflow run 37103737430,
   commit `a5028618`): Kotlin-named stubs for Compose 1.11.1, one `androidx/compose/.../__init__.pyi`
-  per Kotlin package. `python3 pythonx/_build/gen_stubs.py <kotlin-stubs.zip or directory>` converts them;
+  per Kotlin package. `python3 scripts/gen_stubs.py <kotlin-stubs.zip or directory>` converts them;
   the first line of every generated stub records the artefact, run and commit it came from.
-- **The rule is the runtime's** (`_reexport.py`), applied by `pythonx/_build/gen_stubs.py`:
+- **The rule is the runtime's** (`_reexport.py`), applied by `scripts/gen_stubs.py`:
   - a module function or constant is renamed with `python_name` (upper-case names kept, others
     snake_case, an explicit overload keeps its suffix: `padding__Dp`); its parameters are
     snake_case, except the positional-only `receiver` and anonymous `__aN` slots; keyword-only
@@ -473,7 +473,7 @@ rule that names no declaration:
   (`androidx.compose.ui.Alignment.Horizontal`), so `Alignment.Horizontal.Top` fails: `Top` is an
   `Alignment.Vertical`.
 - On a binder without `describe(module, name)` there are no groups; the flat spelling is unchanged.
-- **Stubs.** `pythonx/_build/gen_stubs.py` emits each group as a class nested in the object's stub class,
+- **Stubs.** `scripts/gen_stubs.py` emits each group as a class nested in the object's stub class,
   holding the same `ClassVar` constants, grouped by the declared type the upstream stub's docstring
   carries (`"""Kotlin: androidx.compose.ui.Alignment.End(): androidx.compose.ui.Alignment.Horizontal"""`),
   so a type checker accepts `Alignment.Horizontal.End` and rejects `Alignment.Horizontal.Top`. A

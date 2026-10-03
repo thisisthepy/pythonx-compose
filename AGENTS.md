@@ -23,7 +23,7 @@ files — lives **inside this repository's root directory.**
 | Temporary files | `.tmp/` (git-ignored); delete when done |
 | Benchmarks | `benchmarks/` |
 | CI scripts | `.github/scripts/` |
-| Build tooling (stub generator) | `pythonx/_build/` (not shipped in the wheel) |
+| Build tooling (stub generator) | `scripts/` (not shipped in the wheel) |
 
 Before writing a file, check that its absolute path starts with this repository's root. If it does
 not, stop. The only exceptions are a path the user names explicitly, and caches that build tools
@@ -36,10 +36,11 @@ Writing to *another* repository is not an exception either. Do it only when told
 
 Do not create new folders or files at the repository root on your own. Work goes inside the
 existing modules and directories: source inside the package (`pythonx/`), CI scripts in
-`.github/scripts/`, build helpers in `pythonx/_build/`, temporary files in the git-ignored `.tmp/`.
+`.github/scripts/`, build tooling in `scripts/`, temporary files in the git-ignored `.tmp/`.
 
 The standing root entries are `pyproject.toml`, `README.md`, `LICENSE`, `PROJECT.md`, `AGENTS.md`,
-`pythonx/`, `tests/`, `docs/`, `.github/`, `.gitignore` and `.gitattributes`, plus the maintainer's
+`pythonx/`, `scripts/` (approved by the maintainer, 2026-10-03), `tests/`, `docs/`, `.github/`,
+`.gitignore` and `.gitattributes`, plus the maintainer's
 untracked `UI.ipynb`. If a new top-level entry seems necessary, propose it — what it is, why, and
 why it cannot live inside an existing directory — and wait for approval.
 
