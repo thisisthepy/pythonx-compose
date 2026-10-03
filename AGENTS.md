@@ -22,7 +22,8 @@ files — lives **inside this repository's root directory.**
 | Worktrees | `.worktrees/<name>` (git-ignored) |
 | Temporary files | `.tmp/` (git-ignored); delete when done |
 | Benchmarks | `benchmarks/` |
-| Developer tooling | `tools/` |
+| CI scripts | `.github/scripts/` |
+| Build tooling (stub generator) | `pythonx/_build/` (not shipped in the wheel) |
 
 Before writing a file, check that its absolute path starts with this repository's root. If it does
 not, stop. The only exceptions are a path the user names explicitly, and caches that build tools
@@ -30,6 +31,17 @@ manage themselves. **Re-pointing a shared cache or a home-directory symlink reac
 ask first.**
 
 Writing to *another* repository is not an exception either. Do it only when told to work there.
+
+### Do not add top-level folders
+
+Do not create new folders or files at the repository root on your own. Work goes inside the
+existing modules and directories: source inside the package (`pythonx/`), CI scripts in
+`.github/scripts/`, build helpers in `pythonx/_build/`, temporary files in the git-ignored `.tmp/`.
+
+The standing root entries are `pyproject.toml`, `README.md`, `LICENSE`, `PROJECT.md`, `AGENTS.md`,
+`pythonx/`, `tests/`, `docs/`, `.github/`, `.gitignore` and `.gitattributes`, plus the maintainer's
+untracked `UI.ipynb`. If a new top-level entry seems necessary, propose it — what it is, why, and
+why it cannot live inside an existing directory — and wait for approval.
 
 ## 3. Worktrees link large artefacts instead of copying them
 
@@ -39,7 +51,7 @@ build caches, model weights, `node_modules`) into every worktree is how 86 workt
 
 - Create worktrees under `.worktrees/<name>`.
 - **Symlink** large untracked directories from the main checkout instead of copying or rebuilding
-  them. If `tools/worktree-add.sh` exists, use it — it does the linking.
+  them. If a worktree-linking script exists under `.github/scripts/`, use it.
 - Delete a worktree once its branch is merged: `git worktree remove .worktrees/<name>`.
 - Periodically delete `build/` directories inside worktrees; they only grow.
 
@@ -54,7 +66,7 @@ build caches, model weights, `node_modules`) into every worktree is how 86 workt
 
 `main` carries a reduced layout: of the Markdown files, only `README.md` stays at the repository
 root, and `docs/` keeps only its subdirectories (no Markdown files directly under `docs/`).
-CI runs `tools/release/sync-release.sh` (`.github/workflows/release-sync.yml`) to produce that layout; do not hand-edit `release` or `main`.
+CI runs `.github/scripts/release/sync-release.sh` (`.github/workflows/release-sync.yml`) to produce that layout; do not hand-edit `release` or `main`.
 
 Only `main`, `release` and `develop` stand. A feature branch is deleted when it merges, with its
 local branch and worktree. Sweep periodically: delete every remote and local branch that
@@ -215,17 +227,17 @@ worktree so a test can see it. Read it in place.
 
 ## 16. Things you do not change without the maintainer
 
-- **`test/`** — the 2023–2024 Kotlin Multiplatform sample. Do not delete, move, or modernise it;
-  its fate is an open decision (`PROJECT.md`).
-- **`pythonx/compose/native`** — a git submodule. Do not update its pointer as a side effect.
-- **`pythonx/compose/lite/`** — a retired 2024 JPype prototype with tracked binaries. Leave it until
-  the maintainer decides.
+- **The root layout** — see section 2, "Do not add top-level folders".
+- The retired `test/` sample, `pythonx/compose/lite/` and the `pythonx/compose/native` submodule
+  were removed in #60; they stay reachable through the tag `archive/pre-restructure`. Do not bring
+  them back.
 
 ## 17. Documentation layout
 
 - `README.md` (English) and `docs/locale/README_ko.md` (Korean) say the same thing; change both.
 - `docs/guide/` is the bilingual GitHub Pages site. Every visible string exists in English and
-  Korean. `python3 tools/check_guide.py` is its test; run it after any guide change.
+  Korean. `python3 .github/scripts/check_guide.py` is its checker, and `tests/test_guide.py` runs it
+  in the suite.
 - No Markdown files directly under `docs/` other than `INTENT.md` and `SPEC.md`; other documents go
   in a topic subdirectory. `README.md` must not link to `AGENTS.md`, `PROJECT.md`,
   `docs/INTENT.md` or `docs/SPEC.md` — those files do not exist on `main`.

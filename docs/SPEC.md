@@ -21,8 +21,8 @@ Run from a worktree with `python -m pytest tests -q -rs` (pytest 8, mypy 2.4, CP
 
 | Environment | Result |
 |---|---|
-| No `PythonMultiplatform` checkout found | **134 passed, 112 skipped**, 173 subtests passed |
-| python-multiplatform `develop` at `31c092f0` or later (property rows, #38; `describe_member`, #54; besides `add_member_resolver` and `describe(module, name)`) | **245 passed, 1 skipped**, 204 subtests passed |
+| No `PythonMultiplatform` checkout found | **133 passed, 112 skipped**, 167 subtests passed |
+| python-multiplatform `develop` at `31c092f0` or later (property rows, #38; `describe_member`, #54; besides `add_member_resolver` and `describe(module, name)`) | **244 passed, 1 skipped**, 198 subtests passed |
 | an older checkout, without `describe_member` (python-multiplatform #54) | the same, with 7 more skipped |
 | an older one, without `describe(module, name)` (python-multiplatform #36) | with 13 more skipped again |
 | an older one still, without `add_member_resolver` | with 5 more skipped again |
@@ -36,7 +36,7 @@ binder returned skip as well, because that needs its member resolver (python-mul
 `TheBinderPath` tests (S5.4). A binder without the `@Composable` binding (`push_composer`) skips the 13 text-field tests (S5.5). `tests/test_typing.py` skips where mypy is not installed. A skip is not a
 pass.
 
-Of the 134 that pass without a checkout, 61 check the type stubs and the wheel (S1.2); most of the
+Of the 133 that pass without a checkout, 73 check the type stubs and the wheel (S1.2); most of the
 rest assert **absence** (a retired token, a deleted file, a docstring that exists). Those are listed
 in §9 and are not counted as features.
 
@@ -65,9 +65,9 @@ and the name the interpreter resolves cannot drift.
   regenerating them from the same input produces no diff.
 - **From what.** python-multiplatform's CI artefact `kotlin-stubs` (workflow run 37103737430,
   commit `a5028618`): Kotlin-named stubs for Compose 1.11.1, one `androidx/compose/.../__init__.pyi`
-  per Kotlin package. `python3 tools/gen_stubs.py <kotlin-stubs.zip or directory>` converts them;
+  per Kotlin package. `python3 pythonx/_build/gen_stubs.py <kotlin-stubs.zip or directory>` converts them;
   the first line of every generated stub records the artefact, run and commit it came from.
-- **The rule is the runtime's** (`_reexport.py`), applied by `tools/gen_stubs.py`:
+- **The rule is the runtime's** (`_reexport.py`), applied by `pythonx/_build/gen_stubs.py`:
   - a module function or constant is renamed with `python_name` (upper-case names kept, others
     snake_case, an explicit overload keeps its suffix: `padding__Dp`); its parameters are
     snake_case, except the positional-only `receiver` and anonymous `__aN` slots; keyword-only
@@ -463,7 +463,7 @@ rule that names no declaration:
   (`androidx.compose.ui.Alignment.Horizontal`), so `Alignment.Horizontal.Top` fails: `Top` is an
   `Alignment.Vertical`.
 - On a binder without `describe(module, name)` there are no groups; the flat spelling is unchanged.
-- **Stubs.** `tools/gen_stubs.py` emits each group as a class nested in the object's stub class,
+- **Stubs.** `pythonx/_build/gen_stubs.py` emits each group as a class nested in the object's stub class,
   holding the same `ClassVar` constants, grouped by the declared type the upstream stub's docstring
   carries (`"""Kotlin: androidx.compose.ui.Alignment.End(): androidx.compose.ui.Alignment.Horizontal"""`),
   so a type checker accepts `Alignment.Horizontal.End` and rejects `Alignment.Horizontal.Top`. A
@@ -501,8 +501,8 @@ the binder lists no member that would win over these groups.
 
 These tests pass and assert that retired 2024 mechanisms are gone. They are not features:
 
-- `tests/test_legacy_modules.py` (6 tests): no chaquopy / JPype tokens or dead relative imports in
-  `layout/__init__.py`, `lite/*.py`, `test/main.py`, `ui/unit/__init__.py`,
+- `tests/test_legacy_modules.py` (4 tests): no chaquopy / JPype tokens or dead relative imports in
+  `layout/__init__.py`, `ui/unit/__init__.py`,
   `material3/__init__.py`; each retired module carries a real docstring.
 - `tests/test_material3_module.py::TheDeadFilesAreGone` (2 tests): `material3/` holds only its
   `__init__.py`, and `wrapper/` is gone (#31).
@@ -521,15 +521,15 @@ Found in the repository; not covered by `docs/INTENT.md`, or in conflict with it
    `python_multiplatform` and `python_multiplatform.binding` from the binder's sources and imports
    `pythonx` from disk. `test_chain.py` and `test_modifier_module.py` still use the old call and
    are rewritten with issue #8.
-3. **Prebuilt binaries inside the package directory.** `pythonx/compose/lite/release/` tracks 97
-   files, including a Windows `.exe`, `.dll` and Compose desktop jars from the 2024 JPype
-   prototype, alongside a Gradle project in `pythonx/compose/lite/`.
+3. *(Resolved, #60.)* `pythonx/compose/lite/` (the retired 2024 JPype prototype, with 97 tracked
+   binaries) is deleted; the tag `archive/pre-restructure` keeps it.
 4. **Two spellings for one module.** The manifest maps both `pythonx.compose.layout` and
    `pythonx.compose.foundation.layout` (plus `pythonx.compose.foundation` and `pythonx.compose`)
    "while the spelling settles".
 5. *(Resolved, #31.)* `material3/icon.py` and `color_scheme.py`, dead reflection code, are deleted.
 6. *(Resolved, INTENT §5.3, issue #9.)* Grouped alignment constants: both spellings are served (§7, S7.1).
-7. The submodule `pythonx/compose/native` → `thisisthepy/swing-graalvm-demo`, which INTENT does not
-   mention. (The 29 empty `material3/*.py` files are deleted, #31.)
-8. **The `test/` directory** — a 2023–2024 Kotlin Multiplatform sample (`pycomposeui`, chaquopy
-   era). Kept as-is pending the maintainer's decision (INTENT §4.2).
+7. *(Resolved, #60.)* The submodule `pythonx/compose/native` → `thisisthepy/swing-graalvm-demo`
+   (pinned at `090f0190`) is removed; INTENT does not mention it. (The 29 empty `material3/*.py`
+   files are deleted, #31.)
+8. *(Resolved, #60, INTENT §4.2.)* The `test/` directory, a 2023–2024 Kotlin Multiplatform sample
+   (`pycomposeui`, chaquopy era), is deleted; the tag `archive/pre-restructure` keeps it.
