@@ -65,7 +65,7 @@ flowchart LR
     px --> ax["androidx.compose.*<br/>python-multiplatform 이 Kotlin 이름 그대로 노출"]
     ax --> compose["Jetpack / Compose Multiplatform"]
     map["pythonx-map.toml"] -.-> px
-    map -.-> pyi[".pyi 스텁<br/>(wheel 포함 예정)"]
+    map -.-> pyi[".pyi 스텁<br/>(wheel 에 포함)"]
 ```
 
 | 파이썬 모듈 | Kotlin 패키지 |
@@ -134,8 +134,8 @@ python_name("Modifier")       # 'Modifier'
 ## 📦 설치
 
 pip 패키지 **`pythonx-compose`**(파이썬 3.11 이상)로 배포되며, import 패키지 `pythonx.compose` 와
-매니페스트를 wheel 안에 담습니다. 실제 Compose 에서 생성한 `.pyi` 스텁과 `py.typed` 는 계획
-단계입니다. [python-multiplatform](https://github.com/thisisthepy/python-multiplatform)
+매니페스트를 wheel 안에 담으며, 타입 정보도 함께 배포합니다: 실제 Compose 1.11.1 에서 생성한 `.pyi`
+스텁과 `py.typed`. [python-multiplatform](https://github.com/thisisthepy/python-multiplatform)
 으로 CPython 을 임베딩한 앱 안에서 동작하며, 단독 데스크톱 툴킷이 아닙니다.
 
 ## 🧪 현황
@@ -151,7 +151,8 @@ pip 패키지 **`pythonx-compose`**(파이썬 3.11 이상)로 배포되며, impo
 | 빈 `Modifier` | 🟡 부분 — 클래스에서 시작하는 `Modifier.padding(16)` 은 실제 Compose 에서 앱이 제공하는 팩토리가 필요 |
 | `Alignment` / `Arrangement` | 🟡 부분 — `Alignment.Center`, `Arrangement.spaced_by(8)` 동작; 묶음 표기 `Alignment.Horizontal.End` 대기 |
 | Material 3 위젯 (`Text`, `Button`, `Card`, `TextField`, …) | 🟡 부분 — 규칙으로 재노출됨; 위젯별 렌더 증거 대기(#9) |
-| 배포 (`pythonx-compose`) | 🟡 부분 — wheel 에 매니페스트 포함; 실제 Compose 스텁과 `py.typed` 없음(#12) |
+| 실제 Compose 1.11.1 에서 생성한 타입 스텁(`.pyi`), `py.typed` | ✅ 구현, mypy 로 검사; 아직 많은 타입이 `Any` 이고 메서드 키워드는 Kotlin 이름(#12) |
+| 배포 (`pythonx-compose`) | 🟡 부분 — wheel 에 매니페스트, 재노출 규칙, 스텁, `py.typed` 포함 |
 | 갱신 호출 없는 선언형 앱 루트와 파이썬다운 상태 | ⏳ 계획(#11) |
 | `TextField` 입력기(IME) 처리 | ⏳ 계획(#10) |
 | `Icon`, `DefaultIcons`, 색 스킴 | ⏳ 계획(python-multiplatform #37) |

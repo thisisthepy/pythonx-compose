@@ -73,6 +73,14 @@ class TheWheel(unittest.TestCase):
     def test_the_re_export_rule_ships(self):
         self.assertIn("pythonx/compose/_reexport.py", self.names)
 
+    def test_the_package_is_marked_typed(self):
+        self.assertIn("pythonx/compose/py.typed", self.names)
+
+    def test_the_generated_stubs_ship(self):
+        for stub in ("pythonx/compose/ui/__init__.pyi", "pythonx/compose/layout/__init__.pyi"):
+            with self.subTest(stub=stub):
+                self.assertIn(stub, self.names)
+
 
 if __name__ == "__main__":
     unittest.main()
