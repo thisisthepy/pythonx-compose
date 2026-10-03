@@ -125,10 +125,12 @@ python3 .github/scripts/check_guide.py           # 가이드: HTML 파싱, 링�
 - 워크플로 이름: `tests.yml` → `test.yml`, PyPI 배포는 `publish-pypi.yml`.
 - 첫 버전은 `0.1.0a1`(알파, 프리릴리스). PyPI 메타데이터(설명·README·MIT·저자·URL·분류자)는 채웠고,
   README 의 링크는 pypi.org 에서 열리도록 절대 URL 이다(`main` 링크는 `main` 이 `develop` 을 따라잡은 뒤에 열린다).
-- 배포 방법: 릴리스할 커밋에 `v0.1.0a1` 태그를 푸시하면 `publish-pypi.yml` 이 태그와 `pyproject.toml`
-  버전을 대조하고, sdist·wheel 을 빌드하고, `twine check`·새 venv 스모크를 거쳐 트러스티드 퍼블리싱으로
-  올린다. **현황: 업로드 전.** 태그 푸시는 메인테이너 승인을 기다리고, GitHub 환경 `pypi`(`v*` 태그만 허용)
-  와 PyPI pending publisher 는 메인테이너가 설정한다.
+- 배포 방법: 릴리스할 커밋에 태그 `v0.1.0a1` 로 GitHub Release 를 게시하면(알파는 pre-release 표시)
+  `publish-pypi.yml` 이 Release 태그와 `pyproject.toml` 버전을 대조하고, sdist·wheel 을 빌드하고,
+  `twine check`·새 venv 스모크를 거쳐 트러스티드 퍼블리싱으로 올린다. 태그만 푸시해서는 아무것도
+  올라가지 않는다(같은 버전은 PyPI 에 다시 올릴 수 없으므로 의도적인 단계로 둠). **현황: 업로드 전.**
+  Release 게시는 메인테이너 승인을 기다린다. GitHub 환경 `pypi`(`v*` 태그만 허용)는 만들었고, PyPI
+  pending publisher 는 메인테이너가 등록한다.
 
 ### 결정됨 (2026-10-03, `docs/INTENT.md` §5)
 

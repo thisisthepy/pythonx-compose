@@ -222,10 +222,11 @@ worktree so a test can see it. Read it in place.
 
 - The distribution name is `pythonx-compose` (`pyproject.toml`); the import package is
   `pythonx.compose`.
-- **Release.** After the maintainer approves, tag the commit to release `v<version>` (the
-  `pyproject.toml` version, e.g. `v0.1.0a1`) and push the tag; `.github/workflows/publish-pypi.yml`
-  builds, checks and publishes through PyPI trusted publishing (environment `pypi`). Never upload
-  by hand, and never store a PyPI token.
+- **Release.** After the maintainer approves, publish a GitHub Release whose tag is `v<version>`
+  (the `pyproject.toml` version, e.g. `v0.1.0a1`; mark an alpha or beta as a pre-release) on the
+  commit to release; `.github/workflows/publish-pypi.yml` runs on the Release, checks, builds and
+  publishes through PyPI trusted publishing (environment `pypi`). Pushing a tag alone publishes
+  nothing. Never upload by hand, and never store a PyPI token.
 - `.pyi` stubs, `py.typed` and the manifest must end up **inside the wheel**. A `package-data`
   pattern is not proof — build the wheel and list it before claiming something ships.
 
