@@ -109,9 +109,9 @@ python3 .github/scripts/check_guide.py           # 가이드: HTML 파싱, 링�
 1. **코루틴 스코프** — 노트북이 import 하는 `DefaultCoroutineScope`·`MainCoroutineScope`.
 2. **`pythonx-map.toml` 의 이중 표기** — `pythonx.compose.layout` 과
    `pythonx.compose.foundation.layout` 를 둘 다 유지할지.
-3. **릴리스·Pages 활성화** — `.github/scripts/release/` 와 `.github/workflows/`(release-sync, main-source-guard,
-   pages)는 들어와 있다. 실제로 돌려면 원격 푸시, `RELEASE_PR_TOKEN` 시크릿, main 보호 적용이
-   필요하고, 셋 다 메인테이너 승인 사항이다.
+3. **릴리스·Pages 활성화** — `.github/scripts/release/` 와 `.github/workflows/`(release-sync, pages)는
+   들어와 있다. main 보호는 저장소 설정만으로 한다(PR 필수, 승인 0, 직접 push·force-push·삭제
+   금지, 머지는 관리자만; #64). 설정 적용과 release→main PR 머지는 메인테이너가 한다.
 
 ### 결정됨 (2026-10-03, #60)
 
