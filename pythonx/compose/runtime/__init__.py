@@ -38,7 +38,8 @@ spelling keeps working.
 ## The app root and `state`
 
 `@app` declares the screen the host draws; `state(initial)` makes a value Compose observes. The host
-is configured once with `PythonContent("pythonx.compose.runtime", "app_root")`: it reads the module
+is configured once with
+`PythonAppView(module = "pythonx.compose.runtime", attribute = "app_root")`: it reads the module
 attribute `app_root`, a Compose `MutableState` whose `.value` is a zero-argument callable or `None`
 (nothing is drawn). `app(fn)` writes `app_root.value = fn` and returns `fn` unchanged, so declaring
 the root again -- in a notebook cell, say -- replaces the screen. There is deliberately no update or
@@ -76,7 +77,8 @@ def Composable(target):
 
 
 app_root: State
-"""The state the host reads (`PythonContent("pythonx.compose.runtime", "app_root")`); annotated
+"""The state the host reads
+(`PythonAppView(module = "pythonx.compose.runtime", attribute = "app_root")`); annotated
 only, created on first read by `__getattr__` below."""
 
 
