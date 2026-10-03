@@ -35,8 +35,8 @@ Compose(`androidx.compose.*`)를 파이썬에서 쓰기 위한 pip 패키지 **`
 
 ```
 python3 -m pytest tests -q
-  PythonMultiplatform 체크아웃 없음       134 passed, 112 skipped
-  python-multiplatform develop 31c092f0+    245 passed, 1 skipped
+  PythonMultiplatform 체크아웃 없음       133 passed, 112 skipped
+  python-multiplatform develop 31c092f0+    244 passed, 1 skipped
   describe_member 없는 체크아웃             같은 수, 그중 7 개 건너뜀  (python-multiplatform #54 이전)
   describe(module, name) 없는 체크아웃      같은 수, 그중 13 개 건너뜀  (python-multiplatform #36 이전)
   그보다 오래된 체크아웃                    거기에 5 개 더 건너뜀  (member resolver 없음)
@@ -74,12 +74,11 @@ pythonx/compose/          import 패키지 (현재 대부분 독스트링만 있
   ui/                     modifier.py (빈 Modifier 등록 지점), alignment.py
   layout/                 arrangement.py
   material3/              __init__.py 하나 (위젯은 모두 재노출 규칙으로)
-  lite/                   2024 JPype 프로토타입 (은퇴, 바이너리 97 개 추적 중)
-  native/                 서브모듈 → thisisthepy/swing-graalvm-demo
-tests/                    pytest (unittest 스타일)
-test/                     2023–2024 Kotlin Multiplatform 샘플 (pycomposeui) — 처리 미정
+pythonx/_build/           gen_stubs.py (스텁 생성기, wheel 에 싣지 않음)
+tests/                    pytest (unittest 스타일), 유일한 테스트 폴더
 docs/INTENT.md  docs/SPEC.md  docs/locale/  docs/guide/
-tools/check_guide.py      가이드 사이트 검사 (가이드의 테스트)
+.github/workflows/        CI
+.github/scripts/          check_guide.py (tests/test_guide.py 가 실행), release/ (CI 전용)
 ```
 
 ## 5. 빌드·테스트
@@ -87,7 +86,7 @@ tools/check_guide.py      가이드 사이트 검사 (가이드의 테스트)
 ```bash
 python3 -m pytest tests -q                       # 파이썬 테스트
 PYTHONMULTIPLATFORM_HOME=<checkout> python3 -m pytest tests -q   # 바인더 계층 포함
-python3 tools/check_guide.py                     # 가이드: HTML 파싱, 링크, en/ko 짝
+python3 .github/scripts/check_guide.py           # 가이드: HTML 파싱, 링크, en/ko 짝 (tests/test_guide.py 도 실행)
 ```
 
 - pytest 가 없으면 `.tmp/` 아래에 가상환경을 만든다 (홈 디렉터리 금지).
@@ -107,16 +106,19 @@ python3 tools/check_guide.py                     # 가이드: HTML 파싱, 링�
 
 ## 7. 열린 질문 (메인테이너 결정 필요)
 
-1. **`test/` 디렉터리** — 2023–2024 Kotlin Multiplatform 샘플. 유지 / 이동 / 삭제 중 무엇인지.
-   결정 전까지 손대지 않는다.
-2. **코루틴 스코프** — 노트북이 import 하는 `DefaultCoroutineScope`·`MainCoroutineScope`.
-3. **`pythonx/compose/lite/release/`** 의 Windows 바이너리·jar 97 개와 빈 `material3/*.py` 28 개,
-   서브모듈 `native` 의 처리.
-4. **`pythonx-map.toml` 의 이중 표기** — `pythonx.compose.layout` 과
+1. **코루틴 스코프** — 노트북이 import 하는 `DefaultCoroutineScope`·`MainCoroutineScope`.
+2. **`pythonx-map.toml` 의 이중 표기** — `pythonx.compose.layout` 과
    `pythonx.compose.foundation.layout` 를 둘 다 유지할지.
-5. **릴리스·Pages 활성화** — `tools/release/` 와 `.github/workflows/`(release-sync, main-source-guard,
+3. **릴리스·Pages 활성화** — `.github/scripts/release/` 와 `.github/workflows/`(release-sync, main-source-guard,
    pages)는 들어와 있다. 실제로 돌려면 원격 푸시, `RELEASE_PR_TOKEN` 시크릿, main 보호 적용이
    필요하고, 셋 다 메인테이너 승인 사항이다.
+
+### 결정됨 (2026-10-03, #60)
+
+- **저장소 정리.** `test/`(2023–2024 샘플), `pythonx/compose/lite/`(은퇴한 JPype 프로토타입),
+  서브모듈 `pythonx/compose/native`(→ thisisthepy/swing-graalvm-demo @ 090f0190)는 삭제했고,
+  태그 `archive/pre-restructure` 로 되찾을 수 있다. `tools/` 는 없앴다: 스텁 생성기는
+  `pythonx/_build/`, 가이드 검사기와 릴리스 스크립트는 `.github/scripts/`.
 
 ### 결정됨 (2026-10-03, `docs/INTENT.md` §5)
 

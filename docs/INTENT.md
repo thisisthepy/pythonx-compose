@@ -125,8 +125,8 @@ These are recorded so that `docs/SPEC.md` does not settle them by accident.
 
 1. **Coroutine scopes** the notebook imports, `DefaultCoroutineScope` / `MainCoroutineScope`.
    (The other convenience spellings are decided, §5.4–5.7.)
-2. **The `test/` directory** — a 2023–2024 Kotlin Multiplatform sample (`pycomposeui`). Whether it
-   is kept, moved, or removed is the maintainer's decision.
+2. *(Decided, #60.)* **The `test/` directory** — a 2023–2024 Kotlin Multiplatform sample
+   (`pycomposeui`). Deleted; the tag `archive/pre-restructure` keeps it.
 
 ## 5. Decided (2026-10-03)
 

@@ -2,7 +2,9 @@
 
 ## What used to be here, and why it is gone
 
-A relative import `from .dp import dp`. `dp.py` was an empty file.
+A relative import `from .dp import dp`. `dp.py` was an empty placeholder file, now deleted; what it
+noted still holds: `Dp` parameters take raw numbers (`16` or `16.0`) directly, as in `padding(16)`,
+without an explicit `dp` wrapper.
 
 ## Dynamic unit handling
 
