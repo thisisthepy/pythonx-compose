@@ -43,6 +43,7 @@ import importlib.util
 import inspect
 import re
 import sys
+import types
 import weakref
 from functools import lru_cache
 from pathlib import Path
@@ -214,6 +215,10 @@ class PythonicFunction:
 
 
 def _pythonic(value, name):
+    if isinstance(value, types.ModuleType):
+        # A Kotlin object served as a sub-package. Since python-multiplatform #35 the binder lists it
+        # and exposes it as an attribute of its parent, so the name table reaches it directly.
+        return KotlinObject(value)
     if isinstance(value, type) or not callable(value):
         return value
     return PythonicFunction(value, name)
