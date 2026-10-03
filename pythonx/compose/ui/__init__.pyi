@@ -800,6 +800,22 @@ class Alignment:
     """Kotlin: androidx.compose.ui.Alignment.TopEnd(): androidx.compose.ui.Alignment"""
     TopStart: _t.ClassVar[_t.Any]
     """Kotlin: androidx.compose.ui.Alignment.TopStart(): androidx.compose.ui.Alignment"""
+    class Horizontal:
+        """Kotlin: the constants of androidx.compose.ui.Alignment declared as androidx.compose.ui.Alignment.Horizontal"""
+        CenterHorizontally: _t.ClassVar[_t.Any]
+        """Kotlin: androidx.compose.ui.Alignment.CenterHorizontally(): androidx.compose.ui.Alignment.Horizontal"""
+        End: _t.ClassVar[_t.Any]
+        """Kotlin: androidx.compose.ui.Alignment.End(): androidx.compose.ui.Alignment.Horizontal"""
+        Start: _t.ClassVar[_t.Any]
+        """Kotlin: androidx.compose.ui.Alignment.Start(): androidx.compose.ui.Alignment.Horizontal"""
+    class Vertical:
+        """Kotlin: the constants of androidx.compose.ui.Alignment declared as androidx.compose.ui.Alignment.Vertical"""
+        Bottom: _t.ClassVar[_t.Any]
+        """Kotlin: androidx.compose.ui.Alignment.Bottom(): androidx.compose.ui.Alignment.Vertical"""
+        CenterVertically: _t.ClassVar[_t.Any]
+        """Kotlin: androidx.compose.ui.Alignment.CenterVertically(): androidx.compose.ui.Alignment.Vertical"""
+        Top: _t.ClassVar[_t.Any]
+        """Kotlin: androidx.compose.ui.Alignment.Top(): androidx.compose.ui.Alignment.Vertical"""
 
 class ComposeUiFlags:
     """Kotlin: androidx.compose.ui.ComposeUiFlags"""

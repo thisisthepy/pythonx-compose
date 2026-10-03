@@ -27,22 +27,24 @@ Compose(`androidx.compose.*`)를 파이썬에서 쓰기 위한 pip 패키지 **`
 
 | 상태 | 항목 |
 |---|---|
-| 구현 | 매핑 매니페스트 `pythonx-map.toml`, `@Composable` 항등 데코레이터, 실제 디스크 패키지 `pythonx` 와 모듈 수준 규칙 기반 재노출(snake_case 이름·키워드·시그니처, 오버로드 디스패치, 값 클래스 허용 목록), 실제 Compose 1.11.1 에서 생성한 `.pyi` 스텁과 `py.typed`(wheel 포함, mypy 로 검사) |
-| 부분 | 배포 설정, proxy 메서드의 키워드 인자는 아직 Kotlin 이름(`m.padding(paddingValues=...)`), Material 3 위젯(렌더 증거는 python-multiplatform 에만), `Icon`·색 스킴(import 만 됨), `Alignment`/`Arrangement` 상수(`pythonx` 에서 읽힘; 묶음 표기는 python-multiplatform #36 대기) |
+| 구현 | 매핑 매니페스트 `pythonx-map.toml`, `@Composable` 항등 데코레이터, 실제 디스크 패키지 `pythonx` 와 모듈 수준 규칙 기반 재노출(snake_case 이름·키워드·시그니처, 오버로드 디스패치, 값 클래스 허용 목록), 실제 Compose 1.11.1 에서 생성한 `.pyi` 스텁과 `py.typed`(wheel 포함, mypy 로 검사), `Alignment`/`Arrangement` 상수(평면 `Alignment.End` 와 묶음 `Alignment.Horizontal.End` 모두, #9) |
+| 부분 | 배포 설정, proxy 메서드의 키워드 인자는 아직 Kotlin 이름(`m.padding(paddingValues=...)`), Material 3 위젯(렌더 증거는 python-multiplatform 에만), `Icon`·색 스킴(import 만 됨) |
 | 계획 | 선언형 앱 루트(#11), `remember_saveable`·`DefaultIcons`·코루틴 스코프 |
 
 ### 테스트 기준선
 
 ```
 python3 -m pytest tests -q
-  PythonMultiplatform 체크아웃 없음       84 passed, 60 skipped
-  python-multiplatform develop ba4c6f49+    143 passed, 1 skipped
-  그보다 오래된 체크아웃                    같은 수, 그중 5 개 건너뜀  (member resolver 없음)
+  PythonMultiplatform 체크아웃 없음       91 passed, 73 skipped
+  python-multiplatform develop d6d39787+    163 passed, 1 skipped
+  describe(module, name) 없는 체크아웃      같은 수, 그중 13 개 건너뜀  (python-multiplatform #36 이전)
+  그보다 오래된 체크아웃                    거기에 5 개 더 건너뜀  (member resolver 없음)
 ```
 
+`describe(module, name)`(python-multiplatform #36)이 없는 바인더에서는 묶음 상수를 확인하는 13 개가,
 member resolver(python-multiplatform `ba4c6f49`)가 없는 바인더에서는 proxy 의 snake_case 메서드를 부르는
-5 개가 건너뛴다. 두 환경 모두의 건너뜀 1 개는 worktree 에 없는 `UI.ipynb` 의 테스트다. 건너뜀은 통과가 아니다.
-체크아웃 없이 통과하는 84 개 중 30 개는 타입 스텁과 wheel 을 검사하고(SPEC S1.2), 나머지 다수는 *부재*(옛 토큰·삭제된
+5 개가 더 건너뛴다. 두 환경 모두의 건너뜀 1 개는 worktree 에 없는 `UI.ipynb` 의 테스트다. 건너뜀은 통과가 아니다.
+체크아웃 없이 통과하는 91 개 중 37 개는 타입 스텁과 wheel 을 검사하고(SPEC S1.2), 나머지 다수는 *부재*(옛 토큰·삭제된
 파일이 없음)를 확인하는 것이라 기능 진척으로 세지 않는다.
 
 ### 마일스톤

@@ -27,6 +27,11 @@ and every name in it then resolves against the Kotlin package `pythonx-map.toml`
   `Modifier.padding(16).fill_max_width()` reaches `fillMaxWidth` on a proxy Kotlin returned. The
   binder caches the alias in its own registry; its proxy classes keep Kotlin names in `dir()`.
 
+- **Grouped constants.** Inside a Kotlin object served as a namespace, a type nested in it that
+  is not one of its members groups the constants declared as exactly that type, so the notebook's
+  `Alignment.Horizontal.End` reads `Alignment.End` (`ConstantGroup`). Declared types come from
+  `python_multiplatform.describe(module, name)`, which never runs a constant's getter.
+
 A module may also answer for names the manifest's `[aliases]` section lends it from another mapped
 module (`material3` answers for `Column`, `Row`, `Spacer` from `layout`, as the notebook imports
 them); the object is the same one either way.
@@ -156,6 +161,26 @@ def _name_table(kotlin) -> dict:
     return table
 
 
+def _declared_type(kotlin, kotlin_name: str):
+    """`(kind, declared return type)` of the bound name [kotlin_name] in [kotlin], without reading it.
+
+    `python_multiplatform.describe(module, name)` answers from the binder's table and never runs a
+    constant's getter (python-multiplatform #36). A binder without the two-argument form, or a name
+    that is not a single bound declaration (an overload set, a child package), answers `None`.
+    """
+    root = sys.modules.get(ROOT_MODULE)
+    describe = getattr(root, "describe", None)
+    if describe is None:
+        return None
+    try:
+        described = describe(kotlin, kotlin_name)
+    except (TypeError, AttributeError):
+        return None
+    if not isinstance(described, dict):
+        return None
+    return described.get("kind"), described.get("returns")
+
+
 def _describe(fn):
     root = sys.modules.get(ROOT_MODULE)
     if root is None or not hasattr(root, "describe"):
@@ -247,18 +272,51 @@ def _resolve(kotlin, name: str):
     return None
 
 
+_STATIC_GETTER = "STATIC_GETTER"
+
+
+def _constant_groups(kotlin) -> dict:
+    """Group name -> {Pythonic constant name: Kotlin name}, for the Kotlin object [kotlin].
+
+    A group is a type nested in the object, `P.G`, that some constant of `P` is declared as; it holds
+    exactly the constants declared as `P.G` (SPEC S7.1). A constant declared as `P` itself or as any
+    other type is in no group. Declared types come from `describe(module, name)`, never from a value.
+    A name the object already has is a Kotlin member and wins, so it is never a group.
+    """
+    prefix = kotlin.__name__ + "."
+    members = _name_table(kotlin)
+    groups: dict = {}
+    for pythonic, kotlin_name in members.items():
+        declared = _declared_type(kotlin, kotlin_name)
+        if declared is None or declared[0] != _STATIC_GETTER or not declared[1]:
+            continue
+        group = declared[1][len(prefix):] if declared[1].startswith(prefix) else ""
+        if not group[:1].isupper() or "." in group or group in members:
+            continue
+        groups.setdefault(group, {})[pythonic] = kotlin_name
+    return groups
+
+
 class KotlinObject:
     """A Kotlin object (`Arrangement`, `Alignment`) served as a namespace, read by the module rule.
 
     Constants are read again on every access, as the binder serves them; functions inside the object
-    are snake_case (`Arrangement.spaced_by`) and are resolved once.
+    are snake_case (`Arrangement.spaced_by`) and are resolved once. A type nested in the object that
+    is no member of it groups the constants declared as that type (`Alignment.Horizontal.End`,
+    `ConstantGroup`); which constants those are is worked out once per object, from declared types.
     """
 
-    __slots__ = ("_kotlin", "_cache")
+    __slots__ = ("_kotlin", "_cache", "_groups")
 
     def __init__(self, kotlin_module):
         object.__setattr__(self, "_kotlin", kotlin_module)
         object.__setattr__(self, "_cache", {})
+        object.__setattr__(self, "_groups", None)
+
+    def _constant_groups(self) -> dict:
+        if self._groups is None:
+            object.__setattr__(self, "_groups", _constant_groups(self._kotlin))
+        return self._groups
 
     def __getattr__(self, name):
         if name.startswith("__") and name.endswith("__"):
@@ -268,9 +326,13 @@ class KotlinObject:
             return cached
         resolved = _resolve(self._kotlin, name)
         if resolved is None:
-            raise AttributeError(
-                f"{self._kotlin.__name__} has nothing spelled {name!r} under pythonx's naming rule"
-            )
+            members = self._constant_groups().get(name) if name[:1].isupper() else None
+            if members is None:
+                raise AttributeError(
+                    f"{self._kotlin.__name__} has nothing spelled {name!r} under pythonx's naming rule"
+                )
+            # The grouping is metadata and is kept; the constants inside are read on each access.
+            resolved = ConstantGroup(self, f"{self._kotlin.__name__}.{name}", members), True
         value, cacheable = resolved
         if cacheable:
             self._cache[name] = value
@@ -280,10 +342,46 @@ class KotlinObject:
         raise AttributeError(f"{self._kotlin.__name__} is a Kotlin object; its members are read-only here")
 
     def __dir__(self):
-        return sorted(_name_table(self._kotlin))
+        return sorted(set(_name_table(self._kotlin)) | set(self._constant_groups()))
 
     def __repr__(self):
         return f"<pythonx view of Kotlin object {self._kotlin.__name__}>"
+
+
+class ConstantGroup:
+    """The constants of a Kotlin object declared as one type nested in it: `Alignment.Horizontal`.
+
+    The notebook's grouped spelling (INTENT section 5.3). Reading `Alignment.Horizontal.End` reads
+    `Alignment.End` through its `KotlinObject`, so both spellings are the same live read of the same
+    Kotlin getter. Only constants whose *declared* type is exactly this one are here.
+    """
+
+    __slots__ = ("_owner", "_kotlin_type", "_members")
+
+    def __init__(self, owner, kotlin_type, members):
+        object.__setattr__(self, "_owner", owner)
+        object.__setattr__(self, "_kotlin_type", kotlin_type)
+        object.__setattr__(self, "_members", dict(members))
+
+    def __getattr__(self, name):
+        if name.startswith("__") and name.endswith("__"):
+            raise AttributeError(name)
+        if name not in self._members:
+            raise AttributeError(
+                f"{self._kotlin_type} groups no constant spelled {name!r}; it holds the constants of "
+                f"{self._owner._kotlin.__name__} declared as {self._kotlin_type}: "
+                + ", ".join(sorted(self._members))
+            )
+        return getattr(self._owner, name)
+
+    def __setattr__(self, name, value):
+        raise AttributeError(f"{self._kotlin_type} is a group of Kotlin constants; they are read-only here")
+
+    def __dir__(self):
+        return sorted(self._members)
+
+    def __repr__(self):
+        return f"<pythonx group of {self._owner._kotlin.__name__} constants declared {self._kotlin_type}>"
 
 
 def _aliases(module_name: str) -> dict:

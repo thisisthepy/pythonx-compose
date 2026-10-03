@@ -390,6 +390,140 @@ class ObjectNamespaces(AdapterCase):
         self.assertIn("androidx.compose.ui.Alignment", str(raised.exception))
 
 
+class GroupedObjectConstants(AdapterCase):
+    """INTENT 5.3, SPEC S7.1: `Alignment.Horizontal.End` beside Kotlin's flat `Alignment.End`.
+
+    A group is the constants of an object whose declared type is one type nested in it, read with
+    `python_multiplatform.describe(module, name)` -- never by reading a constant.
+    """
+
+    def setUp(self):
+        super().setUp()
+        import python_multiplatform
+
+        if len(inspect.signature(python_multiplatform.describe).parameters) < 2:
+            self.skipTest("the binder has no describe(module, name) yet (python-multiplatform #36)")
+
+    def label_of(self, proxy):
+        return self.host._object(proxy._pm_handle).label
+
+    def test_the_grouped_spelling_reads_the_constant(self):
+        import pythonx.compose.layout as layout
+        import pythonx.compose.ui as ui
+
+        self.assertEqual("End", self.label_of(ui.Alignment.Horizontal.End))
+        self.assertEqual("Top", self.label_of(ui.Alignment.Vertical.Top))
+        self.assertEqual("Start", self.label_of(layout.Arrangement.Horizontal.Start))
+        self.assertEqual("SpaceBetween", self.label_of(layout.Arrangement.HorizontalOrVertical.SpaceBetween))
+
+    def test_both_spellings_are_the_same_live_read(self):
+        import pythonx.compose.ui as ui
+
+        flat, grouped, again = ui.Alignment.End, ui.Alignment.Horizontal.End, ui.Alignment.Horizontal.End
+        self.assertEqual(self.label_of(flat), self.label_of(grouped))
+        self.assertIsNot(grouped, again)  # read again on every access, like the flat spelling
+        self.assertIs(type(flat), type(grouped))
+
+    def test_a_group_holds_exactly_the_constants_of_its_declared_type(self):
+        import pythonx.compose.layout as layout
+        import pythonx.compose.ui as ui
+
+        self.assertEqual(["CenterHorizontally", "End"], dir(ui.Alignment.Horizontal))
+        self.assertEqual(["Top"], dir(ui.Alignment.Vertical))
+        self.assertEqual(["End", "Start"], dir(layout.Arrangement.Horizontal))
+        self.assertEqual(["Top"], dir(layout.Arrangement.Vertical))
+        self.assertEqual(["SpaceBetween"], dir(layout.Arrangement.HorizontalOrVertical))
+
+    def test_a_constant_declared_as_a_supertype_is_in_no_narrower_group(self):
+        import pythonx.compose.layout as layout
+        import pythonx.compose.ui as ui
+
+        self.assertIn("End", dir(ui.Alignment.Horizontal))
+        self.assertIn("SpaceBetween", dir(layout.Arrangement.HorizontalOrVertical))
+        with self.assertRaises(AttributeError):
+            ui.Alignment.Horizontal.Center  # noqa: B018  -- declared `Alignment`
+        with self.assertRaises(AttributeError):
+            layout.Arrangement.Horizontal.SpaceBetween  # noqa: B018  -- declared `HorizontalOrVertical`
+
+    def test_a_name_the_group_does_not_hold_names_the_groups_kotlin_type(self):
+        import pythonx.compose.ui as ui
+
+        with self.assertRaises(AttributeError) as raised:
+            ui.Alignment.Horizontal.Top  # noqa: B018  -- `Top` is an `Alignment.Vertical`
+        self.assertIn("androidx.compose.ui.Alignment.Horizontal", str(raised.exception))
+        self.assertIn("'Top'", str(raised.exception))
+
+    def test_a_name_that_is_no_nested_type_is_still_unknown(self):
+        import pythonx.compose.ui as ui
+
+        self.assertIn("Horizontal", dir(ui.Alignment))
+        with self.assertRaises(AttributeError):
+            ui.Alignment.Diagonal  # noqa: B018
+
+    def test_dir_of_the_object_lists_its_groups(self):
+        import pythonx.compose.layout as layout
+        import pythonx.compose.ui as ui
+
+        self.assertTrue({"Horizontal", "Vertical", "End", "Center"} <= set(dir(ui.Alignment)))
+        self.assertTrue({"Horizontal", "Vertical", "HorizontalOrVertical"} <= set(dir(layout.Arrangement)))
+
+    def test_classifying_reads_no_constant(self):
+        import pythonx.compose.ui as ui
+
+        before = self.host._next_handle
+        dir(ui.Alignment)
+        ui.Alignment.Horizontal  # noqa: B018
+        self.assertEqual(before, self.host._next_handle, "a constant's getter ran to classify it")
+
+    def test_the_classification_is_computed_once_per_object(self):
+        import python_multiplatform
+        import pythonx.compose.ui as ui
+
+        original, asked = python_multiplatform.describe, []
+
+        def counting(*args):
+            asked.append(args)
+            return original(*args)
+
+        python_multiplatform.describe = counting
+        self.addCleanup(setattr, python_multiplatform, "describe", original)
+        ui.Alignment.Horizontal  # noqa: B018
+        first = len(asked)
+        ui.Alignment.Vertical  # noqa: B018
+        dir(ui.Alignment)
+        self.assertGreater(first, 0)
+        self.assertEqual(first, len(asked))
+
+    def test_a_kotlin_member_wins_over_a_group(self):
+        # A fictional constant of `Arrangement` named like one of its nested types.
+        self.host._constant(f"{fake_host.ARRANGEMENT}.Vertical", fake_host.ARRANGEMENT_VERTICAL)
+        self.host.register(self.binding)
+        import pythonx.compose.layout as layout
+
+        self.assertEqual("Vertical", self.label_of(layout.Arrangement.Vertical))
+        self.assertEqual(["End", "Start"], dir(layout.Arrangement.Horizontal))
+
+    def test_a_group_is_read_only(self):
+        import pythonx.compose.ui as ui
+
+        group = ui.Alignment.Horizontal
+        with self.assertRaises(AttributeError):
+            group.End = None
+        self.assertEqual("End", self.label_of(group.End))
+
+    def test_without_describe_by_name_there_are_no_groups_and_the_flat_spelling_stays(self):
+        import python_multiplatform
+        import pythonx.compose.ui as ui
+
+        original = python_multiplatform.describe
+        python_multiplatform.describe = lambda fn: original(fn)  # the one-argument binder
+        self.addCleanup(setattr, python_multiplatform, "describe", original)
+        self.assertEqual("End", self.label_of(ui.Alignment.End))
+        with self.assertRaises(AttributeError):
+            ui.Alignment.Horizontal  # noqa: B018
+        self.assertNotIn("Horizontal", dir(ui.Alignment))
+
+
 class ManifestAliases(AdapterCase):
     """INTENT 5.2: `Column`, `Row`, `Spacer` from `material3`, as the notebook imports them."""
 

@@ -552,6 +552,28 @@ class Arrangement:
     """Kotlin: androidx.compose.foundation.layout.Arrangement.Start(): androidx.compose.foundation.layout.Arrangement.Horizontal"""
     Top: _t.ClassVar[_t.Any]
     """Kotlin: androidx.compose.foundation.layout.Arrangement.Top(): androidx.compose.foundation.layout.Arrangement.Vertical"""
+    class Horizontal:
+        """Kotlin: the constants of androidx.compose.foundation.layout.Arrangement declared as androidx.compose.foundation.layout.Arrangement.Horizontal"""
+        End: _t.ClassVar[_t.Any]
+        """Kotlin: androidx.compose.foundation.layout.Arrangement.End(): androidx.compose.foundation.layout.Arrangement.Horizontal"""
+        Start: _t.ClassVar[_t.Any]
+        """Kotlin: androidx.compose.foundation.layout.Arrangement.Start(): androidx.compose.foundation.layout.Arrangement.Horizontal"""
+    class HorizontalOrVertical:
+        """Kotlin: the constants of androidx.compose.foundation.layout.Arrangement declared as androidx.compose.foundation.layout.Arrangement.HorizontalOrVertical"""
+        Center: _t.ClassVar[_t.Any]
+        """Kotlin: androidx.compose.foundation.layout.Arrangement.Center(): androidx.compose.foundation.layout.Arrangement.HorizontalOrVertical"""
+        SpaceAround: _t.ClassVar[_t.Any]
+        """Kotlin: androidx.compose.foundation.layout.Arrangement.SpaceAround(): androidx.compose.foundation.layout.Arrangement.HorizontalOrVertical"""
+        SpaceBetween: _t.ClassVar[_t.Any]
+        """Kotlin: androidx.compose.foundation.layout.Arrangement.SpaceBetween(): androidx.compose.foundation.layout.Arrangement.HorizontalOrVertical"""
+        SpaceEvenly: _t.ClassVar[_t.Any]
+        """Kotlin: androidx.compose.foundation.layout.Arrangement.SpaceEvenly(): androidx.compose.foundation.layout.Arrangement.HorizontalOrVertical"""
+    class Vertical:
+        """Kotlin: the constants of androidx.compose.foundation.layout.Arrangement declared as androidx.compose.foundation.layout.Arrangement.Vertical"""
+        Bottom: _t.ClassVar[_t.Any]
+        """Kotlin: androidx.compose.foundation.layout.Arrangement.Bottom(): androidx.compose.foundation.layout.Arrangement.Vertical"""
+        Top: _t.ClassVar[_t.Any]
+        """Kotlin: androidx.compose.foundation.layout.Arrangement.Top(): androidx.compose.foundation.layout.Arrangement.Vertical"""
 
 class ContextualFlowColumnOverflow:
     """Kotlin: androidx.compose.foundation.layout.ContextualFlowColumnOverflow"""
