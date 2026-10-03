@@ -14,13 +14,10 @@ ignored and overwritten.
    The push uses `--force-with-lease` pinned to the remote sha the run observed.
 2. The workflow opens (or updates) a pull request `release` -> `main` with the default
    `GITHUB_TOKEN`. This needs the repository setting *Actions -> General -> Allow GitHub
-   Actions to create and approve pull requests*. A PR opened with `GITHUB_TOKEN`
-   triggers no workflows, so `main-source-guard` would never run on it; the workflow
-   therefore sets the `only-release-into-main` commit status on the release commit
-   itself, which satisfies the required check. No PAT is needed; an optional
+   Actions to create and approve pull requests*. No PAT is needed; an optional
    `RELEASE_PR_TOKEN` secret is used for the PR step when present.
-3. Merging that PR is the only way to change `main`. `main-source-guard.yml` fails
-   any PR into `main` whose head is not `release`.
+3. Merging that PR is the only way to change `main`. The maintainer merges it after checking
+   that its source branch is `release`; repository settings alone protect `main` (below).
 4. On push to `main`, `pages.yml` deploys `docs/guide/` to GitHub Pages.
 
 ## What is dropped on release
@@ -46,6 +43,7 @@ It refuses to run while `release` is checked out.
     .github/scripts/release/protect-main.sh               # print what would be applied
     .github/scripts/release/protect-main.sh --apply       # apply via gh api (needs admin)
 
-This requires a pull request, blocks force-push and deletion. Classic protection cannot
-restrict a PR's source branch, so add the check `only-release-into-main` as required
-(the script does; the workflow must have run once first).
+The settings (the maintainer's decision, 2026-10-03): a pull request is required with no
+approving review, direct push, force-push and deletion are blocked, the branch is not locked, and
+only administrators may merge. No workflow checks the source branch; the maintainer does, when
+merging the release PR.
