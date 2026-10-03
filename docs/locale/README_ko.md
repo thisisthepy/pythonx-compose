@@ -154,7 +154,7 @@ pip 패키지 **`pythonx-compose`**(파이썬 3.11 이상)로 배포되며, impo
 | Material 3 위젯 (`Text`, `Button`, `Card`, `TextField`, …) | 🟡 부분 — 규칙으로 재노출됨; 위젯별 렌더 증거 대기(#9) |
 | 실제 Compose 1.11.1 에서 생성한 타입 스텁(`.pyi`), `py.typed` | ✅ 구현, mypy 로 검사; 아직 많은 타입이 `Any` 이고 메서드 키워드는 Kotlin 이름(#12) |
 | 배포 (`pythonx-compose`) | 🟡 부분 — wheel 에 매니페스트, 재노출 규칙, 스텁, `py.typed` 포함 |
-| 갱신 호출 없는 선언형 앱 루트(`@app`)와 파이썬다운 상태(`state`) | 🟡 부분 — 로직은 테스트됨, 바인더 경로는 python-multiplatform #38 대기(#11) |
+| 갱신 호출 없는 선언형 앱 루트(`@app`)와 파이썬다운 상태(`state`) | 🟡 부분 — 바인더 경로는 python-multiplatform #38 모양의 가짜 호스트로 테스트됨, 실제 Compose 는 E2E 모듈(#11, #19), 바인더가 `Any?` 칸의 int 를 거부해 `state(1)` 은 거부됨 |
 | `TextField` 입력기(IME) 처리 | ⏳ 계획(#10) |
 | `Icon`, `DefaultIcons`, 색 스킴 | ⏳ 계획(python-multiplatform #37) |
 | `remember_saveable`, 코루틴 스코프 | ⏳ 계획 |

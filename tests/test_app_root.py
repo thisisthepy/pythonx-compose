@@ -8,8 +8,9 @@ The state itself comes from the binder's `androidx.compose.runtime.mutableStateO
 internal function, `_new_state`. Calling it from Python is python-multiplatform #38 and has not
 landed, so the logic here runs against `FakeState`, patched in for `_new_state` and kept in this
 file: a pure-Python state in shipped code would not make Compose recompose, so none ships.
-`TheBinderPath` is the test to switch on when #38 lands: it skips until the binder binds
-`mutableStateOf`.
+`TheBinderPath` runs the real `_new_state` through the binder's Python layer and `fake_host.py`,
+whose `mutableStateOf` and `MutableState.value` rows are shaped after python-multiplatform
+`31c092f0` (#38). It skips only while the installed table binds no `mutableStateOf`.
 """
 
 from __future__ import annotations
@@ -188,12 +189,12 @@ class TheStateFactory(unittest.TestCase):
 
 
 class TheBinderPath(unittest.TestCase):
-    """The real `_new_state`, unpatched, through the binder.
+    """The real `_new_state`, unpatched, through the binder's Python layer and the fake host.
 
-    It skips while the installed table binds no `androidx.compose.runtime.mutableStateOf`. That stays
-    true here after python-multiplatform #38 lands, because `fake_host.py` is this repository's own
-    fixture: switching this on means adding rows in the shape #38 defines. The proof against real
-    Compose is the E2E module (python-multiplatform #26, issue #19).
+    The host's `mutableStateOf` / `MutableState.value` rows are shaped after python-multiplatform
+    `31c092f0` (#38), so this proves the Python half: the proxy, the `value` property, the `Any?`
+    slot. It skips while the installed table binds no `androidx.compose.runtime.mutableStateOf`.
+    That Compose itself observes the write is the E2E module (python-multiplatform #26, issue #19).
     """
 
     def setUp(self):
@@ -201,6 +202,8 @@ class TheBinderPath(unittest.TestCase):
             self.binding = adapter_loader.install()
         except adapter_loader.AdapterUnavailable as unavailable:
             self.skipTest(str(unavailable))
+        if not hasattr(self.binding, "_PROPERTIES"):
+            self.skipTest(NEEDS_38 + ": this binder serves no property rows (`MutableState.value`)")
         self.host = fake_host.FakeHost()
         self.host.bind()
         self.host.register(self.binding)
@@ -226,10 +229,41 @@ class TheBinderPath(unittest.TestCase):
 
         self.assertIs(Screen, self.runtime.app_root.value)
 
+    def test_app_root_is_a_binder_state_proxy(self):
+        root = self.runtime.app_root
+        self.assertEqual("androidx.compose.runtime.MutableState", type(root)._kotlin_type_name)
+        self.assertIsNone(root.value)
+        self.assertIs(root, self.runtime.app_root)
+
+    def test_redeclaring_replaces_the_value_in_the_same_host_state(self):
+        root = self.runtime.app_root
+
+        @self.runtime.app
+        def Screen():
+            return "one"
+
+        @self.runtime.app
+        def Screen():  # noqa: F811
+            return "two"
+
+        self.assertEqual("two", root.value())
+        self.assertEqual(3, len(self.host_states()[0].writes))
+
+    def host_states(self):
+        return [o for o in self.host._handles.values() if isinstance(o, fake_host.StubState)]
+
     def test_state_round_trips_through_the_binder(self):
-        counter = self.runtime.state(1)
-        counter.value = 2
-        self.assertEqual(2, counter.value)
+        label = self.runtime.state("a")
+        label.value = "b"
+        self.assertEqual("b", label.value)
+        self.assertEqual(["a", "b"], self.host_states()[0].writes)
+
+    def test_an_int_state_is_refused_by_the_binder_not_papered_over(self):
+        # `PythonxAdapter._coerce`: an int in an `Any?` slot would cross as an object handle, so the
+        # binder refuses it. `state(1)` is therefore an error today; `pythonx` does not box it.
+        with self.assertRaises(TypeError) as raised:
+            self.runtime.state(1)
+        self.assertIn("int", str(raised.exception))
 
 
 if __name__ == "__main__":

@@ -11,6 +11,19 @@ real walked `androidx.compose.foundation.layout.padding__Dp` by
 `PythonxAdapterTest.shapeMatchesTheWalkedEntries`, so these rows are the shape the artefact walker
 actually produces out of `foundation-layout-desktop-1.6.11.jar` -- not a convenient simplification.
 
+**The state rows are shaped after python-multiplatform `31c092f0` (#38), not transcribed from a
+walked jar.** `KotlinSurface.kt` (the describe docs) and `PythonxAdapter.kt` (`_register_table`,
+`_read_property`, `_write_property`, `_coerce`) define them, and the fields modelled are:
+`androidx.compose.runtime.mutableStateOf` -- `kind` FUNCTION, one slot `value` tagged OBJECT
+declared `kotlin.Any` (an unbounded type parameter, the spelling `_KOTLIN_ANY` reads), returning an
+OBJECT of `androidx.compose.runtime.MutableState`; `androidx.compose.runtime.MutableState.value` --
+`kind` GETTER, arity 0, `receiver_type_name` `MutableState` (the receiver is *not* a slot, but the
+adapter sends its handle in `args[0]`), returning OBJECT `kotlin.Any`; and
+`androidx.compose.runtime.MutableState.value=` -- `kind` SETTER, whose leaf ends in `=`, one slot
+`value` OBJECT `kotlin.Any`, returning `kotlin.Unit`. A `kotlin.Any` slot carries a Python object as
+itself and a Kotlin object as its handle, as `_coerce` does; the stub keeps the Python object.
+No walked row for these exists in this repository, so the shape is only as faithful as that reading.
+
 What this does **not** prove: that the Kotlin half marshals correctly, that Compose's own `padding`
 runs, or that a handle is released on the Kotlin side. Those are
 `WalkedArtifactComposeModifierTest` and `PythonxAdapterTest`, and they live in the other repository
@@ -34,6 +47,10 @@ ARRANGEMENT_BOTH = ARRANGEMENT + ".HorizontalOrVertical"
 ALIGNMENT = "androidx.compose.ui.Alignment"
 ALIGNMENT_HORIZONTAL = ALIGNMENT + ".Horizontal"
 ALIGNMENT_VERTICAL = ALIGNMENT + ".Vertical"
+
+KOTLIN_ANY = "kotlin.Any"
+RUNTIME = "androidx.compose.runtime"
+MUTABLE_STATE = RUNTIME + ".MutableState"
 
 EMPTY_MODIFIER = "androidx.compose.ui.emptyModifier"
 """The one entry the real walker does **not** produce; see `ComposeShapedFragment.EMPTY_MODIFIER`.
@@ -78,6 +95,20 @@ class StubPaddingValues:
         self.label = label
 
 
+class StubState:
+    """A `MutableState` for this fixture: one value, and a log of what was written to it."""
+
+    __slots__ = ("value", "writes")
+
+    def __init__(self, value):
+        self.value = value
+        self.writes = [value]
+
+    def write(self, value):
+        self.value = value
+        self.writes.append(value)
+
+
 def _dp(value):
     # `ComposeShapedFragment.dp` is `(value as Double).toString()`, so 16 renders as "16.0".
     return str(float(value))
@@ -107,14 +138,29 @@ class FakeHost:
         name = self._order[handle]
         row, body = self._entries[name]
         tags = row[5]
+        property_row = row[2] in ("GETTER", "SETTER")
+        # A property's receiver is not one of its slots (`CallableKind.GETTER`): its handle is
+        # `args[0]` and the declared slots follow it.
+        slots = args[1:] if property_row else args
         unpacked = [
-            self._object(value) if tags[index] == "OBJECT" else value
-            for index, value in enumerate(args)
+            self._unpack(value, tags[index], row[6][index]) for index, value in enumerate(slots)
         ]
+        if property_row:
+            unpacked.insert(0, self._object(args[0]))
         result = body(unpacked)
-        if row[7] == "OBJECT":
+        if row[7] == "OBJECT" and row[8] != KOTLIN_ANY:
             return self._handle(result)
         return result
+
+    def _unpack(self, value, tag, type_name):
+        if tag != "OBJECT":
+            return value
+        if type_name == KOTLIN_ANY and not self._is_handle(value):
+            return value  # a Python object crossing an `Any?` slot as itself
+        return self._object(value)
+
+    def _is_handle(self, value):
+        return isinstance(value, int) and not isinstance(value, bool) and value in self._handles
 
     def release(self, handle):
         self.released.append(handle)
@@ -292,6 +338,22 @@ class FakeHost:
             f"{ARRANGEMENT}.spacedBy", 1, ("space",), ("FLOAT",), (DP,),
             "OBJECT", ARRANGEMENT_BOTH, False, None, (False,),
             lambda args: StubConstant(f"spacedBy({_dp(args[0])})"),
+        )
+
+        self._add(
+            # A generic function: `T` is unbounded, so its slot is declared `kotlin.Any`.
+            f"{RUNTIME}.mutableStateOf", 1, ("value",), ("OBJECT",), (KOTLIN_ANY,),
+            "OBJECT", MUTABLE_STATE, False, None, (False,),
+            lambda args: StubState(args[0]),
+        )
+        self._add(
+            f"{MUTABLE_STATE}.value", 0, (), (), (), "OBJECT", KOTLIN_ANY, False, MUTABLE_STATE, (),
+            lambda args: args[0].value, kind="GETTER",
+        )
+        self._add(
+            f"{MUTABLE_STATE}.value=", 1, ("value",), ("OBJECT",), (KOTLIN_ANY,),
+            "UNIT", "kotlin.Unit", False, MUTABLE_STATE, (False,),
+            lambda args: args[0].write(args[1]), kind="SETTER",
         )
 
     def _constant(self, name, declared):
