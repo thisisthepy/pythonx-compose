@@ -194,6 +194,8 @@ worktree so a test can see it. Read it in place.
 - The suite runs on GitHub Actions (`.github/workflows/tests.yml`) in both environments, without and
   with a python-multiplatform checkout, for every pull request into `develop`. Local runs are for
   quick checks of the part you changed; leave the full two-environment run to CI.
+  It also runs daily against python-multiplatform `develop` as it is that day; a failed daily run
+  opens (or comments on) one tracking issue.
 - `PythonMultiplatform` is read-only from this repository. Never write to it from here.
 - Record the before and after counts of every change; a change that only touches documentation
   must leave them identical.
