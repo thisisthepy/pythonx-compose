@@ -65,7 +65,7 @@ flowchart LR
     px --> ax["androidx.compose.*<br/>Kotlin names, exposed by python-multiplatform"]
     ax --> compose["Jetpack / Compose Multiplatform"]
     map["pythonx-map.toml"] -.-> px
-    map -.-> pyi[".pyi stubs<br/>(for the wheel, planned)"]
+    map -.-> pyi[".pyi stubs<br/>(in the wheel)"]
 ```
 
 | Python module | Kotlin package |
@@ -134,8 +134,8 @@ from a sibling [python-multiplatform](https://github.com/thisisthepy/python-mult
 ## 📦 Installation
 
 Distributed as the pip package **`pythonx-compose`** (Python 3.11 or later), providing the import
-package `pythonx.compose`, with the manifest inside the wheel; `.pyi` stubs generated from real
-Compose and `py.typed` are planned. It runs inside an app that embeds CPython
+package `pythonx.compose`, with the manifest inside the wheel, and typed: `.pyi` stubs generated from
+real Compose 1.11.1 and `py.typed` ship with it. It runs inside an app that embeds CPython
 through [python-multiplatform](https://github.com/thisisthepy/python-multiplatform); it is not a
 standalone desktop toolkit.
 
@@ -152,7 +152,8 @@ standalone desktop toolkit.
 | The empty `Modifier` | 🟡 partial — `Modifier.padding(16)` from the class needs an app-supplied factory against real Compose |
 | `Alignment` / `Arrangement` | 🟡 partial — `Alignment.Center`, `Arrangement.spaced_by(8)` work; grouped `Alignment.Horizontal.End` pending |
 | Material 3 widgets (`Text`, `Button`, `Card`, `TextField`, …) | 🟡 partial — re-exported by rule; render proofs per widget pending (#9) |
-| Distribution (`pythonx-compose`) | 🟡 partial — the wheel carries the manifest; no stubs from real Compose, no `py.typed` (#12) |
+| Type stubs (`.pyi`) from real Compose 1.11.1, `py.typed` | ✅ implemented and checked with mypy; many types are still `Any`, and method keywords are Kotlin's (#12) |
+| Distribution (`pythonx-compose`) | 🟡 partial — the wheel carries the manifest, the re-export rule, the stubs and `py.typed` |
 | Declared app root and Pythonic state, no update call | ⏳ planned (#11) |
 | `TextField` input-method (IME) handling | ⏳ planned (#10) |
 | `Icon`, `DefaultIcons`, colour schemes | ⏳ planned (python-multiplatform #37) |

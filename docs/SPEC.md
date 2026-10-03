@@ -14,23 +14,26 @@ Each item carries a status:
 
 A behaviour change starts here, then becomes a failing test, then code (`AGENTS.md` §5).
 
-## 0. Test baseline (2026-10-03, after issue #8)
+## 0. Test baseline (2026-10-03, after issue #12)
 
-Run from a worktree with `python3 -m pytest tests -q` (pytest 8, CPython 3.13):
+Run from a worktree with `python -m pytest tests -q -rs` (pytest 8, mypy 2.4, CPython 3.13), where
+`UI.ipynb` is absent and its one test skips:
 
 | Environment | Result |
 |---|---|
-| No `PythonMultiplatform` checkout found | **55 passed, 56 skipped**, 66 subtests passed |
-| python-multiplatform `develop` at `ba4c6f49` or later (has `add_member_resolver`) | **111 passed**, 72 subtests passed |
-| an older checkout, without `add_member_resolver` | the same, with 5 of them skipped |
+| No `PythonMultiplatform` checkout found | **84 passed, 60 skipped**, 115 subtests passed |
+| python-multiplatform `develop` at `ba4c6f49` or later (has `add_member_resolver`) | **143 passed, 1 skipped**, 139 subtests passed |
+| an older checkout, without `add_member_resolver` | the same, with 5 more skipped |
 
-Without a checkout, the 56 tests that install the binder's layers through `tests/adapter.py` skip.
+Without a checkout, the 59 tests that install the binder's layers through `tests/adapter.py` skip.
 Against a binder older than `ba4c6f49`, the 5 that call a snake_case method on a proxy the binder
-returned skip, because that needs its member resolver (python-multiplatform #17). A skip is not a
+returned skip, because that needs its member resolver (python-multiplatform #17). The 1 skip in both
+rows is `UI.ipynb`'s (§2). `tests/test_typing.py` skips where mypy is not installed. A skip is not a
 pass.
 
-Of the 55 that pass without a checkout, most assert **absence** (a retired token, a deleted file, a docstring that
-exists). Those are listed in §9 and are not counted as features.
+Of the 84 that pass without a checkout, 30 check the type stubs and the wheel (S1.2); most of the
+rest assert **absence** (a retired token, a deleted file, a docstring that exists). Those are listed
+in §9 and are not counted as features.
 
 ---
 
@@ -45,24 +48,66 @@ exists). Those are listed in §9 and are not counted as features.
 - Shipped and tested: `tests/test_wheel.py` builds the wheel from a copy of the sources and finds
   `pythonx/compose/pythonx-map.toml`, the re-export rule, and an `__init__.py` for every mapped
   module (issue #13). The manifest lives inside the package directory so `package-data` carries it.
-- Not yet true: no `.pyi` and no `py.typed` exist (S1.2, issue #12).
+- Typed: the wheel carries `py.typed` and the generated `.pyi` stubs (S1.2, issue #12).
 
-### S1.2 Type stubs ship in the wheel — `partial`
+### S1.2 Type stubs ship in the wheel — `implemented`
 
 Stubs carry the Pythonic names and signatures the runtime resolves, so the name an editor completes
 and the name the interpreter resolves cannot drift.
 
-- In this repository: `tools/gen_stubs.py` converts python-multiplatform's Kotlin-named stubs
-  (`PythonStubsTask` output, one `androidx/.../__init__.pyi` per package) into
-  `pythonx/compose/**/__init__.pyi`, using the runtime's own `python_name` / `snake_case`; an
-  overload set also gets `@overload`s of its base name; a package's own definitions
-  (`runtime.Composable`) are carried over. `tests/test_stubs.py` converts a fixture holding the fake
-  host's declarations and checks each stub signature against `inspect.signature` at run time.
-  Overloads come fewest parameters first, because a type checker takes the first match. Disabling
-  the parameter rename fails 2 tests, the overloads 1, the name rule 3, the ordering 1.
-- Not yet true: no stub is generated from real Compose and none ships, and there is no `py.typed`.
-  That needs the Kotlin-named stubs for Compose 1.11.1 from python-multiplatform, and object types
-  better than `int` for completion to be useful (issue #12).
+- **What is generated.** `pythonx/compose/**/__init__.pyi` for every module in `pythonx-map.toml`,
+  beside its `__init__.py`, and an empty `pythonx/compose/py.typed`. The stubs are committed;
+  regenerating them from the same input produces no diff.
+- **From what.** python-multiplatform's CI artefact `kotlin-stubs` (workflow run 37077627980,
+  commit `86012ca0`): Kotlin-named stubs for Compose 1.11.1, one `androidx/compose/.../__init__.pyi`
+  per Kotlin package. `python3 tools/gen_stubs.py <kotlin-stubs.zip or directory>` converts them;
+  the first line of every generated stub records the artefact, run and commit it came from.
+- **The rule is the runtime's** (`_reexport.py`), applied by `tools/gen_stubs.py`:
+  - a module function or constant is renamed with `python_name` (upper-case names kept, others
+    snake_case, an explicit overload keeps its suffix: `padding__Dp`); its parameters are
+    snake_case, except the positional-only `receiver` and anonymous `__aN` slots; keyword-only
+    markers and the binder's `@overload` sets, in the binder's order, are kept;
+  - a stub class keeps its name. Its extension members (`Modifier.fill_max_width`, a
+    `ClassVar` of a callable `Protocol`) are renamed with `python_name`, the member resolver's rule,
+    but the protocol's parameter names stay Kotlin's, because the runtime does not translate a
+    method's keywords yet (§3); every generated stub says so in its header;
+  - a Kotlin object served as a sub-package (`Alignment`, `Arrangement`) becomes a class of that
+    name in its parent module's stub, its constants `ClassVar`s and its functions snake_case
+    static methods. A sub-package directory holding only `__init__.pyi` would be a namespace
+    package at run time and would shadow the `KotlinObject` the re-export rule serves. The
+    generator reads both upstream layouts: the object as its own `<Object>/__init__.pyi`, or as a
+    class inside the parent stub (python-multiplatform #44). An object whose name the parent module
+    also uses for a function (`Color`, `TextStyle`, `PaddingValues`, `TextUnit`) is left out,
+    because at run time that name reaches the function;
+  - a reference to another Kotlin package is rewritten to the `pythonx.compose` module the
+    manifest lists first for it (`androidx.compose.foundation.layout` → `pythonx.compose.layout`);
+    a reference to a package the manifest does not map, or to a name the target stub does not
+    declare, becomes `typing.Any`;
+  - a module that maps the same Kotlin package as an earlier one (`pythonx.compose.foundation.layout`)
+    re-exports it (`from pythonx.compose.layout import *`), since at run time both names reach the
+    same objects; `[aliases]` become re-exports too (`material3` exports `Column`, `Row`, `Spacer`
+    from `pythonx.compose.layout`); names a package defines itself (`runtime.Composable`) are
+    carried over.
+- **How it is verified.** `tests/test_stubs.py` converts two fixtures holding the fake host's
+  declarations, in the old and the current upstream format (and the current format with an object
+  in its parent stub), and checks the generated signatures against `inspect.signature` at run time.
+  `TheCommittedStubs` regenerates from `.tmp/kotlin-stubs.zip` and requires the committed files to
+  be identical (it skips where the artefact is absent, which includes CI). `tests/test_typing.py`
+  runs mypy over small programs against the committed stubs: correct code passes, a misspelled
+  keyword or function fails. `tests/test_wheel.py` finds `py.typed` and the stubs in the built wheel.
+  Disabling a step of the generator fails tests: folding objects into their parent 11, rewriting
+  references 9, keeping the binder's `# type: ignore` comments 7, renaming class members 5, the
+  second-module re-export 2, the aliases 2, the shadowed-object check 1.
+- **Still missing.**
+  - Many parameter and return types are `Any`: upstream emits `Any` for a class that shares its
+    name with a function (`PaddingValues`, `TextStyle`, `Color`) and for packages it does not stub;
+    `Dp` is `float`.
+  - A method's keywords are Kotlin's in the stub because they are Kotlin's at run time (S4.1).
+  - The `pythonx.compose` root module maps `androidx.compose`, which has no stub, so its stub is
+    empty.
+  - Object constants named like a Python keyword (`FilterQuality.None`) cannot be written as an
+    attribute, and are left out.
+  - Regenerating needs the artefact downloaded by hand into `.tmp/`; CI does not fetch it.
 
 ## 2. The mapping manifest (`pythonx-map.toml`) — `implemented`
 

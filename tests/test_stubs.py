@@ -1,8 +1,15 @@
 """Pythonic stubs from the binder's Kotlin-named ones, by the rule the runtime resolves names with.
 
-The input here is a fixture shaped like python-multiplatform's `PythonStubsTask` output, holding the
-same declarations `fake_host.py` binds. So the second class can do what a stub is for and check it:
-the signature an editor reads from the stub is the signature `inspect.signature` reports at run time.
+The inputs here are two fixtures shaped like python-multiplatform's `PythonStubsTask` output, holding
+the same declarations `fake_host.py` binds: `kotlin_stubs` in the first format (bare functions,
+explicit overloads only) and `kotlin_stubs_v2` in the current one (`import typing as _t`, one stub
+class per bound Kotlin type with its extension members as `ClassVar`s of callable protocols, the
+binder's own `@overload` sets, Kotlin objects either as `<Object>/__init__.pyi` or as a class in the
+parent stub). So `TheStubMatchesTheRuntime` can do what a stub is for and check it: the signature an
+editor reads from the stub is the signature `inspect.signature` reports at run time.
+
+`TheCommittedStubs` holds the stubs this repository ships to the real input, python-multiplatform's
+`kotlin-stubs` artefact, when it has been downloaded to `.tmp/kotlin-stubs.zip`.
 """
 
 from __future__ import annotations
@@ -10,7 +17,9 @@ from __future__ import annotations
 import ast
 import inspect
 import sys
+import tempfile
 import unittest
+import zipfile
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
@@ -24,11 +33,20 @@ import fake_host  # noqa: E402
 import gen_stubs  # noqa: E402
 
 KOTLIN_STUBS = HERE / "fixtures" / "kotlin_stubs"
+KOTLIN_STUBS_V2 = HERE / "fixtures" / "kotlin_stubs_v2"
+ARTEFACT = REPO / ".tmp" / "kotlin-stubs.zip"
 PACKAGE = REPO / "pythonx"
+COMPOSE = PACKAGE / "compose"
+
+LAYOUT = COMPOSE / "layout" / "__init__.pyi"
+LONG_LAYOUT = COMPOSE / "foundation" / "layout" / "__init__.pyi"
+UI = COMPOSE / "ui" / "__init__.pyi"
+TEXT = COMPOSE / "ui" / "text" / "__init__.pyi"
+MATERIAL3 = COMPOSE / "material3" / "__init__.pyi"
 
 
-def _generated() -> dict[Path, str]:
-    return gen_stubs.generate(KOTLIN_STUBS, PACKAGE)
+def _generated(root: Path = KOTLIN_STUBS) -> dict[Path, str]:
+    return gen_stubs.generate(root, PACKAGE)
 
 
 def _functions(text: str) -> dict[str, list[ast.FunctionDef]]:
@@ -39,15 +57,40 @@ def _functions(text: str) -> dict[str, list[ast.FunctionDef]]:
     return found
 
 
+def _classes(text: str) -> dict[str, ast.ClassDef]:
+    return {node.name: node for node in ast.parse(text).body if isinstance(node, ast.ClassDef)}
+
+
+def _members(cls: ast.ClassDef) -> dict[str, ast.stmt]:
+    found: dict[str, ast.stmt] = {}
+    for node in cls.body:
+        if isinstance(node, ast.AnnAssign) and isinstance(node.target, ast.Name):
+            found[node.target.id] = node
+        elif isinstance(node, ast.FunctionDef):
+            found.setdefault(node.name, node)
+    return found
+
+
 def _parameter_names(function: ast.FunctionDef) -> list[str]:
     a = function.args
     return [p.arg for p in (*a.posonlyargs, *a.args, *a.kwonlyargs)]
 
 
-LAYOUT = PACKAGE / "compose" / "foundation" / "layout" / "__init__.pyi"
+def _imports(text: str) -> list[str]:
+    return [ast.unparse(node) for node in ast.parse(text).body if isinstance(node, (ast.Import, ast.ImportFrom))]
+
+
+def _code_names(text: str) -> set[str]:
+    """Every dotted name the stub's code (not its docstrings or comments) refers to."""
+    names = set()
+    for node in ast.walk(ast.parse(text)):
+        if isinstance(node, (ast.Attribute, ast.Name)):
+            names.add(ast.unparse(node))
+    return names
 
 
 class TheConversion(unittest.TestCase):
+    """The first upstream format, still converted the way it always was."""
 
     def setUp(self):
         self.stubs = _generated()
@@ -69,7 +112,7 @@ class TheConversion(unittest.TestCase):
         padding = _functions(self.stubs[LAYOUT])["padding"]
         self.assertEqual(4, len(padding))
         for variant in padding:
-            self.assertEqual(["overload"], [ast.unparse(d) for d in variant.decorator_list])
+            self.assertEqual(["_t.overload"], [ast.unparse(d) for d in variant.decorator_list])
 
     def test_overloads_come_fewest_parameters_first(self):
         """mypy takes the first matching overload, so the order is part of the contract."""
@@ -82,18 +125,202 @@ class TheConversion(unittest.TestCase):
         scan = _functions(self.stubs[LAYOUT])["scan"][0]
         self.assertEqual(["receiver", "first", "__a1", "last"], _parameter_names(scan))
 
-    def test_a_nested_object_stub_is_converted_one_level_down(self):
-        nested = PACKAGE / "compose" / "foundation" / "layout" / "Arrangement" / "__init__.pyi"
-        self.assertIn("SpaceBetween: int", self.stubs[nested])
+    def test_a_nested_object_stub_becomes_a_class_in_its_parent(self):
+        arrangement = _classes(self.stubs[LAYOUT])["Arrangement"]
+        self.assertEqual("_t.ClassVar[int]", ast.unparse(_members(arrangement)["SpaceBetween"].annotation))
 
     def test_names_the_package_defines_itself_are_carried_over(self):
-        runtime = self.stubs[PACKAGE / "compose" / "runtime" / "__init__.pyi"]
+        runtime = self.stubs[COMPOSE / "runtime" / "__init__.pyi"]
         self.assertIn("def Composable(target)", runtime)
 
     def test_every_stub_is_valid_python(self):
         for path, text in self.stubs.items():
             with self.subTest(stub=str(path.relative_to(REPO))):
                 compile(text, str(path), "exec")
+
+
+class TheCurrentFormat(unittest.TestCase):
+    """The current upstream format: stub classes, protocols, the binder's own overload sets."""
+
+    def setUp(self):
+        self.stubs = _generated(KOTLIN_STUBS_V2)
+
+    def test_module_functions_and_their_parameters_follow_the_runtime_rule(self):
+        functions = _functions(self.stubs[LAYOUT])
+        self.assertIn("padding_values_of", functions)
+        self.assertIn("fill_max_width", functions)
+        self.assertNotIn("fillMaxWidth", functions)
+        self.assertEqual(["receiver", "padding_values"], _parameter_names(functions["padding__PaddingValues"][0]))
+
+    def test_keyword_only_parameters_stay_keyword_only(self):
+        column = _functions(self.stubs[LAYOUT])["Column"][0]
+        self.assertEqual(["modifier", "vertical_arrangement"], [a.arg for a in column.args.args])
+        self.assertEqual(["content"], [a.arg for a in column.args.kwonlyargs])
+
+    def test_the_binders_overload_set_is_kept_in_its_order(self):
+        padding = _functions(self.stubs[LAYOUT])["padding"]
+        self.assertEqual(
+            [["receiver", "all"], ["receiver", "horizontal", "vertical"],
+             ["receiver", "start", "top", "end", "bottom"], ["receiver", "padding_values"]],
+            [_parameter_names(variant) for variant in padding],
+        )
+        for variant in padding:
+            self.assertEqual(["_t.overload"], [ast.unparse(d) for d in variant.decorator_list])
+
+    def test_the_binders_type_ignore_comments_survive(self):
+        """Without them mypy reports the binder's unreachable overloads in every program that imports the stub."""
+        lines = [line for line in self.stubs[LAYOUT].splitlines() if line.startswith("def padding(")]
+        self.assertEqual(4, len(lines))
+        self.assertNotIn("# type: ignore", lines[0])
+        for line in lines[1:]:
+            self.assertTrue(line.endswith("# type: ignore[overload-cannot-match]"), line)
+
+    def test_a_stub_class_keeps_its_name_and_its_members_follow_the_member_resolver(self):
+        modifier = _members(_classes(self.stubs[UI])["Modifier"])
+        self.assertIn("fill_max_width", modifier)
+        self.assertIn("padding__PaddingValues", modifier)
+        self.assertIn("z_index", modifier)
+        self.assertNotIn("fillMaxWidth", modifier)
+        self.assertEqual("_t.ClassVar[_Modifier_zIndex]", ast.unparse(modifier["z_index"].annotation))
+
+    def test_a_methods_keywords_stay_kotlin(self):
+        """The runtime translates a method's name, not its keywords (SPEC section 3)."""
+        protocols = _classes(self.stubs[UI])
+        call = _members(protocols["_Modifier_padding__PaddingValues"])["__call__"]
+        self.assertEqual(["self", "paddingValues"], _parameter_names(call))
+        call = _members(protocols["_Modifier_zIndex"])["__call__"]
+        self.assertEqual(["self", "zIndex"], _parameter_names(call))
+
+    def test_the_header_records_the_input_and_the_keyword_caveat(self):
+        header = self.stubs[UI].splitlines()[:2]
+        self.assertTrue(header[0].startswith("# GENERATED by tools/gen_stubs.py"), header[0])
+        self.assertIn("Kotlin", header[1])
+        self.assertIn("keyword", header[1])
+
+    def test_references_to_mapped_kotlin_packages_name_the_pythonx_module(self):
+        text = self.stubs[LAYOUT]
+        self.assertIn("import pythonx.compose.ui", _imports(text))
+        column = _functions(text)["Column"][0]
+        self.assertEqual("pythonx.compose.ui.Modifier", ast.unparse(column.args.args[0].annotation))
+        self.assertFalse({name for name in _code_names(text) if name.startswith("androidx")})
+
+    def test_the_first_manifest_module_for_a_package_is_the_one_referenced(self):
+        call = _members(_classes(self.stubs[UI])["_Modifier_column"])["__call__"]
+        self.assertEqual("pythonx.compose.layout.ColumnScope", ast.unparse(call.args.args[1].annotation))
+        self.assertIn("import pythonx.compose.layout", _imports(self.stubs[UI]))
+
+    def test_unmapped_or_undeclared_references_become_any(self):
+        z_index_of = _functions(self.stubs[LAYOUT])["z_index_of"][0]
+        self.assertEqual("_t.Any", ast.unparse(z_index_of.returns))
+        self.assertNotIn("import androidx.compose.ui.draw", _imports(self.stubs[LAYOUT]))
+        text = _functions(self.stubs[MATERIAL3])["Text"][0]
+        annotations = {a.arg: ast.unparse(a.annotation) for a in text.args.args}
+        self.assertEqual("_t.Any", annotations["inline_content"])       # kotlin.collections: unmapped
+        self.assertEqual("_t.Any", annotations["style"])                # ui.text declares no ParagraphStyle
+        self.assertEqual(
+            "_t.Callable[[pythonx.compose.ui.text.TextLayoutResult], None] | None", annotations["on_text_layout"]
+        )
+        self.assertEqual(
+            ["import typing as _t", "import pythonx.compose.ui", "import pythonx.compose.ui.text"],
+            [line for line in _imports(self.stubs[MATERIAL3]) if not line.startswith("from ")],
+        )
+
+    def test_an_object_sub_package_becomes_a_class_in_its_parent(self):
+        arrangement = _members(_classes(self.stubs[LAYOUT])["Arrangement"])
+        self.assertEqual("_t.ClassVar[_t.Any]", ast.unparse(arrangement["SpaceBetween"].annotation))
+        spaced_by = arrangement["spaced_by"]
+        self.assertEqual(["staticmethod"], [ast.unparse(d) for d in spaced_by.decorator_list])
+        self.assertEqual(["space"], _parameter_names(spaced_by))
+
+    def test_an_object_already_in_its_parent_stub_is_kept(self):
+        """python-multiplatform #44 moves objects into the parent stub; that layout converts the same."""
+        alignment = _members(_classes(self.stubs[UI])["Alignment"])
+        self.assertEqual({"Center", "CenterHorizontally", "End", "Top"}, set(alignment))
+
+    def test_an_object_shadowed_by_a_function_of_its_name_is_left_out(self):
+        """At run time `TextStyle` reaches the function, so `TextStyle.Default` is not there to stub."""
+        notes: list[str] = []
+        stubs = gen_stubs.generate(KOTLIN_STUBS_V2, PACKAGE, notes)
+        self.assertNotIn("TextStyle", _classes(stubs[TEXT]))
+        self.assertEqual(["font_size"], _parameter_names(_functions(stubs[TEXT])["TextStyle"][0]))
+        self.assertNotIn("Default", _code_names(stubs[TEXT]))
+        self.assertEqual(
+            ["androidx.compose.ui.text.TextStyle"], [note.split(":")[0] for note in notes if "shadowed" in note]
+        )
+
+    def test_no_stub_lands_where_it_would_make_a_namespace_package(self):
+        """A directory holding only `__init__.pyi` imports as a namespace package and would shadow
+        the `KotlinObject` the re-export rule serves for that name."""
+        for path in self.stubs:
+            with self.subTest(stub=str(path.relative_to(REPO))):
+                self.assertTrue((path.parent / "__init__.py").is_file())
+
+    def test_a_second_module_for_the_same_package_re_exports_the_first(self):
+        self.assertEqual(["from pythonx.compose.layout import *"], _imports(self.stubs[LONG_LAYOUT]))
+
+    def test_aliases_are_re_exported(self):
+        imports = _imports(self.stubs[MATERIAL3])
+        for name in ("Column", "Row", "Spacer"):
+            self.assertIn(f"from pythonx.compose.layout import {name} as {name}", imports)
+
+    def test_a_constant_named_like_a_python_keyword_is_left_out(self):
+        source = (
+            "import typing as _t\n\nNone: _t.Any\n\"\"\"Kotlin: a.B.None(): a.B\"\"\"\n\n"
+            "Hairline: float\n\"\"\"Kotlin: a.B.Hairline(): a.B\"\"\"\n"
+        )
+        tree = gen_stubs.parse(source)
+        self.assertEqual(["Hairline"], [n.target.id for n in tree.body if isinstance(n, ast.AnnAssign)])
+
+    def test_a_zip_converts_like_the_directory_and_tolerates_case_colliding_paths(self):
+        with tempfile.TemporaryDirectory(dir=REPO / ".tmp") as scratch:
+            archive = Path(scratch) / "kotlin-stubs.zip"
+            with zipfile.ZipFile(archive, "w") as out:
+                for path in sorted(KOTLIN_STUBS_V2.rglob("*.pyi")):
+                    out.write(path, path.relative_to(KOTLIN_STUBS_V2).as_posix())
+                # The real artefact holds both: a package and an object differing only in case.
+                out.writestr("androidx/compose/ui/text/shadow/__init__.pyi", "import typing as _t\n")
+                out.writestr("androidx/compose/ui/text/Shadow/__init__.pyi", "import typing as _t\n\nNone: _t.Any\n")
+            from_zip = _generated(archive)
+        from_directory = _generated(KOTLIN_STUBS_V2)
+        self.assertEqual(sorted(from_directory), sorted(from_zip))
+        for path, text in from_directory.items():
+            if path == TEXT:
+                continue
+            with self.subTest(stub=str(path.relative_to(REPO))):
+                # Line 1 names the input, which differs; everything after it is the conversion.
+                self.assertEqual(text.splitlines()[1:], from_zip[path].splitlines()[1:])
+        self.assertIn("Shadow", _classes(from_zip[TEXT]))
+
+    def test_every_stub_is_valid_python(self):
+        for path, text in self.stubs.items():
+            with self.subTest(stub=str(path.relative_to(REPO))):
+                compile(text, str(path), "exec")
+
+
+class TheCommittedStubs(unittest.TestCase):
+    """What ships is what the generator makes of python-multiplatform's `kotlin-stubs` artefact."""
+
+    def test_py_typed_and_a_stub_for_every_mapped_module_are_committed(self):
+        self.assertTrue((COMPOSE / "py.typed").is_file())
+        for module_name in gen_stubs.manifest()["modules"]:
+            with self.subTest(module=module_name):
+                self.assertTrue((PACKAGE.joinpath(*module_name.split(".")[1:]) / "__init__.pyi").is_file())
+
+    def test_the_committed_stubs_are_exactly_what_the_artefact_generates(self):
+        if not ARTEFACT.is_file():
+            self.skipTest(
+                f"{ARTEFACT.relative_to(REPO)} is absent: download python-multiplatform's `kotlin-stubs` "
+                "artefact there to check the committed stubs against it"
+            )
+        generated = gen_stubs.generate(ARTEFACT, PACKAGE)
+        committed = {
+            path for path in COMPOSE.rglob("*.pyi")
+            if "lite" not in path.relative_to(COMPOSE).parts
+        }
+        self.assertEqual(sorted(committed), sorted(generated))
+        for path, text in generated.items():
+            with self.subTest(stub=str(path.relative_to(REPO))):
+                self.assertEqual(text, path.read_text(encoding="utf-8"))
 
 
 class TheStubMatchesTheRuntime(unittest.TestCase):
@@ -111,7 +338,7 @@ class TheStubMatchesTheRuntime(unittest.TestCase):
         self.addCleanup(adapter_loader.uninstall)
 
     def test_each_single_declaration_has_the_same_parameter_names(self):
-        import pythonx.compose.foundation.layout as layout
+        import pythonx.compose.layout as layout
 
         functions = _functions(_generated()[LAYOUT])
         for name in ("padding__Dp", "padding__Dp_Dp", "padding__PaddingValues", "padding_values_of",
@@ -119,6 +346,37 @@ class TheStubMatchesTheRuntime(unittest.TestCase):
             with self.subTest(name=name):
                 runtime = list(inspect.signature(getattr(layout, name)).parameters)
                 self.assertEqual(runtime, _parameter_names(functions[name][0]))
+
+    def test_the_current_format_has_the_same_parameter_names(self):
+        import pythonx.compose.layout as layout
+        import pythonx.compose.ui as ui
+
+        stubs = _generated(KOTLIN_STUBS_V2)
+        functions = {**_functions(stubs[LAYOUT]), **_functions(stubs[UI])}
+        for module, name in ((layout, "padding__Dp"), (layout, "padding__Dp_Dp"),
+                             (layout, "padding__Dp_Dp_Dp_Dp"), (layout, "padding__PaddingValues"),
+                             (layout, "padding_values_of"), (layout, "size__Dp"),
+                             (layout, "fill_max_width"), (ui, "describe_modifier"), (ui, "to_url_string")):
+            with self.subTest(name=name):
+                runtime = list(inspect.signature(getattr(module, name)).parameters)
+                self.assertEqual(runtime, _parameter_names(functions[name][0]))
+
+    def test_an_object_function_has_the_same_parameter_names(self):
+        import pythonx.compose.layout as layout
+
+        arrangement = _members(_classes(_generated(KOTLIN_STUBS_V2)[LAYOUT])["Arrangement"])
+        runtime = list(inspect.signature(layout.Arrangement.spaced_by).parameters)
+        self.assertEqual(runtime, _parameter_names(arrangement["spaced_by"]))
+
+    def test_an_object_constant_in_the_stub_is_read_at_run_time(self):
+        import pythonx.compose.layout as layout
+        import pythonx.compose.ui as ui
+
+        stubs = _generated(KOTLIN_STUBS_V2)
+        for module, stub, name in ((layout, LAYOUT, "Arrangement"), (ui, UI, "Alignment")):
+            for constant in _members(_classes(stubs[stub])[name]):
+                with self.subTest(constant=f"{name}.{constant}"):
+                    self.assertIsNotNone(getattr(getattr(module, name), constant))
 
 
 if __name__ == "__main__":

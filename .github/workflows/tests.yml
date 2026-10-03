@@ -30,7 +30,7 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.13'
-      - run: pip install pytest setuptools wheel
+      - run: pip install pytest mypy setuptools wheel
       - name: Run the suite
         run: python -m pytest tests -q -rs
 
@@ -57,6 +57,6 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.13'
-      - run: pip install pytest setuptools wheel
+      - run: pip install pytest mypy setuptools wheel
       - name: Run the suite
         run: python -m pytest tests -q -rs
