@@ -284,7 +284,7 @@ job.
 Tests: `tests/test_runtime_module.py::TheRuntimeSeam` (4 tests) and `::TheChaquopyMechanismIsGone`
 (3 tests), importing `pythonx.compose.runtime` the ordinary way.
 
-### S5.4 The app root, `app` and `state`: `partial` (the binder path is tested against a fake host shaped after python-multiplatform #38; real Compose is the E2E module, issue #19)
+### S5.4 The app root, `app` and `state`: `partial` (the binder path is tested here against a fake host shaped after python-multiplatform #38; the real-Compose evidence is outside this repository, in the notebook E2E module)
 
 The host draws with `PythonAppView(module = "pythonx.compose.runtime", attribute = "app_root")`
 (python-multiplatform #18 and #105; issue #11). The binder owns the redraw: `PythonAppView` reads
@@ -315,7 +315,10 @@ reason. `pythonx` does none of this itself. Tests: `tests/test_app_root.py::TheL
 real `_new_state` through the binder's Python layer and `tests/fake_host.py`, whose `mutableStateOf`
 and `MutableState.value` rows are shaped after #38 (`KotlinSurface.kt`, `PythonxAdapter.kt`), not
 walked from a jar. It skips against a binder older than #38. That Compose observes a write and
-recomposes is not shown here; it is the E2E module (python-multiplatform #26, issue #19). The stub carries `app`,
+recomposes is not shown here. It is shown in python-multiplatform `ksp-fixtures/notebook-e2e` (#26, develop `844cf291`; 20 of 20 passed against this package's `develop` wheel on 2026-10-04, not run here, and no CI workflow runs it yet): `NotebookRootTest` declares the root, shares one state between the
+notebook and the screen, and redeclares the root with `@app`, which reaches the screen within four
+frames with no update call; with `@app` stubbed out, or the host handed the root once, the screen
+does not change. The stub carries `app`,
 `state` and `app_root` (`tests/test_stubs.py`).
 
 ### S5.2 Material 3 composables reach Python without per-widget wrappers: `partial`
@@ -331,8 +334,10 @@ toggle family, `TextField`, `Checkbox` and `Switch` are meant to be reached thro
   (commits `a6742a1c`, `3fde8bd6`, `cac8243f`, cited in `pythonx/compose/material3/__init__.py`)
   and was not re-run for this document.
 - `pythonx.compose.material3` re-exports `androidx.compose.material3` by the §3 rule, but the fake
-  host binds no material3 declaration, so no test here exercises one; the render proof per widget
-  is issue #9.
+  host binds no material3 declaration, so no test here exercises one.
+- The render proof per widget is in python-multiplatform `ksp-fixtures/notebook-e2e` (#26, develop `844cf291`; 20 of 20 passed against this package's `develop` wheel on 2026-10-04, not run here, and no CI workflow runs it yet): `NotebookPracticeTest` (13 tests) draws `Text`,
+  `Button`, `Card`, `Icon`, `Column`, `Row` (with an `Arrangement` and an `Alignment.Horizontal`)
+  and `Spacer` from the installed wheel, each pixel-equal to the same composables drawn from Kotlin.
 
 ### S5.3 `DefaultIcons`, `Icon` and colour schemes: `partial`
 
@@ -346,7 +351,7 @@ the notebook's `DefaultIcons.Add()` would call an `ImageVector`, which is not ca
 says the intent is `DefaultIcons.Add`. The rows are shaped after python-multiplatform `31c092f0`
 (`_PROPERTIES`, `_read_property`) and the ecosystem report for #37; no walked
 `material-icons-core` row exists here, and `Icon(DefaultIcons.Add, ...)` is drawn only in
-python-multiplatform's render test. Tests: `tests/test_chain.py::DefaultIconsAlias`; stubs: the
+python-multiplatform's render test and its notebook E2E (cells 28 to 30). Tests: `tests/test_chain.py::DefaultIconsAlias`; stubs: the
 `material3` stub assigns `DefaultIcons = Icons.Default` (typed `Icons.Filled`; `Add` is an `ImageVector`, python-multiplatform #68, whose package
 `androidx.compose.ui.graphics.vector` is the manifest row `pythonx.compose.ui.graphics.vector`), checked by
 `tests/test_typing.py::test_default_icons_imports_from_material3` and `test_a_default_icon_is_an_image_vector`
@@ -391,7 +396,10 @@ Status `partial`: this is wired and tested against the fake host, whose rows are
 python-multiplatform `26485a02` (#73), not a walked jar (`tests/fake_host.py` says which fields). The
 proof that matters, typing a composing input-method sequence with no Python callback per keystroke
 and the field's text asserted afterwards, is python-multiplatform's E2E test (#26), judged over up to
-four frames; it is not run here. Not modelled: a function-typed slot (`label`, `on_value_change`), which needs
+four frames. It passes there (`NotebookTextFieldTest`; python-multiplatform `ksp-fixtures/notebook-e2e` (#26, develop `844cf291`; 20 of 20 passed against this package's `develop` wheel on 2026-10-04, not run here, and no CI workflow runs it yet)): a Hangul sequence
+keeps its composing range in Compose, no Python function starts while it types, and the notebook
+reads the committed text. Not exercised there: the AWT layer that decodes an `InputMethodEvent`,
+which needs a window. Not modelled here: a function-typed slot (`label`, `on_value_change`), which needs
 the binder's `NewFunction` rows.
 
 ## 6. Modifiers: extension functions as methods
@@ -532,10 +540,10 @@ the binder lists no member that would win over these groups.
 | `modifier` | lower-case instance from `pythonx.compose.ui` | INTENT §5.4: not provided; written `Modifier` |
 | `color=0xFFFF0000` | ARGB integer for a colour | INTENT §5.5: not accepted; written `Color(0xFFFF0000)` |
 | `Spacer(start=..., top=...)` | spacing parameters | INTENT §5.6: not supported; written `Spacer(modifier=Modifier.padding(...))` |
-| `Column`, `Row`, `Spacer` | imported from `pythonx.compose.material3` | INTENT §5.2: served from both, by the manifest's `[aliases]` (`tests/test_chain.py::ManifestAliases`); render proof pending (#9) |
-| `TextField(text_state=..., padding=8)` | state object and spacing parameter | INTENT §5.8: written `TextField(state=..., modifier=Modifier.padding(8))`; S5.5, `partial` (#10) |
+| `Column`, `Row`, `Spacer` | imported from `pythonx.compose.material3` | INTENT §5.2: served from both, by the manifest's `[aliases]` (`tests/test_chain.py::ManifestAliases`); rendered from the installed wheel in python-multiplatform's notebook E2E (#9, S5.2) |
+| `TextField(text_state=..., padding=8)` | state object and spacing parameter | INTENT §5.8: written `TextField(state=..., modifier=Modifier.padding(8))`; S5.5, `partial`: IME evidence only in python-multiplatform's notebook E2E (#10) |
 | `Card`, `Button`, `Text`, `TextField` | as above | S5.2 |
-| `main.App`, `App.update(...)` | live screen replacement from a cell | INTENT §5.1: `@app` declares the root, a redeclaration replaces it, no update function (S5.4, `partial`, issue #11) |
+| `main.App`, `App.update(...)` | live screen replacement from a cell | INTENT §5.1: `@app` declares the root, a redeclaration replaces it, no update function (S5.4, `partial`: real-Compose evidence only in python-multiplatform's notebook E2E, #11) |
 
 ## 9. Repository hygiene (not behaviour)
 

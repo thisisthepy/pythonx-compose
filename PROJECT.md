@@ -28,7 +28,7 @@ Compose(`androidx.compose.*`)를 파이썬에서 쓰기 위한 pip 패키지 **`
 | 상태 | 항목 |
 |---|---|
 | 구현 | 매핑 매니페스트 `pythonx-map.toml`, `@Composable` 항등 데코레이터, 실제 디스크 패키지 `pythonx` 와 모듈 수준 규칙 기반 재노출(snake_case 이름·키워드·시그니처, 오버로드 디스패치, 값 클래스 허용 목록), 실제 Compose 1.11.1 에서 생성한 `.pyi` 스텁과 `py.typed`(wheel 포함, mypy 로 검사), `Alignment`/`Arrangement` 상수(평면 `Alignment.End` 와 묶음 `Alignment.Horizontal.End` 모두, #9), proxy 메서드의 snake_case 이름과 키워드 인자(`m.padding(padding_values=...)`; python-multiplatform #131 이 바인더 쪽에서 제공하므로 #131 이상 필요; Kotlin 이름도 실행 시 그대로 통하고 스텁은 snake_case 만), 함수이기도 한 Kotlin object 의 호출(`Color(0xFFFFFFFF)` 과 `Color.Red` 둘 다; #88, 설치한 wheel 에서도 테스트됨. Int/Long 오버로드 선택은 python-multiplatform #146) |
-| 부분 | 선언형 앱 루트 `@app`·`state`·`app_root`(#11; 로직은 테스트됨, 바인더 경로는 #38 모양의 가짜 호스트로 테스트됨, 실제 Compose 증거는 E2E 모듈 #19; 숫자·문자열 상태는 python-multiplatform #69 부터 왕복됨), 배포 설정, Material 3 위젯(렌더 증거는 python-multiplatform 에만), `Icon`(import 만 됨)·`DefaultIcons`(`Icons.Default` alias, 가짜 호스트로만 테스트됨, 스텁에서는 `DefaultIcons.Add` 가 `ImageVector`; `DefaultIcons.Add` 로 쓴다; 노트북의 `DefaultIcons.Add()` 가 아님), `TextField(state=...)`·`TextFieldState`(#10; `pythonx.compose.foundation.text.input`, 가짜 호스트로 테스트됨, 노트북의 `text_state=`/`padding=` 는 `state=`/`modifier=Modifier.padding(8)`; IME 조합 증거는 python-multiplatform E2E #26) |
+| 부분 | 선언형 앱 루트 `@app`·`state`·`app_root`(#11; 로직은 테스트됨, 바인더 경로는 #38 모양의 가짜 호스트로 테스트됨, 실제 Compose 증거는 python-multiplatform 노트북 E2E #26 에서 통과; 숫자·문자열 상태는 python-multiplatform #69 부터 왕복됨), 배포 설정, Material 3 위젯(렌더 증거는 python-multiplatform 노트북 E2E 에만, 설치한 wheel 에서 Kotlin 과 픽셀 일치), `Icon`(import 만 됨)·`DefaultIcons`(`Icons.Default` alias, 가짜 호스트로만 테스트됨, 스텁에서는 `DefaultIcons.Add` 가 `ImageVector`; `DefaultIcons.Add` 로 쓴다; 노트북의 `DefaultIcons.Add()` 가 아님), `TextField(state=...)`·`TextFieldState`(#10; `pythonx.compose.foundation.text.input`, 가짜 호스트로 테스트됨, 노트북의 `text_state=`/`padding=` 는 `state=`/`modifier=Modifier.padding(8)`; IME 조합 증거는 python-multiplatform 노트북 E2E #26 에서 통과) |
 | 계획 | `remember_saveable`·색 스킴·코루틴 스코프 |
 
 ### 테스트 기준선
@@ -61,7 +61,7 @@ GitHub 마일스톤과 같은 내용이다. 날짜는 2026-10-03 에 정했고, 
 날짜 근거:
 
 - **M1 (2주):** 바인더 계약(`inspect.signature`, `python_multiplatform.describe`)이 PythonMultiplatform `d00f413f` 에 착지했다. 남은 일은 이 저장소의 순수 Python 과 가짜 호스트 하네스뿐이라 JVM 빌드가 필요 없다.
-- **M2 (M1 뒤 3주):** 위젯마다 JVM 렌더 테스트가 필요하다. 처음엔 Gradle 캐시 링크가 끊겼다고 보고 4주로 잡았으나, 캐시는 `PythonMultiplatform/.caches` 로 다시 걸려 Compose 픽스처가 통과하고 있었고, 노트북 관련 질문도 INTENT §5 로 결정됐다. 남은 위험은 `TextField(state=...)` 의 IME 조합 증거(python-multiplatform E2E #26)와, 앱 루트 교체를 Kotlin 컴포지션이 관찰하는 진입점이다. 진입점은 바인더 몫으로 정해졌다(2026-10-04): python-multiplatform 의 `PythonAppView` 가 `app_root` State 를 컴포지션 안에서 읽고, #26 진단에서 다시 선언한 루트가 실제로 다시 그려짐을 확인했다.
+- **M2 (M1 뒤 3주):** 위젯마다 JVM 렌더 테스트가 필요하다. 처음엔 Gradle 캐시 링크가 끊겼다고 보고 4주로 잡았으나, 캐시는 `PythonMultiplatform/.caches` 로 다시 걸려 Compose 픽스처가 통과하고 있었고, 노트북 관련 질문도 INTENT §5 로 결정됐다. 남은 위험이던 `TextField(state=...)` 의 IME 조합 증거와 앱 루트 교체 진입점은 python-multiplatform 노트북 E2E 로 해소됐다(#26, develop `844cf291`; 2026-10-04 에 이 패키지의 `develop` wheel 로 20개 중 20개 통과, 아직 CI 는 돌리지 않음). 그래서 #9·#10·#11·#19 를 닫았다. 진입점은 바인더 몫으로 정해졌다(2026-10-04): python-multiplatform 의 `PythonAppView` 가 `app_root` State 를 컴포지션 안에서 읽고, #26 진단에서 다시 선언한 루트가 실제로 다시 그려짐을 확인했다.
 - **M3 (M2 뒤 2주):** 스텁은 M1 규칙만 있으면 만들 수 있어 M2 와 겹쳐 진행할 수 있다. 다만 노트북 위젯의 최종 이름이 M2 에서 정해지므로 마감은 M2 뒤로 둔다.
 
 ## 4. 구조
