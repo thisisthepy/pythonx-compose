@@ -1,0 +1,59 @@
+name: Publish to PyPI
+
+# Publishing a GitHub Release releases its tag's commit. A version cannot be uploaded to PyPI
+# twice, so publishing is a deliberate step: a Release records the tag and its notes together,
+# where a `v*` tag trigger would fire on a stray `git push --tags`. The Release's tag must be `v` +
+# the version in pyproject.toml. The upload uses PyPI trusted publishing: no token is stored
+# anywhere; PyPI trusts this workflow and the `pypi` environment, whose deployment policy allows
+# `v*` tags only (a Release runs on its tag's ref).
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - run: python -m pip install build twine
+      - name: Check the Release's tag against pyproject.toml
+        env:
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
+        run: python .github/scripts/check_release_version.py "$RELEASE_TAG"
+      - name: Build the sdist and the wheel
+        run: python -m build
+      - run: twine check dist/*
+      # Importing needs no binder: names resolve lazily, on first use.
+      - name: Smoke-install the wheel in a fresh venv
+        run: |
+          python -m venv .smoke
+          .smoke/bin/pip install dist/*.whl
+          .smoke/bin/python -c "import pythonx.compose, pythonx.compose.ui, pythonx.compose.material3; import importlib.resources as r; assert r.files('pythonx.compose').joinpath('pythonx-map.toml').is_file()"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist/
+          if-no-files-found: error
+
+  publish:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: pypi
+      url: https://pypi.org/p/pythonx-compose
+    permissions:
+      id-token: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist/
+      - uses: pypa/gh-action-pypi-publish@release/v1

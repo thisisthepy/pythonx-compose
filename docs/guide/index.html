@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Compose, in Python · pythonx-compose</title>
+<meta name="description" content="pythonx-compose: write Compose user interfaces in Python, with Compose's own widgets and Pythonic names.">
+<script>(function(){var r=document.documentElement,l=null,t=null;
+try{l=localStorage.getItem('pxc-lang');t=localStorage.getItem('pxc-theme');}catch(e){}
+if(l!=='en'&&l!=='ko'){l=((navigator.language||'en').toLowerCase().indexOf('ko')===0)?'ko':'en';}
+r.lang=l;if(t==='dark'||t==='light'){r.setAttribute('data-theme',t);}})();</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&amp;family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap">
+<link rel="stylesheet" href="assets/style.css">
+<script src="assets/site.js" defer></script>
+</head>
+<body data-title-en="Compose, in Python" data-title-ko="Compose 를, 파이썬으로">
+<header class="site-header">
+<div class="wrap bar">
+<a class="brand" href="index.html"><svg class="mark" viewBox="0 0 24 24" aria-hidden="true"><rect x="1.5" y="1.5" width="21" height="21" rx="6" fill="none" stroke="var(--accent)" stroke-width="1.6"/><path d="M7 8.5h6M7 12h10M7 15.5h4" stroke="var(--fg)" stroke-width="1.6" stroke-linecap="round"/></svg>pythonx-compose</a>
+<nav class="nav" aria-label="Guide"><a href="index.html" aria-current="page"><span data-lang="en">Home</span><span data-lang="ko">홈</span></a><a href="getting-started.html"><span data-lang="en">Getting started</span><span data-lang="ko">시작하기</span></a><a href="concepts.html"><span data-lang="en">Concepts</span><span data-lang="ko">개념</span></a><a href="guide-composables.html"><span data-lang="en">Composables</span><span data-lang="ko">컴포저블</span></a><a href="guide-modifiers.html"><span data-lang="en">Modifiers</span><span data-lang="ko">모디파이어</span></a><a href="guide-manifest.html"><span data-lang="en">Manifest</span><span data-lang="ko">매니페스트</span></a><a href="ecosystem.html"><span data-lang="en">Ecosystem</span><span data-lang="ko">생태계</span></a><a href="status.html"><span data-lang="en">Status & FAQ</span><span data-lang="ko">현황 · FAQ</span></a></nav>
+<div class="tools">
+<button class="btn-ghost" id="lang-toggle" type="button"><span data-lang="en">한국어</span><span data-lang="ko">English</span></button>
+<button class="btn-ghost" id="theme-toggle" type="button" aria-label="Toggle colour theme"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M12 3a9 9 0 1 0 9 9 7 7 0 0 1-9-9z"/></svg></button>
+</div>
+</div>
+</header>
+<main>
+
+
+<div class="wrap">
+<section class="hero">
+<span class="eyebrow"><span class="dot"></span><span data-lang="en">pre-alpha · pip install --pre pythonx-compose</span><span data-lang="ko">pre-alpha · pip install --pre pythonx-compose</span></span>
+<h1><span data-lang="en">Compose, <em>in Python.</em></span><span data-lang="ko">Compose 를, <em>파이썬으로.</em></span></h1>
+<p class="lead"><span data-lang="en">The real Compose widgets with their real parameters — restructured into a Python package, spelled the way Python spells things.</span><span data-lang="ko">진짜 Compose 위젯과 진짜 매개변수를 — 파이썬 패키지로 재구성해, 파이썬이 쓰는 방식대로 씁니다.</span></p>
+<div class="cta">
+<a class="btn primary" href="getting-started.html"><span data-lang="en">Get started</span><span data-lang="ko">시작하기</span> →</a>
+<a class="btn" href="concepts.html"><span data-lang="en">How it works</span><span data-lang="ko">동작 방식</span></a>
+<a class="btn" href="status.html"><span data-lang="en">What works today</span><span data-lang="ko">지금 되는 것</span></a>
+</div>
+</section>
+
+<section>
+<p class="kicker"><span data-lang="en">The idea</span><span data-lang="ko">아이디어</span></p>
+<h2><span data-lang="en">Same widgets. Python names.</span><span data-lang="ko">같은 위젯, 파이썬 이름.</span></h2>
+<p data-lang="en" class="narrow muted">Nothing is reimplemented and nothing is invented. Every parameter on the right is a Compose parameter on the left, renamed by one rule: <code>camelCase</code> becomes <code>snake_case</code>.</p><p data-lang="ko" class="narrow muted">다시 구현하는 것도, 새로 지어내는 것도 없습니다. 오른쪽의 모든 매개변수는 왼쪽 Compose 의 매개변수이고, 규칙 하나로 이름만 바뀝니다: <code>camelCase</code> 가 <code>snake_case</code> 가 됩니다.</p>
+<div class="pair">
+<div class="pane"><p class="label" translate="no">Kotlin · androidx.compose.material3</p><pre><code class="language-kotlin">Button(
+    onClick = { send() },
+    modifier = Modifier.padding(16.dp),
+    enabled = true,
+) {
+    Text(&quot;Send&quot;)
+}</code></pre></div>
+<div class="arrow" aria-hidden="true">→</div>
+<div class="pane"><p class="label" translate="no">Python · pythonx.compose.material3</p><pre><code class="language-python">Button(
+    on_click=lambda: send(),
+    modifier=Modifier.padding(16),
+    enabled=True,
+    content=lambda: Text(&quot;Send&quot;),
+)</code></pre></div>
+</div>
+<p data-lang="en" class="muted">These names resolve today, by one rule, inside an app that embeds the binder. Per-widget render proofs through this package are still pending; the <a href="status.html">status page</a> says what is done and what is not.</p><p data-lang="ko" class="muted">이 이름들은 바인더를 임베딩한 앱 안에서 지금 규칙 하나로 해석됩니다. 이 패키지를 거친 위젯별 렌더링 증거는 아직 대기 중이며, 무엇이 되고 무엇이 안 되는지는 <a href="status.html">현황 페이지</a>에 있습니다.</p>
+</section>
+
+<section>
+<p class="kicker"><span data-lang="en">Architecture</span><span data-lang="ko">구조</span></p>
+<h2><span data-lang="en">Two layers, one rule about names.</span><span data-lang="ko">두 계층, 이름에 관한 규칙 하나.</span></h2>
+<figure class="figure"><svg class="fig-wide" viewBox="0 0 960 250" role="img" aria-label="Python UI code calls pythonx.compose, which imports androidx.compose.* exposed by python-multiplatform, which is Compose itself; pythonx-map.toml feeds pythonx.compose and the .pyi stubs."><rect class="box" x="10" y="30" width="200" height="70" rx="10"/><text x="110.0" y="62.0" text-anchor="middle">@Composable def Screen()</text><text class="sub" x="110.0" y="80.0" text-anchor="middle">your Python</text><line class="edge" x1="210" y1="65" x2="252" y2="65"/><polygon class="head" points="260,65 252,60 252,70"/><rect class="box us" x="260" y="30" width="200" height="70" rx="10"/><text x="360.0" y="62.0" text-anchor="middle">pythonx.compose</text><text class="sub" x="360.0" y="80.0" text-anchor="middle">this package · real .py</text><line class="edge" x1="460" y1="65" x2="502" y2="65"/><polygon class="head us" points="510,65 502,60 502,70"/><rect class="box" x="510" y="30" width="200" height="70" rx="10"/><text x="610.0" y="62.0" text-anchor="middle">androidx.compose.*</text><text class="sub" x="610.0" y="80.0" text-anchor="middle">Kotlin names · binder</text><line class="edge" x1="710" y1="65" x2="752" y2="65"/><polygon class="head" points="760,65 752,60 752,70"/><rect class="box" x="760" y="30" width="190" height="70" rx="10"/><text x="855.0" y="62.0" text-anchor="middle">Compose</text><text class="sub" x="855.0" y="80.0" text-anchor="middle">Jetpack / Multiplatform</text><rect class="box" x="260" y="165" width="200" height="60" rx="10"/><text x="360.0" y="192.0" text-anchor="middle">pythonx-map.toml</text><text class="sub" x="360.0" y="210.0" text-anchor="middle">the one mapping</text><line class="edge dash" x1="360" y1="165" x2="360" y2="92"/><polygon class="head us" points="360,100 355,92 365,92"/><rect class="box" x="510" y="165" width="200" height="60" rx="10"/><text x="610.0" y="192.0" text-anchor="middle">.pyi stubs</text><text class="sub" x="610.0" y="210.0" text-anchor="middle">in the wheel</text><line class="edge dash" x1="460" y1="195" x2="502" y2="195"/><polygon class="head us" points="510,195 502,190 502,200"/></svg><svg class="fig-tall" viewBox="0 0 320 470" role="img" aria-label="The same layering, drawn vertically."><rect class="box" x="40" y="10" width="240" height="64" rx="10"/><text x="160.0" y="39.0" text-anchor="middle">@Composable def Screen()</text><text class="sub" x="160.0" y="57.0" text-anchor="middle">your Python</text><line class="edge" x1="160" y1="74" x2="160" y2="102"/><polygon class="head" points="160,110 155,102 165,102"/><rect class="box us" x="40" y="110" width="240" height="64" rx="10"/><text x="160.0" y="139.0" text-anchor="middle">pythonx.compose</text><text class="sub" x="160.0" y="157.0" text-anchor="middle">this package · real .py</text><line class="edge" x1="160" y1="174" x2="160" y2="202"/><polygon class="head us" points="160,210 155,202 165,202"/><rect class="box" x="40" y="210" width="240" height="64" rx="10"/><text x="160.0" y="239.0" text-anchor="middle">androidx.compose.*</text><text class="sub" x="160.0" y="257.0" text-anchor="middle">Kotlin names · binder</text><line class="edge" x1="160" y1="274" x2="160" y2="302"/><polygon class="head" points="160,310 155,302 165,302"/><rect class="box" x="40" y="310" width="240" height="64" rx="10"/><text x="160.0" y="339.0" text-anchor="middle">Compose</text><text class="sub" x="160.0" y="357.0" text-anchor="middle">Jetpack / Multiplatform</text><rect class="box" x="40" y="400" width="240" height="56" rx="10"/><text x="160.0" y="425.0" text-anchor="middle">pythonx-map.toml</text><text class="sub" x="160.0" y="443.0" text-anchor="middle">→ pythonx.compose, .pyi</text></svg>
+<figcaption><span data-lang="en">The binder exposes Kotlin under its Kotlin names and never renames. This package is real Python that imports those modules and reshapes them. One manifest says which module maps to which.</span><span data-lang="ko">바인더는 Kotlin 을 Kotlin 이름 그대로 노출하고 절대 이름을 바꾸지 않습니다. 이 패키지는 그 모듈을 import 해 재구성하는 실제 파이썬입니다. 어떤 모듈이 무엇에 대응하는지는 매니페스트 하나가 말합니다.</span></figcaption>
+</figure>
+</section>
+
+<section>
+<p class="kicker"><span data-lang="en">Philosophy</span><span data-lang="ko">철학</span></p>
+<h2><span data-lang="en">What it holds to</span><span data-lang="ko">지키는 것</span></h2>
+<div class="grid">
+<div class="card"><span class="glyph" translate="no">onClick → on_click</span><h3><span data-lang="en">The original API</span><span data-lang="ko">원래 API 그대로</span></h3><p data-lang="en">Compose's own parameters, in <code>snake_case</code>. No convenience parameters Kotlin does not have.</p><p data-lang="ko">Compose 자신의 매개변수를 <code>snake_case</code> 로. Kotlin 에 없는 편의 매개변수는 만들지 않습니다.</p></div>
+<div class="card"><span class="glyph" translate="no">Modifier.padding(16).size(24)</span><h3><span data-lang="en">Extensions are methods</span><span data-lang="ko">확장 함수는 메서드</span></h3><p data-lang="en">A Kotlin extension function is a method on its receiver, so chains read as they do in Kotlin — <code>fill_max_width()</code> included.</p><p data-lang="ko">Kotlin 확장 함수는 수신 객체의 메서드가 되어, 체인이 Kotlin 에서처럼 읽힙니다 — <code>fill_max_width()</code> 도 마찬가지입니다.</p></div>
+<div class="card"><span class="glyph" translate="no">import androidx.compose…</span><h3><span data-lang="en">A real package</span><span data-lang="ko">실제 패키지</span></h3><p data-lang="en"><code>pythonx/</code> is ordinary Python on disk. Renaming happens here, never in the binder.</p><p data-lang="ko"><code>pythonx/</code> 는 디스크에 있는 평범한 파이썬입니다. 이름 바꾸기는 여기서 하고, 바인더에서는 하지 않습니다.</p></div>
+<div class="card"><span class="glyph" translate="no">@Composable</span><h3><span data-lang="en">Composable stays</span><span data-lang="ko">@Composable 은 그대로</span></h3><p data-lang="en">Screens are decorated Python functions, the way the notebook writes them.</p><p data-lang="ko">화면은 노트북이 쓰는 그대로, 데코레이터가 붙은 파이썬 함수입니다.</p></div>
+</div>
+<h3><span data-lang="en">What it is not</span><span data-lang="ko">이것이 아닌 것</span></h3>
+<ul class="clean not">
+<li><span data-lang="en">Not the binder — embedding CPython and the FFI belong to python-multiplatform.</span><span data-lang="ko">바인더가 아닙니다 — CPython 임베딩과 FFI 는 python-multiplatform 의 몫입니다.</span></li>
+<li><span data-lang="en">Not a reimplementation of Compose, and not a new widget set.</span><span data-lang="ko">Compose 의 재구현도, 새 위젯 세트도 아닙니다.</span></li>
+<li><span data-lang="en">Not runtime reflection — bindings are produced at build time, because native images and Kotlin/Native have none.</span><span data-lang="ko">런타임 리플렉션이 아닙니다 — 네이티브 이미지와 Kotlin/Native 에는 리플렉션이 없으므로 바인딩은 빌드 타임에 만듭니다.</span></li>
+</ul>
+</section>
+</div>
+
+</main>
+<footer>
+<div class="wrap">
+<span><span data-lang="en">pythonx-compose — Compose, restructured for Python.</span><span data-lang="ko">pythonx-compose — 파이썬을 위해 재구성한 Compose.</span></span>
+<span><a href="https://github.com/thisisthepy/pythonx-compose">GitHub</a> · <span data-lang="en">MIT License</span><span data-lang="ko">MIT 라이선스</span></span>
+</div>
+</footer>
+</body>
+</html>

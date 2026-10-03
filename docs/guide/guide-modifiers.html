@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Modifiers · pythonx-compose</title>
+<meta name="description" content="pythonx-compose: write Compose user interfaces in Python, with Compose's own widgets and Pythonic names.">
+<script>(function(){var r=document.documentElement,l=null,t=null;
+try{l=localStorage.getItem('pxc-lang');t=localStorage.getItem('pxc-theme');}catch(e){}
+if(l!=='en'&&l!=='ko'){l=((navigator.language||'en').toLowerCase().indexOf('ko')===0)?'ko':'en';}
+r.lang=l;if(t==='dark'||t==='light'){r.setAttribute('data-theme',t);}})();</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&amp;family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap">
+<link rel="stylesheet" href="assets/style.css">
+<script src="assets/site.js" defer></script>
+</head>
+<body data-title-en="Modifiers" data-title-ko="모디파이어">
+<header class="site-header">
+<div class="wrap bar">
+<a class="brand" href="index.html"><svg class="mark" viewBox="0 0 24 24" aria-hidden="true"><rect x="1.5" y="1.5" width="21" height="21" rx="6" fill="none" stroke="var(--accent)" stroke-width="1.6"/><path d="M7 8.5h6M7 12h10M7 15.5h4" stroke="var(--fg)" stroke-width="1.6" stroke-linecap="round"/></svg>pythonx-compose</a>
+<nav class="nav" aria-label="Guide"><a href="index.html"><span data-lang="en">Home</span><span data-lang="ko">홈</span></a><a href="getting-started.html"><span data-lang="en">Getting started</span><span data-lang="ko">시작하기</span></a><a href="concepts.html"><span data-lang="en">Concepts</span><span data-lang="ko">개념</span></a><a href="guide-composables.html"><span data-lang="en">Composables</span><span data-lang="ko">컴포저블</span></a><a href="guide-modifiers.html" aria-current="page"><span data-lang="en">Modifiers</span><span data-lang="ko">모디파이어</span></a><a href="guide-manifest.html"><span data-lang="en">Manifest</span><span data-lang="ko">매니페스트</span></a><a href="ecosystem.html"><span data-lang="en">Ecosystem</span><span data-lang="ko">생태계</span></a><a href="status.html"><span data-lang="en">Status & FAQ</span><span data-lang="ko">현황 · FAQ</span></a></nav>
+<div class="tools">
+<button class="btn-ghost" id="lang-toggle" type="button"><span data-lang="en">한국어</span><span data-lang="ko">English</span></button>
+<button class="btn-ghost" id="theme-toggle" type="button" aria-label="Toggle colour theme"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M12 3a9 9 0 1 0 9 9 7 7 0 0 1-9-9z"/></svg></button>
+</div>
+</div>
+</header>
+<main>
+<header class="page-head wrap"><p class="kicker"><span data-lang="en">Guide</span><span data-lang="ko">가이드</span></p><h1><span data-lang="en">Modifier chains</span><span data-lang="ko">Modifier 체인</span></h1><p class="lead"><span data-lang="en">Kotlin extension functions, as Python methods.</span><span data-lang="ko">Kotlin 확장 함수를 파이썬 메서드로.</span></p></header>
+
+<div class="wrap doc narrow">
+<section class="flush">
+<p><span class="chip partial"><span data-lang="en">partial</span><span data-lang="ko">부분</span></span></p>
+<p data-lang="en" class="muted">Chains, snake_case method names, overload dispatch and <code>Dp</code> as a number are implemented and pass against the binder's adaptation layer (python-multiplatform <code>ba4c6f49</code> or later). The partial piece is where a chain starts against real Compose — see <a href="#empty">the empty Modifier</a> below.</p><p data-lang="ko" class="muted">체인, snake_case 메서드 이름, 오버로드 디스패치, 숫자로 쓰는 <code>Dp</code> 는 구현되어 있고 바인더의 적응 계층(python-multiplatform <code>ba4c6f49</code> 이후)에서 통과합니다. 부분적인 것은 실제 Compose 에서 체인이 시작되는 지점입니다 — 아래 <a href="#empty">빈 Modifier</a> 를 보세요.</p>
+</section>
+
+<section>
+<h2><span data-lang="en">Chaining</span><span data-lang="ko">체이닝</span></h2>
+<pre><code class="language-python">from pythonx.compose.ui import Modifier
+
+m = Modifier.padding(16).size(24).fill_max_width()</code></pre>
+<p data-lang="en">Each link returns a new receiver; nothing is mutated. Method names are snake_case (<code>fill_max_width</code> reaches <code>fillMaxWidth</code>): the naming rule is registered as the binder's member resolver, while the binder's proxy class itself keeps Kotlin names in <code>dir()</code>. A name that is not bound raises <code>AttributeError</code> naming the type it looked on.</p><p data-lang="ko">각 단계는 새 수신 객체를 돌려주며, 아무것도 변경하지 않습니다. 메서드 이름은 snake_case 입니다(<code>fill_max_width</code> 가 <code>fillMaxWidth</code> 에 닿음): 이름 규칙이 바인더의 멤버 리졸버로 등록되어 있고, 바인더의 프록시 클래스 자체는 <code>dir()</code> 에 Kotlin 이름을 유지합니다. 바인딩되지 않은 이름은 어느 타입에서 찾았는지 밝히는 <code>AttributeError</code> 를 냅니다.</p>
+</section>
+
+<section>
+<h2><span data-lang="en">Overloads</span><span data-lang="ko">오버로드</span></h2>
+<p data-lang="en">Compose declares several <code>padding</code> functions. A call picks one by keyword names, then argument count, then declared type; if none matches, the error lists the candidates.</p><p data-lang="ko">Compose 는 <code>padding</code> 함수를 여러 개 선언합니다. 호출은 키워드 이름, 인자 개수, 선언 타입 순으로 하나를 고르며, 맞는 것이 없으면 후보를 나열한 오류를 냅니다.</p>
+<pre><code class="language-python">m.padding(16)                          # all sides
+m.padding(horizontal=8, vertical=4)    # selected by keyword names
+m.padding(1, 2, 3, 4)                  # selected by argument count
+m.padding__Dp(16)                      # explicit overload: no dispatch</code></pre>
+</section>
+
+<section>
+<h2><span data-lang="en">Keywords: method or module function</span><span data-lang="ko">키워드: 메서드와 모듈 함수</span></h2>
+<p data-lang="en">The member resolver maps keywords as well as names, so a method takes <code>snake_case</code> keywords exactly as the same extension does when called as a module function; <code>inspect.signature</code> shows them. Kotlin's own spelling still works at run time, the type stubs offer only the Pythonic one, and the mapping needs python-multiplatform's <code>describe_member</code> (on an older binder a method's keywords are Kotlin's):</p><p data-lang="ko">멤버 리졸버는 이름뿐 아니라 키워드도 대응시키므로, 메서드는 같은 확장 함수를 모듈 함수로 부를 때와 똑같이 <code>snake_case</code> 키워드를 받고, <code>inspect.signature</code> 도 그 이름을 보여 줍니다. Kotlin 이름도 실행 시에는 그대로 통하고 타입 스텁은 Pythonic 이름만 제시하며, 이 대응에는 python-multiplatform 의 <code>describe_member</code> 가 필요합니다(오래된 바인더에서는 메서드의 키워드가 Kotlin 이름입니다):</p>
+<pre><code class="language-python">import inspect
+import pythonx.compose.layout as layout
+
+values = layout.padding_values_of(8)
+m.padding(padding_values=values)              # method: snake_case keyword
+m.padding(paddingValues=values)               # Kotlin spelling still accepted at run time
+layout.padding(m, padding_values=values)      # module function: snake_case keyword
+
+inspect.signature(layout.padding__PaddingValues)
+# (receiver, padding_values)</code></pre>
+</section>
+
+<section>
+<h2><span data-lang="en">Numbers and value classes</span><span data-lang="ko">숫자와 값 클래스</span></h2>
+<p data-lang="en"><code>Dp</code> takes a raw number because the manifest allows it; a plain <code>Float</code> parameter is just a float; a packed value class such as <code>TextUnit</code> refuses a raw number and says why.</p><p data-lang="ko"><code>Dp</code> 는 매니페스트가 허용하므로 숫자를 받습니다. 평범한 <code>Float</code> 매개변수는 그냥 float 이고, <code>TextUnit</code> 같은 묶인 값 클래스는 숫자를 거절하며 이유를 밝힙니다.</p>
+<pre><code class="language-python">m.padding(16)                  # Dp from a number
+m.z_index(1.5)                 # a plain Float
+m.padding_from_baseline(16)    # TypeError: TextUnit would be reinterpreted</code></pre>
+</section>
+
+<section id="empty">
+<h2><span data-lang="en">The empty Modifier</span><span data-lang="ko">빈 Modifier</span></h2>
+<p data-lang="en">In Kotlin, <code>Modifier</code> as an expression is an object, and bindings are functions — so there is no bound name for the empty modifier a chain starts from. <code>pythonx/compose/ui/modifier.py</code> is the seam: an application registers a one-line Kotlin factory.</p><p data-lang="ko">Kotlin 에서 식으로 쓰인 <code>Modifier</code> 는 객체이고 바인딩은 함수이므로, 체인이 시작하는 빈 모디파이어에는 바인딩된 이름이 없습니다. <code>pythonx/compose/ui/modifier.py</code> 가 그 접점이며, 앱이 한 줄짜리 Kotlin 팩토리를 등록합니다.</p>
+<pre><code class="language-kotlin">// in the application&#x27;s Kotlin
+fun emptyModifier(): Modifier = Modifier</code></pre>
+<pre><code class="language-python">import pythonx.compose.ui.modifier as seam
+
+seam.install(&quot;com.example.emptyModifier&quot;)   # then Modifier.padding(16) works</code></pre>
+<p data-lang="en">Without it, <code>Modifier.padding(16)</code> raises a <code>TypeError</code> naming <code>register_empty</code>. A <code>Modifier</code> instance Kotlin hands out chains without it.</p><p data-lang="ko">이것이 없으면 <code>Modifier.padding(16)</code> 은 <code>register_empty</code> 를 밝히는 <code>TypeError</code> 를 냅니다. Kotlin 이 건네준 <code>Modifier</code> 인스턴스는 이것 없이도 체이닝됩니다.</p>
+<div class="pager"><a href="guide-composables.html">← <span data-lang="en">Composables</span><span data-lang="ko">컴포저블</span></a><a href="guide-manifest.html"><span data-lang="en">Manifest</span><span data-lang="ko">매니페스트</span> →</a></div>
+</section>
+</div>
+
+</main>
+<footer>
+<div class="wrap">
+<span><span data-lang="en">pythonx-compose — Compose, restructured for Python.</span><span data-lang="ko">pythonx-compose — 파이썬을 위해 재구성한 Compose.</span></span>
+<span><a href="https://github.com/thisisthepy/pythonx-compose">GitHub</a> · <span data-lang="en">MIT License</span><span data-lang="ko">MIT 라이선스</span></span>
+</div>
+</footer>
+</body>
+</html>

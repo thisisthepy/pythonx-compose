@@ -1,0 +1,90 @@
+name: Tests
+
+# The suite runs twice: without the binder checkout (its tests skip) and with
+# python-multiplatform develop beside it. The tests only read three Kotlin
+# source files from it, so no JVM or Gradle is needed.
+on:
+  pull_request:
+    branches: [develop]
+  push:
+    branches: ['feat/**']
+  workflow_dispatch:
+  # Daily against python-multiplatform develop as it is that day: the binder's contract moves under
+  # this package without a pull request here, and #41 found out only at the next PR.
+  schedule:
+    - cron: '17 3 * * *'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: test-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  no-binder:
+    runs-on: ubuntu-latest
+    env:
+      # A path that does not exist, so the binder tests skip.
+      PYTHONMULTIPLATFORM_HOME: /nonexistent
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - run: pip install pytest mypy setuptools wheel
+      - name: Run the suite
+        run: python -m pytest tests -q -rs
+
+  with-binder:
+    runs-on: ubuntu-latest
+    env:
+      # The two repositories side by side, as on a developer machine. The binder is not checked out
+      # inside this one: tests/test_wheel.py copies this repository to build the wheel.
+      PYTHONMULTIPLATFORM_HOME: ${{ github.workspace }}/python-multiplatform
+    defaults:
+      run:
+        working-directory: pythonx-compose
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: pythonx-compose
+          fetch-depth: 1
+      - uses: actions/checkout@v4
+        with:
+          repository: thisisthepy/python-multiplatform
+          ref: develop
+          path: python-multiplatform
+          fetch-depth: 1
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - run: pip install pytest mypy setuptools wheel
+      - name: Run the suite
+        run: python -m pytest tests -q -rs
+
+  # A failed daily run opens one issue (or comments on the open one) so a binder change that breaks
+  # this package is seen without anyone watching the Actions tab.
+  report-scheduled-failure:
+    needs: [no-binder, with-binder]
+    if: failure() && github.event_name == 'schedule'
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      GH_REPO: ${{ github.repository }}
+      RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+    steps:
+      - name: Open or update the tracking issue
+        run: |
+          title="Daily tests fail against python-multiplatform develop"
+          number=$(gh issue list --state open --search "in:title \"$title\"" --json number --jq '.[0].number')
+          body="The scheduled run failed: $RUN_URL"
+          if [ -n "$number" ]; then
+            gh issue comment "$number" --body "$body"
+          else
+            gh issue create --title "$title" --body "$body"
+          fi

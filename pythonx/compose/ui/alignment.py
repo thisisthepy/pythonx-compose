@@ -1,79 +1,47 @@
-from __future__ import annotations
-from ..wrapper import KotlinWrapper
+"""`pythonx/compose/ui/alignment.py` -- what the adaptation layer now produces, and how to spell it.
 
-from java import jclass
+`Alignment` and its constants used to be blocked: the walker bound top-level functions and, later,
+value-class constructors, and a constant held by a companion was neither. `PythonMultiplatform`'s
+`80318c16` added that binding (`CallableKind.STATIC_GETTER`), and `6d896fba` proved a constant
+crosses and changes a layout.
 
+The binding exists only under its Kotlin name. Re-exporting it as `pythonx.compose.ui.Alignment` is
+this package's job, not the binder's -- the earlier rule that whatever the layer produces gets no
+wrapper here (`0856d08`, `f7e21f8`) was the wrong way round. Until that re-export can land, this file
+records the two things a caller cannot read off the layer.
 
-_alignment = jclass("androidx.compose.ui.Alignment").Companion
-_absolute_alignment = jclass("androidx.compose.ui.AbsoluteAlignment").INSTANCE
+## The names the layer produces
 
+    Bottom  BottomCenter  BottomEnd  BottomStart  Center  CenterEnd  CenterHorizontally
+    CenterStart  CenterVertically  End  Start  Top  TopCenter  TopEnd  TopStart
 
-class Alignment(KotlinWrapper):
-    """
-    An interface to calculate the position of a sized box inside an available space.
-    Alignment is often used to define the alignment of a layout inside a parent layout.
-    """
-    TopStart = _alignment.getTopStart()
-    TopCenter = _alignment.getTopCenter()
-    TopEnd = _alignment.getTopEnd()
-    CenterStart = _alignment.getCenterStart()
-    Center = _alignment.getCenter()
-    CenterEnd = _alignment.getCenterEnd()
-    BottomStart = _alignment.getBottomStart()
-    BottomCenter = _alignment.getBottomCenter()
-    BottomEnd = _alignment.getBottomEnd()
+Read out of the walked table, not from Compose's own source: a name Compose declares but the walker
+declines would not be here.
 
-    class Vertical(KotlinWrapper):
-        Top = _alignment.getTop()
-        CenterVertically = _alignment.getCenterVertically()
-        Bottom = _alignment.getBottom()
+## They are read, not called
 
-    class Horizontal(KotlinWrapper):
-        Start = _alignment.getStart()
-        CenterHorizontally = _alignment.getCenterHorizontally()
-        End = _alignment.getEnd()
+    from pythonx.compose.ui import Alignment
+    Alignment.Center            # no parentheses
 
+`PythonMultiplatform`'s `46be0212` taught the layer to branch on the kind column: a static getter is
+evaluated on attribute access and handed back as a value, so `Alignment.Center()` -- the spelling
+this file used to prescribe -- now raises `TypeError` because the value is not callable.
 
-# Type Overriding
-# Alignment.TopStart.__class__ = Alignment
-# Alignment.TopCenter.__class__ = Alignment
-# Alignment.TopEnd.__class__ = Alignment
-# Alignment.CenterStart.__class__ = Alignment
-# Alignment.Center.__class__ = Alignment
-# Alignment.CenterEnd.__class__ = Alignment
-# Alignment.BottomStart.__class__ = Alignment
-# Alignment.BottomCenter.__class__ = Alignment
-# Alignment.BottomEnd.__class__ = Alignment
-# _Vertical = Alignment.Vertical
-# _Vertical.Top.__class__ = _Vertical
-# _Vertical.CenterVertically.__class__ = _Vertical
-# _Vertical.Bottom.__class__ = _Vertical
-# _Horizontal = Alignment.Horizontal
-# _Horizontal.Start.__class__ = _Horizontal
-# _Horizontal.CenterHorizontally.__class__ = _Horizontal
-# _Horizontal.End.__class__ = _Horizontal
+`pythonx.compose.ui.Alignment` is the Kotlin object `androidx.compose.ui.Alignment` seen through the
+re-export rule (`pythonx/compose/_reexport.py`, `KotlinObject`): constants keep their Kotlin
+spelling and are read again on every access, as the binder serves them.
 
+## Grouped by declared type
 
-class AbsoluteAlignment:
-    """
-    A collection of common Alignments unaware of the layout direction.
-    """
-    TopLeft = _absolute_alignment.getTopLeft()
-    TopLeft.__class__ = Alignment
-    TopRight = _absolute_alignment.getTopRight()
-    TopRight.__class__ = Alignment
-    CenterLeft = _absolute_alignment.getCenterLeft()
-    CenterLeft.__class__ = Alignment
-    CenterRight = _absolute_alignment.getCenterRight()
-    CenterRight.__class__ = Alignment
-    BottomLeft = _absolute_alignment.getBottomLeft()
-    BottomLeft.__class__ = Alignment
-    BottomRight = _absolute_alignment.getBottomRight()
-    BottomRight.__class__ = Alignment
-    Left = _absolute_alignment.getLeft()
-    Left.__class__ = Alignment
-    Right = _absolute_alignment.getRight()
-    Right.__class__ = Alignment
+The notebook's grouped spelling works beside Kotlin's flat one (INTENT section 5.3):
 
+    Alignment.Horizontal.End    # the same read as Alignment.End
+    Alignment.Vertical.Top      # the same read as Alignment.Top
 
-#TODO: Add BiasAlignment, BiasAbsoluteAlignment
+`Alignment.Horizontal` holds the constants declared as `Alignment.Horizontal` (`CenterHorizontally`,
+`End`, `Start`) and `Alignment.Vertical` those declared as `Alignment.Vertical` (`Bottom`,
+`CenterVertically`, `Top`). A constant declared as `Alignment` itself (`Center`, `TopStart`, ...) is
+in neither. The grouping is the re-export rule's (`ConstantGroup`), read from the declared types
+`python_multiplatform.describe(module, name)` reports without running a getter (python-multiplatform
+#36), so no list here drives it.
+"""

@@ -1,41 +1,34 @@
-from __future__ import annotations
-from ..wrapper import KotlinWrapper
+"""`pythonx/compose/layout/arrangement.py` -- what the adaptation layer now produces, and how to spell it.
 
-from java import jclass
+The same story as `pythonx/compose/ui/alignment.py`, and the same two facts. `Arrangement`'s constants
+are bound by the walker since `PythonMultiplatform`'s `80318c16`, and `6d896fba` is the proof: the
+same child in the same row lands at opposite edges under `Start` and `End`, which is what says the
+value crossed rather than that something merely composed.
 
+## The names the layer produces
 
-_arrangement = jclass("androidx.compose.foundation.layout.Arrangement").INSTANCE
+    Bottom  Center  End  SpaceAround  SpaceBetween  SpaceEvenly  Start  Top
 
+Read out of the walked table. Compose declares more (`spacedBy`, for one) -- those are functions
+rather than constants and reach Python through the ordinary function path, not this one.
 
-class Arrangement(KotlinWrapper):
-    """
-    Used to specify the horizontal arrangement of the layout's children in layouts like [Row].
-    """
-    class Horizontal(KotlinWrapper):
-        pass
+## They are read, not called
 
-    class Vertical(KotlinWrapper):
-        pass
+    from pythonx.compose.layout import Row, Arrangement
+    from pythonx.compose.material3 import Text
+    from pythonx.compose.ui import Modifier      # its empty factory registered (ui/modifier.py)
 
-    class HorizontalOrVertical(Horizontal, Vertical):
-        pass
+    Row(
+        modifier=Modifier.width(80),
+        horizontal_arrangement=Arrangement.End,        # no parentheses
+        content=lambda scope: Text('X'),
+    )
 
-    Start = _arrangement.getStart()
-    End = _arrangement.getEnd()
-    Top = _arrangement.getTop()
-    Bottom = _arrangement.getBottom()
-    Center = _arrangement.getCenter()
+Since upstream's `46be0212` a static getter is evaluated on attribute access, so `Arrangement.End()`
+raises `TypeError` -- the value is not callable. A function inside the object follows the module
+rule: `Arrangement.spaced_by(8)`, never `spacedBy`.
 
-    SpaceEvenly = _arrangement.getSpaceEvenly()
-    SpaceBetween = _arrangement.getSpaceBetween()
-    SpaceAround = _arrangement.getSpaceAround()
-
-    # # Type Overriding
-    # Start.__class__ = Horizontal
-    # End.__class__ = Horizontal
-    # Top.__class__ = Vertical
-    # Bottom.__class__ = Vertical
-    # Center.__class__ = HorizontalOrVertical
-    # SpaceEvenly.__class__ = HorizontalOrVertical
-    # SpaceBetween.__class__ = HorizontalOrVertical
-    # SpaceAround.__class__ = HorizontalOrVertical
+The width matters as much as the spelling: a row wraps its content, so with no width constraint
+there is no spare space and every arrangement puts the child in the same place. Upstream's proof
+passed for that wrong reason once, before its opposite-end control caught it.
+"""

@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Concepts · pythonx-compose</title>
+<meta name="description" content="pythonx-compose: write Compose user interfaces in Python, with Compose's own widgets and Pythonic names.">
+<script>(function(){var r=document.documentElement,l=null,t=null;
+try{l=localStorage.getItem('pxc-lang');t=localStorage.getItem('pxc-theme');}catch(e){}
+if(l!=='en'&&l!=='ko'){l=((navigator.language||'en').toLowerCase().indexOf('ko')===0)?'ko':'en';}
+r.lang=l;if(t==='dark'||t==='light'){r.setAttribute('data-theme',t);}})();</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&amp;family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap">
+<link rel="stylesheet" href="assets/style.css">
+<script src="assets/site.js" defer></script>
+</head>
+<body data-title-en="Concepts" data-title-ko="개념">
+<header class="site-header">
+<div class="wrap bar">
+<a class="brand" href="index.html"><svg class="mark" viewBox="0 0 24 24" aria-hidden="true"><rect x="1.5" y="1.5" width="21" height="21" rx="6" fill="none" stroke="var(--accent)" stroke-width="1.6"/><path d="M7 8.5h6M7 12h10M7 15.5h4" stroke="var(--fg)" stroke-width="1.6" stroke-linecap="round"/></svg>pythonx-compose</a>
+<nav class="nav" aria-label="Guide"><a href="index.html"><span data-lang="en">Home</span><span data-lang="ko">홈</span></a><a href="getting-started.html"><span data-lang="en">Getting started</span><span data-lang="ko">시작하기</span></a><a href="concepts.html" aria-current="page"><span data-lang="en">Concepts</span><span data-lang="ko">개념</span></a><a href="guide-composables.html"><span data-lang="en">Composables</span><span data-lang="ko">컴포저블</span></a><a href="guide-modifiers.html"><span data-lang="en">Modifiers</span><span data-lang="ko">모디파이어</span></a><a href="guide-manifest.html"><span data-lang="en">Manifest</span><span data-lang="ko">매니페스트</span></a><a href="ecosystem.html"><span data-lang="en">Ecosystem</span><span data-lang="ko">생태계</span></a><a href="status.html"><span data-lang="en">Status & FAQ</span><span data-lang="ko">현황 · FAQ</span></a></nav>
+<div class="tools">
+<button class="btn-ghost" id="lang-toggle" type="button"><span data-lang="en">한국어</span><span data-lang="ko">English</span></button>
+<button class="btn-ghost" id="theme-toggle" type="button" aria-label="Toggle colour theme"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M12 3a9 9 0 1 0 9 9 7 7 0 0 1-9-9z"/></svg></button>
+</div>
+</div>
+</header>
+<main>
+<header class="page-head wrap"><p class="kicker"><span data-lang="en">Concepts</span><span data-lang="ko">개념</span></p><h1><span data-lang="en">How the pieces fit</span><span data-lang="ko">구성 요소가 맞물리는 방식</span></h1><p class="lead"><span data-lang="en">Two layers, one naming rule, one manifest.</span><span data-lang="ko">두 계층, 이름 규칙 하나, 매니페스트 하나.</span></p></header>
+
+<div class="wrap doc narrow">
+<section class="flush">
+<h2><span data-lang="en">The two layers</span><span data-lang="ko">두 계층</span></h2>
+<p data-lang="en"><strong>python-multiplatform</strong> — the binder — embeds CPython in a Kotlin Multiplatform app and exposes Kotlin declarations to Python under their <em>Kotlin</em> names: <code>androidx.compose.material3</code> is <code>androidx.compose.material3</code>. It never renames a namespace.</p><p data-lang="ko"><strong>python-multiplatform</strong> — 바인더 — 는 Kotlin Multiplatform 앱에 CPython 을 임베딩하고, Kotlin 선언을 <em>Kotlin</em> 이름 그대로 파이썬에 노출합니다: <code>androidx.compose.material3</code> 는 <code>androidx.compose.material3</code> 입니다. 네임스페이스 이름을 절대 바꾸지 않습니다.</p>
+<p data-lang="en"><strong>pythonx-compose</strong> — this package — is real Python on disk. Its modules import those <code>androidx.compose.*</code> modules and restructure them into <code>pythonx.compose.*</code>.</p><p data-lang="ko"><strong>pythonx-compose</strong> — 이 패키지 — 는 디스크에 있는 실제 파이썬입니다. 이 패키지의 모듈이 <code>androidx.compose.*</code> 를 import 해 <code>pythonx.compose.*</code> 로 재구성합니다.</p>
+<figure class="figure"><svg class="fig-wide" viewBox="0 0 960 250" role="img" aria-label="Python UI code calls pythonx.compose, which imports androidx.compose.* exposed by python-multiplatform, which is Compose itself; pythonx-map.toml feeds pythonx.compose and the .pyi stubs."><rect class="box" x="10" y="30" width="200" height="70" rx="10"/><text x="110.0" y="62.0" text-anchor="middle">@Composable def Screen()</text><text class="sub" x="110.0" y="80.0" text-anchor="middle">your Python</text><line class="edge" x1="210" y1="65" x2="252" y2="65"/><polygon class="head" points="260,65 252,60 252,70"/><rect class="box us" x="260" y="30" width="200" height="70" rx="10"/><text x="360.0" y="62.0" text-anchor="middle">pythonx.compose</text><text class="sub" x="360.0" y="80.0" text-anchor="middle">this package · real .py</text><line class="edge" x1="460" y1="65" x2="502" y2="65"/><polygon class="head us" points="510,65 502,60 502,70"/><rect class="box" x="510" y="30" width="200" height="70" rx="10"/><text x="610.0" y="62.0" text-anchor="middle">androidx.compose.*</text><text class="sub" x="610.0" y="80.0" text-anchor="middle">Kotlin names · binder</text><line class="edge" x1="710" y1="65" x2="752" y2="65"/><polygon class="head" points="760,65 752,60 752,70"/><rect class="box" x="760" y="30" width="190" height="70" rx="10"/><text x="855.0" y="62.0" text-anchor="middle">Compose</text><text class="sub" x="855.0" y="80.0" text-anchor="middle">Jetpack / Multiplatform</text><rect class="box" x="260" y="165" width="200" height="60" rx="10"/><text x="360.0" y="192.0" text-anchor="middle">pythonx-map.toml</text><text class="sub" x="360.0" y="210.0" text-anchor="middle">the one mapping</text><line class="edge dash" x1="360" y1="165" x2="360" y2="92"/><polygon class="head us" points="360,100 355,92 365,92"/><rect class="box" x="510" y="165" width="200" height="60" rx="10"/><text x="610.0" y="192.0" text-anchor="middle">.pyi stubs</text><text class="sub" x="610.0" y="210.0" text-anchor="middle">in the wheel</text><line class="edge dash" x1="460" y1="195" x2="502" y2="195"/><polygon class="head us" points="510,195 502,190 502,200"/></svg><svg class="fig-tall" viewBox="0 0 320 470" role="img" aria-label="The same layering, drawn vertically."><rect class="box" x="40" y="10" width="240" height="64" rx="10"/><text x="160.0" y="39.0" text-anchor="middle">@Composable def Screen()</text><text class="sub" x="160.0" y="57.0" text-anchor="middle">your Python</text><line class="edge" x1="160" y1="74" x2="160" y2="102"/><polygon class="head" points="160,110 155,102 165,102"/><rect class="box us" x="40" y="110" width="240" height="64" rx="10"/><text x="160.0" y="139.0" text-anchor="middle">pythonx.compose</text><text class="sub" x="160.0" y="157.0" text-anchor="middle">this package · real .py</text><line class="edge" x1="160" y1="174" x2="160" y2="202"/><polygon class="head us" points="160,210 155,202 165,202"/><rect class="box" x="40" y="210" width="240" height="64" rx="10"/><text x="160.0" y="239.0" text-anchor="middle">androidx.compose.*</text><text class="sub" x="160.0" y="257.0" text-anchor="middle">Kotlin names · binder</text><line class="edge" x1="160" y1="274" x2="160" y2="302"/><polygon class="head" points="160,310 155,302 165,302"/><rect class="box" x="40" y="310" width="240" height="64" rx="10"/><text x="160.0" y="339.0" text-anchor="middle">Compose</text><text class="sub" x="160.0" y="357.0" text-anchor="middle">Jetpack / Multiplatform</text><rect class="box" x="40" y="400" width="240" height="56" rx="10"/><text x="160.0" y="425.0" text-anchor="middle">pythonx-map.toml</text><text class="sub" x="160.0" y="443.0" text-anchor="middle">→ pythonx.compose, .pyi</text></svg></figure>
+</section>
+
+<section>
+<h2><span data-lang="en">The naming rule</span><span data-lang="ko">이름 규칙</span></h2>
+<p data-lang="en">Expose the original Kotlin declarations and parameters with Pythonic names. A name that starts upper-case — a type, an object, a composable — keeps its Kotlin spelling. Every other name is reached by its <code>snake_case</code> spelling only; the camelCase spelling is not a second name. An explicit overload keeps its type suffix.</p><p data-lang="ko">Kotlin 의 원래 선언과 매개변수를 파이썬다운 이름으로 노출합니다. 대문자로 시작하는 이름 — 타입, 객체, 컴포저블 — 은 Kotlin 표기를 유지합니다. 그 밖의 이름은 <code>snake_case</code> 표기로만 접근하며, camelCase 표기가 또 하나의 이름이 되지는 않습니다. 명시적 오버로드는 타입 접미사를 유지합니다.</p>
+<div class="table-wrap"><table>
+<thead><tr><th>Kotlin</th><th>Python</th></tr></thead>
+<tbody>
+<tr><td><code>onClick</code></td><td><code>on_click</code></td></tr>
+<tr><td><code>fillMaxWidth</code></td><td><code>fill_max_width</code></td></tr>
+<tr><td><code>horizontalAlignment</code></td><td><code>horizontal_alignment</code></td></tr>
+<tr><td><code>zIndex</code></td><td><code>z_index</code></td></tr>
+<tr><td><code>toURLString</code></td><td><code>to_url_string</code></td></tr>
+<tr><td><code>padding__Dp</code></td><td><code>padding__Dp</code></td></tr>
+<tr><td><code>Modifier</code></td><td><code>Modifier</code></td></tr>
+<tr><td><code>Arrangement</code></td><td><code>Arrangement</code></td></tr>
+</tbody></table></div>
+<p data-lang="en">The rule is applied forward to the module's real Kotlin names and never inverted, so a name the reverse rule could not reconstruct (<code>to_url_string</code>) still resolves. Keyword arguments to a module function are snake_case too (<code>padding_values=</code> reaches <code>paddingValues</code>), and <code>inspect.signature</code> reports the snake_case names, with <code>python_multiplatform.KOTLIN_DEFAULT</code> as the default of every parameter Kotlin defaults.</p><p data-lang="ko">규칙은 모듈의 실제 Kotlin 이름에 정방향으로만 적용되고 역으로 계산하지 않으므로, 역규칙으로는 복원할 수 없는 이름(<code>to_url_string</code>)도 해석됩니다. 모듈 함수의 키워드 인자도 snake_case 이며(<code>padding_values=</code> 가 <code>paddingValues</code> 에 닿음), <code>inspect.signature</code> 는 snake_case 이름을 보여 주고 Kotlin 이 기본값을 가진 매개변수에는 <code>python_multiplatform.KOTLIN_DEFAULT</code> 를 기본값으로 보여 줍니다.</p>
+<p data-lang="en">The user's notebook writes signatures such as <code>Button(onclick, corner_radius, color)</code>. Those are naming examples; where they differ from Kotlin, the Kotlin parameter, snake-cased, wins.</p><p data-lang="ko">사용자 노트북은 <code>Button(onclick, corner_radius, color)</code> 같은 시그니처를 씁니다. 이는 이름 예시이며, Kotlin 과 다르면 Kotlin 매개변수를 snake_case 로 바꾼 것이 이깁니다.</p>
+</section>
+
+<section>
+<h2><span data-lang="en">One re-export rule</span><span data-lang="ko">재노출 규칙 하나</span></h2>
+<p data-lang="en">Every module in <code>pythonx-map.toml</code> is a real file on disk whose <code>__init__.py</code> is one line. Nothing is resolved at import; a name is looked up in the mapped Kotlin package the first time it is read, and then lives in the module like any attribute. There is no per-widget wrapper.</p><p data-lang="ko"><code>pythonx-map.toml</code> 의 모든 모듈은 디스크에 있는 실제 파일이며, <code>__init__.py</code> 는 한 줄입니다. import 할 때는 아무것도 해석하지 않고, 이름을 처음 읽을 때 대응된 Kotlin 패키지에서 찾은 뒤 보통의 속성처럼 모듈에 남습니다. 위젯별 래퍼는 없습니다.</p>
+<pre><code class="language-python"># pythonx/compose/material3/__init__.py
+from pythonx.compose._reexport import reexport
+
+__getattr__, __dir__ = reexport(__name__)</code></pre>
+</section>
+
+<section>
+<h2><span data-lang="en">Extension functions are methods</span><span data-lang="ko">확장 함수는 메서드</span></h2>
+<p data-lang="en">Most of <code>Modifier</code> is Kotlin extension functions. In Python each one is a method on the receiver's proxy, so a chain reads as it does in Kotlin. The binder's proxy class keeps Kotlin names; the same naming rule is registered as the binder's member resolver, so the snake_case spelling reaches the Kotlin member.</p><p data-lang="ko"><code>Modifier</code> 의 대부분은 Kotlin 확장 함수입니다. 파이썬에서는 각각이 수신 객체 프록시의 메서드가 되어, 체인이 Kotlin 에서처럼 읽힙니다. 바인더의 프록시 클래스는 Kotlin 이름을 유지하며, 같은 이름 규칙이 바인더의 멤버 리졸버로 등록되어 snake_case 표기가 Kotlin 멤버에 닿습니다.</p>
+<pre><code class="language-python">Modifier.padding(16).size(24).fill_max_width()</code></pre>
+<p data-lang="en">Keyword arguments to such a method are <code>snake_case</code> too — <code>m.padding(padding_values=…)</code>, as the module function takes <code>padding(m, padding_values=…)</code>. The resolver also hands the binder a keyword map read from the declaration's own parameter names. Kotlin's spelling (<code>paddingValues=</code>) still works at run time; the type stubs offer only the Pythonic one.</p><p data-lang="ko">이런 메서드의 키워드 인자도 <code>snake_case</code> 입니다 — <code>m.padding(padding_values=…)</code> 이며, 모듈 함수는 <code>padding(m, padding_values=…)</code> 를 받습니다. 리졸버는 선언의 실제 파라미터 이름에서 읽은 키워드 맵도 바인더에 넘깁니다. Kotlin 이름(<code>paddingValues=</code>)도 실행 시에는 그대로 통하지만, 타입 스텁은 Pythonic 이름만 제시합니다.</p>
+</section>
+
+<section>
+<h2><span data-lang="en">Kotlin objects</span><span data-lang="ko">Kotlin 객체</span></h2>
+<p data-lang="en"><code>Alignment</code> and <code>Arrangement</code> are Kotlin objects, served as namespaces read by the same rule. Constants keep their Kotlin spelling and are read without parentheses; functions inside the object are snake_case.</p><p data-lang="ko"><code>Alignment</code> 와 <code>Arrangement</code> 는 Kotlin 객체이며, 같은 규칙으로 읽는 네임스페이스로 제공됩니다. 상수는 Kotlin 표기를 유지하고 괄호 없이 읽으며, 객체 안의 함수는 snake_case 입니다.</p>
+<pre><code class="language-python">from pythonx.compose.ui import Alignment
+from pythonx.compose.layout import Arrangement
+
+Alignment.Center
+Arrangement.End
+Arrangement.spaced_by(8)
+Alignment.Horizontal.End      # the same constant as Alignment.End</code></pre>
+<p data-lang="en">A constant can also be read grouped by its declared type, as the notebook writes it: <code>Alignment.Horizontal.End</code> is <code>Alignment.End</code>, read the same way. A group holds only the constants declared as exactly that type, so <code>Alignment.Center</code> (declared <code>Alignment</code>) is in no group, and <code>Arrangement.SpaceBetween</code> is under <code>Arrangement.HorizontalOrVertical</code>, not <code>Arrangement.Horizontal</code>.</p><p data-lang="ko">노트북처럼 상수를 선언된 타입별로 묶어서 읽을 수도 있습니다. <code>Alignment.Horizontal.End</code> 는 <code>Alignment.End</code> 이며 같은 방식으로 읽힙니다. 묶음에는 정확히 그 타입으로 선언된 상수만 들어가므로 <code>Alignment.Center</code>(선언 타입 <code>Alignment</code>)는 어느 묶음에도 없고, <code>Arrangement.SpaceBetween</code> 은 <code>Arrangement.Horizontal</code> 이 아니라 <code>Arrangement.HorizontalOrVertical</code> 아래에 있습니다.</p>
+</section>
+
+<section>
+<h2><span data-lang="en">Value classes</span><span data-lang="ko">값 클래스</span></h2>
+<p data-lang="en"><code>Dp</code> wraps a single float, so a raw number may stand for it: <code>padding(16)</code> means <code>padding(16.dp)</code>. That permission is the manifest's allowlist, handed to the binder when a <code>pythonx.compose</code> module first resolves a name. <code>Color</code> and <code>TextUnit</code> pack several fields into one value, so a raw number would decode as something else entirely — they are refused, with a message saying why. A colour is written through Kotlin's own factory: <code>Color(0xFFFF0000)</code>.</p><p data-lang="ko"><code>Dp</code> 는 float 하나를 감싸므로 숫자로 쓸 수 있습니다: <code>padding(16)</code> 은 <code>padding(16.dp)</code> 입니다. 이 허용은 매니페스트의 허용 목록이며, <code>pythonx.compose</code> 모듈이 처음 이름을 해석할 때 바인더에 전달됩니다. <code>Color</code> 와 <code>TextUnit</code> 은 여러 필드를 한 값에 담으므로 숫자를 넣으면 전혀 다른 값으로 해석됩니다 — 그래서 이유를 밝히며 거절합니다. 색은 Kotlin 자신의 팩토리로 씁니다: <code>Color(0xFFFF0000)</code>.</p>
+</section>
+
+<section>
+<h2><span data-lang="en">One manifest, two readers</span><span data-lang="ko">매니페스트 하나, 읽는 쪽 둘</span></h2>
+<p data-lang="en"><code>pythonx/compose/pythonx-map.toml</code> says which <code>pythonx.compose.*</code> module stands for which Kotlin package; it lives inside the package and ships in the wheel. The runtime and the <code>.pyi</code> generator read the same file, so the name your editor completes is the name the interpreter resolves. Stubs generated from real Compose, and <code>py.typed</code>, are not shipped yet (issue #12).</p><p data-lang="ko"><code>pythonx/compose/pythonx-map.toml</code> 이 어떤 <code>pythonx.compose.*</code> 모듈이 어떤 Kotlin 패키지에 대응하는지 적습니다. 이 파일은 패키지 안에 있고 wheel 에 함께 담깁니다. 런타임과 <code>.pyi</code> 생성기가 같은 파일을 읽으므로, 편집기가 완성하는 이름과 인터프리터가 해석하는 이름이 같습니다. 실제 Compose 에서 생성한 스텁과 <code>py.typed</code> 는 아직 함께 배포되지 않습니다(이슈 #12).</p>
+</section>
+
+<section>
+<h2><span data-lang="en">@Composable</span><span data-lang="ko">@Composable</span></h2>
+<p data-lang="en">The decorator stays, and it is an identity: it returns the function unchanged. The composer each nested call needs is threaded by the binding from the <em>callee's</em> declared parameters, never by anything the caller does.</p><p data-lang="ko">데코레이터는 유지되며 항등 함수입니다: 함수를 그대로 돌려줍니다. 중첩 호출마다 필요한 composer 는 <em>호출되는 쪽</em>의 선언된 매개변수를 보고 바인딩이 넘기며, 호출하는 쪽은 아무것도 하지 않습니다.</p>
+<div class="pager"><a href="getting-started.html">← <span data-lang="en">Getting started</span><span data-lang="ko">시작하기</span></a><a href="guide-composables.html"><span data-lang="en">Composables</span><span data-lang="ko">컴포저블</span> →</a></div>
+</section>
+</div>
+
+</main>
+<footer>
+<div class="wrap">
+<span><span data-lang="en">pythonx-compose — Compose, restructured for Python.</span><span data-lang="ko">pythonx-compose — 파이썬을 위해 재구성한 Compose.</span></span>
+<span><a href="https://github.com/thisisthepy/pythonx-compose">GitHub</a> · <span data-lang="en">MIT License</span><span data-lang="ko">MIT 라이선스</span></span>
+</div>
+</footer>
+</body>
+</html>
