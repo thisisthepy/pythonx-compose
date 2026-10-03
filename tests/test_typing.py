@@ -26,6 +26,7 @@ SCRATCH = REPO / ".tmp"
 def _mypy(program: str) -> tuple[int, str]:
     """mypy's exit code and output for one program, with this checkout's stubs on the path."""
     SCRATCH.mkdir(exist_ok=True)
+    SCRATCH.mkdir(exist_ok=True)  # git-ignored, so absent on a fresh checkout such as CI's
     with tempfile.TemporaryDirectory(dir=SCRATCH) as scratch:
         source = Path(scratch) / "program.py"
         source.write_text(textwrap.dedent(program), encoding="utf-8")

@@ -272,6 +272,7 @@ class TheCurrentFormat(unittest.TestCase):
         self.assertEqual(["Hairline"], [n.target.id for n in tree.body if isinstance(n, ast.AnnAssign)])
 
     def test_a_zip_converts_like_the_directory_and_tolerates_case_colliding_paths(self):
+        (REPO / ".tmp").mkdir(exist_ok=True)
         with tempfile.TemporaryDirectory(dir=REPO / ".tmp") as scratch:
             archive = Path(scratch) / "kotlin-stubs.zip"
             with zipfile.ZipFile(archive, "w") as out:
