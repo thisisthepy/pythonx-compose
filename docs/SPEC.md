@@ -57,8 +57,9 @@ in §9 and are not counted as features.
   pypi.org cannot resolve relative ones), `license = "MIT"` with `LICENSE`, the two authors as
   `LICENSE` names them (no emails), keywords, classifiers (Alpha, Python 3.11-3.13, Typed) and
   project URLs. `build-system.requires` is `setuptools>=77`, which understands that license form.
-- Released by pushing a tag `v<version>` (`.github/workflows/publish-pypi.yml`): the workflow checks
-  the tag equals `v` + the `pyproject.toml` version (`.github/scripts/check_release_version.py`,
+- Released by publishing a GitHub Release tagged `v<version>` (`.github/workflows/publish-pypi.yml`,
+  trigger `release: published`; a bare tag push publishes nothing): the workflow checks the
+  Release's tag equals `v` + the `pyproject.toml` version (`.github/scripts/check_release_version.py`,
   `tests/test_release_version.py`), builds the sdist and wheel, runs `twine check`, smoke-installs
   the wheel in a fresh venv, then uploads through PyPI trusted publishing (environment `pypi`, no
   token). Nothing is uploaded by hand.
