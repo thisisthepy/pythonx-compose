@@ -6,7 +6,7 @@ English | [한국어](https://github.com/thisisthepy/pythonx-compose/blob/main/d
 
 **Write Compose user interfaces in Python — with Compose's own widgets, spelled the Python way.**
 
-[![License: MIT](https://img.shields.io/badge/license-MIT-7c4dff.svg)](https://github.com/thisisthepy/pythonx-compose/blob/main/LICENSE)
+[![License: Apache-2.0](https://img.shields.io/badge/license-Apache--2.0-7c4dff.svg)](https://github.com/thisisthepy/pythonx-compose/blob/main/LICENSE)
 [![Python](https://img.shields.io/badge/python-3.11%2B-7c4dff.svg)](https://github.com/thisisthepy/pythonx-compose/blob/main/pyproject.toml)
 [![pip](https://img.shields.io/badge/pip-pythonx--compose-7c4dff.svg)](https://github.com/thisisthepy/pythonx-compose/blob/main/pyproject.toml)
 [![Status](https://img.shields.io/badge/status-pre--alpha-lightgrey.svg)](#-status)
@@ -200,4 +200,4 @@ useful. Please open an issue before large changes.
 
 ## License
 
-[MIT](https://github.com/thisisthepy/pythonx-compose/blob/main/LICENSE) © 2023–2024 BREW (b-re-w), Jong-uk Lee (rnoro5122)
+[Apache License 2.0](https://github.com/thisisthepy/pythonx-compose/blob/main/LICENSE) © 2023–2024 BREW (b-re-w), Jong-uk Lee (rnoro5122)

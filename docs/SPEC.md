@@ -54,7 +54,7 @@ in §9 and are not counted as features.
   `pythonx/compose/pythonx-map.toml`, the re-export rule, and an `__init__.py` for every mapped
   module (issue #13). The manifest lives inside the package directory so `package-data` carries it.
 - PyPI metadata: description, `README.md` as the long description (its links are absolute, since
-  pypi.org cannot resolve relative ones), `license = "MIT"` with `LICENSE`, the two authors as
+  pypi.org cannot resolve relative ones), `license = "Apache-2.0"` with `LICENSE` (Apache License 2.0 since the maintainer's decision of 2026-10-03; the published 0.1.0a1 carries MIT), the two authors as
   `LICENSE` names them (no emails), keywords, classifiers (Alpha, Python 3.11-3.13, Typed) and
   project URLs. `build-system.requires` is `setuptools>=77`, which understands that license form.
 - **0.1.0a1 is on PyPI** (2026-10-03: pre-release `v0.1.0a1` on develop `134a641`, publish-pypi run

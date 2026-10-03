@@ -123,7 +123,7 @@ python3 .github/scripts/check_guide.py           # 가이드: HTML 파싱, 링�
 ### 결정됨 (2026-10-03, #62) — 첫 PyPI 릴리스
 
 - 워크플로 이름: `tests.yml` → `test.yml`, PyPI 배포는 `publish-pypi.yml`.
-- 첫 버전은 `0.1.0a1`(알파, 프리릴리스). PyPI 메타데이터(설명·README·MIT·저자·URL·분류자)는 채웠고,
+- 첫 버전은 `0.1.0a1`(알파, 프리릴리스). PyPI 메타데이터(설명·README·라이선스·저자·URL·분류자)는 채웠고,
   README 의 링크는 pypi.org 에서 열리도록 절대 URL 이다(`main` 링크는 `main` 이 `develop` 을 따라잡은 뒤에 열린다).
 - 배포 방법: 릴리스할 커밋에 태그 `v0.1.0a1` 로 GitHub Release 를 게시하면(알파는 pre-release 표시)
   `publish-pypi.yml` 이 Release 태그와 `pyproject.toml` 버전을 대조하고, sdist·wheel 을 빌드하고,
