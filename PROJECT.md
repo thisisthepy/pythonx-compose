@@ -35,8 +35,8 @@ Compose(`androidx.compose.*`)를 파이썬에서 쓰기 위한 pip 패키지 **`
 
 ```
 python3 -m pytest tests -q
-  PythonMultiplatform 체크아웃 없음       107 passed, 87 skipped
-  python-multiplatform develop 31c092f0+    193 passed, 1 skipped
+  PythonMultiplatform 체크아웃 없음       116 passed, 87 skipped
+  python-multiplatform develop 31c092f0+    202 passed, 1 skipped
   describe_member 없는 체크아웃             같은 수, 그중 7 개 건너뜀  (python-multiplatform #54 이전)
   describe(module, name) 없는 체크아웃      같은 수, 그중 13 개 건너뜀  (python-multiplatform #36 이전)
   그보다 오래된 체크아웃                    거기에 5 개 더 건너뜀  (member resolver 없음)
@@ -45,7 +45,7 @@ python3 -m pytest tests -q
 `describe_member`(python-multiplatform #54)가 없는 바인더에서는 메서드 키워드를 확인하는 7 개가(Kotlin 키워드로 되돌아가는 2 개는 실행됨), `describe(module, name)`(python-multiplatform #36)이 없는 바인더에서는 묶음 상수를 확인하는 13 개가,
 member resolver(python-multiplatform `ba4c6f49`)가 없는 바인더에서는 proxy 의 snake_case 메서드를 부르는
 5 개가 더 건너뛴다. 두 환경 모두의 건너뜀 1 개는 worktree 에 없는 `UI.ipynb` 의 테스트다. 건너뜀은 통과가 아니다.
-체크아웃 없이 통과하는 107 개 중 39 개는 타입 스텁과 wheel 을 검사하고(SPEC S1.2), 나머지 다수는 *부재*(옛 토큰·삭제된
+체크아웃 없이 통과하는 116 개 중 48 개는 타입 스텁과 wheel 을 검사하고(SPEC S1.2), 나머지 다수는 *부재*(옛 토큰·삭제된
 파일이 없음)를 확인하는 것이라 기능 진척으로 세지 않는다.
 
 ### 마일스톤

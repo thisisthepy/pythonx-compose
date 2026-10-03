@@ -26,9 +26,15 @@ Kotlin package it maps to and writes the Pythonic one next to the module's `__in
   (python-multiplatform #44). A sub-package directory holding only `__init__.pyi` would be a
   namespace package at run time and shadow the `KotlinObject` the re-export rule serves. An object
   whose name the parent uses for a function is left out: at run time that name is the function;
+- a property keeps its decorators in step with its name (`@layout_direction.setter`); an object's
+  nested Kotlin types (`class Horizontal` in `Alignment`'s stub, `End: Horizontal`) become classes of
+  its class, referenced as `Alignment.Horizontal` (from another module `pythonx.compose.ui.Alignment.Horizontal`),
+  except a type derived from another nested type, which is `Any` (see `_Qualify`); an object's
+  explicit overload set (`spacedBy__Dp`) also gets its base name, as a static method;
 - an object's constants are also grouped by the type nested in it that their docstring declares
   them as (`Alignment.End(): Alignment.Horizontal`), as a class nested in the object's class
-  (`Alignment.Horizontal.End`), the runtime's `ConstantGroup` rule; a member of that name wins;
+  (`Alignment.Horizontal.End`), the runtime's `ConstantGroup` rule; a member of that name wins, unless
+  it is the nested Kotlin type itself, which then is the group;
 - a reference to another Kotlin package names the `pythonx.compose` module the manifest lists first
   for it, and its import is rewritten to match; a package the manifest does not map, or a name the
   target stub does not declare as a class, becomes `typing.Any`;
@@ -163,6 +169,14 @@ def _arity(arguments: ast.arguments) -> int:
     return len(arguments.posonlyargs) + len(arguments.args) + len(arguments.kwonlyargs)
 
 
+def _rename_property_decorators(function: ast.FunctionDef) -> None:
+    """`@layoutDirection.setter` follows its property: the decorator names the renamed property."""
+    for decorator in function.decorator_list:
+        if (isinstance(decorator, ast.Attribute) and decorator.attr in ("setter", "getter", "deleter")
+                and isinstance(decorator.value, ast.Name)):
+            decorator.value.id = python_name(decorator.value.id)
+
+
 def _is_overload(function: ast.FunctionDef) -> bool:
     return any(ast.unparse(d) in ("overload", f"{TYPING}.overload") for d in function.decorator_list)
 
@@ -179,11 +193,22 @@ def _annotation(text: str) -> ast.expr:
     return ast.parse(text, mode="eval").body
 
 
-def _overload(function: ast.FunctionDef, name: str) -> ast.FunctionDef:
+def _overload(function: ast.FunctionDef, name: str, single: bool = False) -> ast.FunctionDef:
+    """A copy of [function] named [name], as one `@overload` -- or plain when it is the only variant."""
     copy = ast.parse(ast.unparse(function)).body[0]
     copy.name = name
-    copy.decorator_list = [_annotation(f"{TYPING}.overload")] + copy.decorator_list
+    if single:
+        return copy
+    decorators = [d for d in copy.decorator_list if ast.unparse(d) == "staticmethod"]
+    others = [d for d in copy.decorator_list if ast.unparse(d) != "staticmethod"]
+    copy.decorator_list = decorators + [_annotation(f"{TYPING}.overload")] + others
     return copy
+
+
+def _base_overloads(variants: list[ast.FunctionDef], base: str) -> list[ast.FunctionDef]:
+    """The base name of an explicit overload set (`padding__Dp`, ...): fewest parameters first."""
+    ordered = sorted(variants, key=lambda variant: _arity(variant.args))
+    return [_overload(variant, base, single=len(ordered) == 1) for variant in ordered]
 
 
 def _name_of(node: ast.stmt) -> str | None:
@@ -213,10 +238,13 @@ def _add_constant_groups(cls: ast.ClassDef, kotlin_name: str) -> None:
     The runtime's `ConstantGroup` rule, read off the stub: a constant whose docstring
     (`Kotlin: <kotlin_name>.End(): <kotlin_name>.Horizontal`) declares it as exactly
     `<kotlin_name>.<G>`, for one simple upper-case name `G`, is repeated in `class G`, which is
-    emitted unless [cls] already has a member named `G` (a Kotlin member wins). A constant declared
+    emitted unless [cls] already has a member named `G` (a Kotlin member wins). When that member is
+    a class -- the Kotlin type nested in the object, `Alignment.Horizontal` -- it is the group: the
+    constants are added to it, so it is the type and the notebook's grouped spelling at once. A constant declared
     as anything else -- [cls] itself, a deeper or a foreign type -- stays flat only.
     """
     members = {_name_of(node) for node in cls.body} - {None}
+    nested = {node.name: node for node in cls.body if isinstance(node, ast.ClassDef)}
     groups: dict[str, list[ast.stmt]] = {}
     for index, node in enumerate(cls.body):
         if not (isinstance(node, ast.AnnAssign) and isinstance(node.target, ast.Name)):
@@ -229,17 +257,56 @@ def _add_constant_groups(cls: ast.ClassDef, kotlin_name: str) -> None:
         if declared is None or declared["owner"] != kotlin_name:
             continue
         group = declared["type"][len(kotlin_name) + 1:] if declared["type"].startswith(kotlin_name + ".") else ""
-        if not group[:1].isupper() or "." in group or group in members:
+        if not group[:1].isupper() or "." in group or (group in members and group not in nested):
             continue
         groups.setdefault(group, []).extend(
             ast.parse(ast.unparse(statement)).body[0] for statement in (node, following)
         )
     for group in sorted(groups):
+        if group in nested:
+            # The Kotlin type nested in the object is the group too: `Alignment.Horizontal.End`.
+            have = {_name_of(node) for node in nested[group].body}
+            nested[group].body.extend(
+                statement for statement in groups[group] if _name_of(statement) not in have
+            )
+            continue
         doc = f"Kotlin: the constants of {kotlin_name} declared as {kotlin_name}.{group}"
         cls.body.append(ast.ClassDef(
             name=group, bases=[], keywords=[], decorator_list=[],
             body=[ast.Expr(ast.Constant(doc))] + groups[group],
         ))
+
+
+class _Qualify(ast.NodeTransformer):
+    """A Kotlin type nested in an object, named bare in its stub (`End: Horizontal`), as `Alignment.Horizontal`.
+
+    Once the object is a class of its parent stub the bare name resolves to nothing, and the object's
+    own class holds the nested type under it. A nested type that the stub derives from another nested
+    type (`HorizontalOrVertical(Horizontal)`) is [untrusted]: Kotlin's `HorizontalOrVertical` is both
+    an `Arrangement.Horizontal` and an `Arrangement.Vertical`, which one base cannot say, so an
+    annotation naming it is `Any` rather than a type that rejects half of its uses.
+    """
+
+    def __init__(self, owner: str, nested: set[str], untrusted: frozenset[str] = frozenset()):
+        self.owner = owner
+        self.nested = nested
+        self.untrusted = untrusted
+
+    def visit_Name(self, node: ast.Name) -> ast.expr:
+        if node.id in self.untrusted and isinstance(node.ctx, ast.Load):
+            return _annotation(_ANY)
+        if node.id in self.nested and isinstance(node.ctx, ast.Load):
+            return _annotation(f"{self.owner}.{node.id}")
+        return node
+
+    def annotations(self, function: ast.FunctionDef) -> None:
+        arguments = function.args
+        for argument in (*arguments.posonlyargs, *arguments.args, *arguments.kwonlyargs,
+                         *filter(None, (arguments.vararg, arguments.kwarg))):
+            if argument.annotation is not None:
+                argument.annotation = self.visit(argument.annotation)
+        if function.returns is not None:
+            function.returns = self.visit(function.returns)
 
 
 # -------------------------------------------------------------------------------------- references
@@ -308,9 +375,31 @@ class Converter:
 
                 collect("", tree.body)
                 functions = {_name_of(n) for n in tree.body if not isinstance(n, ast.ClassDef)} - {None}
-            declared.update(name for name in self.stubs.objects(kotlin_package) if name not in functions)
+            for name in self.stubs.objects(kotlin_package):
+                if name in functions:
+                    continue
+                declared.add(name)
+                # The Kotlin types an object nests (`Alignment.Horizontal`) are folded into its class.
+                object_stub = self.stubs.stub(f"{kotlin_package}.{name}")
+                if object_stub is not None:
+                    declared.update(
+                        f"{name}.{node.name}" for node in parse(object_stub).body if isinstance(node, ast.ClassDef)
+                    )
             self._declared[kotlin_package] = declared
         return dotted in self._declared[kotlin_package]
+
+    def _packages(self, tree: ast.Module) -> set[str]:
+        """The Kotlin packages a stub imports. An object's own stub is a package upstream
+        (`import androidx.compose.ui.Alignment`) but not a module here: a reference below it is the
+        parent's, `androidx.compose.ui` + `Alignment.Horizontal`."""
+        found = set()
+        for node in tree.body:
+            if isinstance(node, ast.Import):
+                for alias in node.names:
+                    parent, _, child = alias.name.rpartition(".")
+                    if alias.name != "typing" and child not in self.stubs.objects(parent):
+                        found.add(alias.name)
+        return found
 
     def convert(self, source: str, kotlin_package: str = "", module_name: str = "") -> str:
         """One Kotlin-named stub module, rewritten to the Pythonic surface."""
@@ -319,10 +408,7 @@ class Converter:
         _mark_ignores(tree)
         for name in dropped:
             self.notes.append(f"{kotlin_package}: constant {name!r} is a Python keyword; left out")
-        imported = {
-            alias.name for node in tree.body if isinstance(node, ast.Import) for alias in node.names
-            if alias.name != "typing"
-        }
+        imported = self._packages(tree)
         body: list[ast.stmt] = []
         explicit: dict[str, list[ast.FunctionDef]] = {}
         for node in tree.body:
@@ -330,6 +416,7 @@ class Converter:
                 continue
             if isinstance(node, ast.FunctionDef):
                 node.name = python_name(node.name)
+                _rename_property_decorators(node)
                 _rename_arguments(node.args)
                 base, sep, _ = node.name.partition("__")
                 if sep:
@@ -344,8 +431,7 @@ class Converter:
         for base, variants in explicit.items():
             if base in defined:
                 continue  # the binder's own overload set (current format) stands as it is
-            ordered = sorted(variants, key=lambda variant: _arity(variant.args))
-            body.extend(_overload(variant, base) for variant in ordered)
+            body.extend(_base_overloads(variants, base))
 
         for name in self.stubs.objects(kotlin_package) if kotlin_package else ():
             self._add_object(body, kotlin_package, name, imported)
@@ -377,6 +463,7 @@ class Converter:
             if isinstance(member, ast.AnnAssign) and isinstance(member.target, ast.Name):
                 member.target.id = python_name(member.target.id)
             elif isinstance(member, ast.FunctionDef) and not member.name.startswith("__"):
+                _rename_property_decorators(member)
                 member.name = python_name(member.name)
                 if _is_static(member):
                     # A function of a Kotlin object: `KotlinObject` translates its keywords.
@@ -399,26 +486,44 @@ class Converter:
         _mark_ignores(tree)
         for constant in dropped:
             self.notes.append(f"{kotlin_package}.{name}: constant {constant!r} is a Python keyword; left out")
-        imported.update(
-            alias.name for node in tree.body if isinstance(node, ast.Import) for alias in node.names
-            if alias.name != "typing"
+        imported.update(self._packages(tree))
+        nested = {node.name for node in tree.body if isinstance(node, ast.ClassDef)}
+        derived = frozenset(
+            node.name for node in tree.body if isinstance(node, ast.ClassDef)
+            and any(isinstance(b, ast.Name) and b.id in nested for b in node.bases)
         )
+        bases = _Qualify(name, nested)
+        qualify = _Qualify(name, nested, derived)
         groups: list[list[ast.stmt]] = []  # each member with the docstring that follows it
+        explicit: dict[str, list[ast.FunctionDef]] = {}
         for node in tree.body:
-            if isinstance(node, ast.AnnAssign) and isinstance(node.target, ast.Name):
+            if isinstance(node, ast.ClassDef):
+                # A Kotlin type the object nests (`Alignment.Horizontal`): a class of the folded object.
+                node.bases = [bases.visit(base) for base in node.bases]
+                groups.append([node])
+            elif isinstance(node, ast.AnnAssign) and isinstance(node.target, ast.Name):
                 node.target.id = python_name(node.target.id)
+                node.annotation = qualify.visit(node.annotation)
                 if not ast.unparse(node.annotation).startswith(f"{TYPING}.ClassVar["):
                     node.annotation = _annotation(f"{TYPING}.ClassVar[{ast.unparse(node.annotation)}]")
                 groups.append([node])
             elif isinstance(node, ast.FunctionDef):
                 node.name = python_name(node.name)
                 _rename_arguments(node.args)
+                qualify.annotations(node)
                 node.decorator_list = [ast.Name(id="staticmethod", ctx=ast.Load())] + [
                     d for d in node.decorator_list if ast.unparse(d) != "staticmethod"
                 ]
                 groups.append([node])
+                base, sep, _ = node.name.partition("__")
+                if sep:
+                    explicit.setdefault(base, []).append(node)
             elif isinstance(node, ast.Expr) and groups and isinstance(groups[-1][0], ast.AnnAssign):
                 groups[-1].append(node)
+        defined = {_name_of(group[0]) for group in groups}
+        for base, variants in explicit.items():
+            if base not in defined:
+                groups.extend([function] for function in _base_overloads(variants, base))
         if holder is None:
             holder = ast.ClassDef(
                 name=name, bases=[], keywords=[], decorator_list=[],

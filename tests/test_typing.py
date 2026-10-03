@@ -135,6 +135,36 @@ class TheStubsTypeCheck(unittest.TestCase):
             Alignment.Horizontal.Top
         """, '"Top"', "[attr-defined]")
 
+    def test_an_object_function_and_nested_types_type_check(self):
+        """SPEC S7.1: `Arrangement.spaced_by` is a static method; a nested type is the group too."""
+        self.assertPasses("""
+            from pythonx.compose.layout import Arrangement, Column
+            from pythonx.compose.ui import Alignment
+
+            a = Arrangement.spaced_by(8)
+            Column(vertical_arrangement=a, horizontal_alignment=Alignment.Horizontal.End, content=lambda scope: None)
+            Column(horizontal_alignment=Alignment.CenterHorizontally, content=lambda scope: None)
+        """)
+        self.assertFails("""
+            from pythonx.compose.layout import Arrangement
+
+            Arrangement.spacedBy(8)
+        """, '"spacedBy"', "[attr-defined]")
+        self.assertFails("""
+            from pythonx.compose.layout import Column
+            from pythonx.compose.ui import Alignment
+
+            Column(horizontal_alignment=Alignment.Vertical.Top, content=lambda scope: None)
+        """, "[arg-type]")
+
+    def test_a_property_and_its_setter_type_check(self):
+        self.assertPasses("""
+            from pythonx.compose.ui import ImageComposeScene
+
+            def flip(scene: ImageComposeScene) -> None:
+                scene.layout_direction = scene.layout_direction
+        """)
+
     def test_a_kotlin_spelled_module_function_fails(self):
         self.assertFails("""
             from pythonx.compose.layout import fillMaxWidth
