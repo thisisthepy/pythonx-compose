@@ -21,22 +21,22 @@ Run from a worktree with `python -m pytest tests -q -rs` (pytest 8, mypy 2.4, CP
 
 | Environment | Result |
 |---|---|
-| No `PythonMultiplatform` checkout found | **132 passed, 99 skipped**, 165 subtests passed |
-| python-multiplatform `develop` at `31c092f0` or later (property rows, #38; `describe_member`, #54; besides `add_member_resolver` and `describe(module, name)`) | **230 passed, 1 skipped**, 196 subtests passed |
+| No `PythonMultiplatform` checkout found | **134 passed, 112 skipped**, 173 subtests passed |
+| python-multiplatform `develop` at `31c092f0` or later (property rows, #38; `describe_member`, #54; besides `add_member_resolver` and `describe(module, name)`) | **245 passed, 1 skipped**, 204 subtests passed |
 | an older checkout, without `describe_member` (python-multiplatform #54) | the same, with 7 more skipped |
 | an older one, without `describe(module, name)` (python-multiplatform #36) | with 13 more skipped again |
 | an older one still, without `add_member_resolver` | with 5 more skipped again |
 
 Measured in a worktree, which has `.tmp/kotlin-stubs.zip` but no `UI.ipynb`. Without a checkout, the
-97 tests that install the binder's layers through `tests/adapter.py` skip, plus the notebook test.
+110 tests that install the binder's layers through `tests/adapter.py` skip, plus the notebook test.
 Against a binder without `describe(module, name)`, the 13 that check grouped constants (§7, S7.1)
 skip. Against a binder without `describe_member`, the 7 that check a method's keywords (S4.1) skip; the 2
 that check the fallback (Kotlin keywords, names resolved) run. Against a binder older than `ba4c6f49`, the 5 that call a snake_case method on a proxy the
 binder returned skip as well, because that needs its member resolver (python-multiplatform #17). The skip against a current checkout is `UI.ipynb`'s (§2). A binder older than #38 skips the 5
-`TheBinderPath` tests (S5.4). `tests/test_typing.py` skips where mypy is not installed. A skip is not a
+`TheBinderPath` tests (S5.4). A binder without the `@Composable` binding (`push_composer`) skips the 13 text-field tests (S5.5). `tests/test_typing.py` skips where mypy is not installed. A skip is not a
 pass.
 
-Of the 132 that pass without a checkout, 59 check the type stubs and the wheel (S1.2); most of the
+Of the 134 that pass without a checkout, 61 check the type stubs and the wheel (S1.2); most of the
 rest assert **absence** (a retired token, a deleted file, a docstring that exists). Those are listed
 in §9 and are not counted as features.
 
@@ -168,6 +168,7 @@ Current mapping:
 | `pythonx.compose.layout` | `androidx.compose.foundation.layout` |
 | `pythonx.compose.material3` | `androidx.compose.material3` |
 | `pythonx.compose.material.icons` | `androidx.compose.material.icons` |
+| `pythonx.compose.foundation.text.input` | `androidx.compose.foundation.text.input` (S5.5) |
 
 **`[aliases]`** lends a module names from another mapped module, as data. Two forms, both under
 `[aliases."<owner module>"]` keyed by the source module: a list of names lent under the **same**
@@ -321,6 +322,45 @@ Still `planned`: the two colour-scheme factories take 36 `Color` parameters agai
 the binding's omission cap (python-multiplatform `a6742a1c`). The hand-written `icon.py` /
 `color_scheme.py` that recorded this were dead code and are deleted (#31).
 
+### S5.5 `TextField(state=...)` and `TextFieldState` — `partial`
+
+INTENT §5.8. `TextField` uses Compose 1.11's state-based overload, so Compose owns the text buffer
+and the IME composing region and no Python callback runs per keystroke. There is no per-widget
+wrapper: `pythonx.compose.material3.TextField` is androidx's, re-exported by §3's rule, and its
+keywords are `snake_case`. The state comes from `pythonx.compose.foundation.text.input`
+(`androidx.compose.foundation.text.input`, a manifest row; a package file with the one-line
+re-export, plus a bare `foundation/text/__init__.py` so the wheel finds it):
+
+```python
+field = remember_text_field_state("")            # in composition; TextFieldState("hi") outside it
+TextField(state=field, modifier=Modifier.padding(8), label=lambda scope: Text("Message"))
+field.text                                       # the committed text, a str, read on demand
+field.set_text_and_place_cursor_at_end("x")      # extension members, snake_case methods
+field.clear_text()
+```
+
+`TextField(text_state=...)` and `TextField(..., padding=8)` are a `TypeError` (the binder reports no such
+parameter) and a type error in the stubs; the notebook's spelling is `state=` and `modifier=Modifier.padding(8)`
+(INTENT §5.8). The `value` / `on_value_change` overloads still exist and are reached by those keywords.
+A `TextRange` parameter is the binder's, and `TextRange(2)` is shadowed by a companion module
+(python-multiplatform #78); `TextRange__Int(2)` is the spelling meanwhile.
+
+| Behaviour | Test |
+|---|---|
+| `TextFieldState("hi").text == "hi"`, a `str`; the initial text is optional; Kotlin's `initialText=` works | `tests/test_text_field.py::TheTextFieldState` |
+| `set_text_and_place_cursor_at_end` and `clear_text` write | `…::test_set_text_and_place_cursor_at_end_writes_it`, `test_clear_text_empties_it` |
+| `remember_text_field_state` is a composable: it needs a composer | `…::test_remember_text_field_state_is_the_composable_that_makes_one`, `…_needs_a_composition` |
+| `state=` selects the state overload; keywords are snake_case; `modifier=` reaches it; `value=` selects the `String` overload | `tests/test_text_field.py::TheStateOverload` |
+| `text_state=` and `padding=` are a `TypeError` | `…::test_text_state_is_not_a_parameter`, `test_padding_is_not_a_parameter` |
+| The stubs type `TextFieldState`, `.text` as `str`, and `TextField(state=...)`; `text_state=` fails | `tests/test_typing.py::test_a_text_field_state_types_the_state_overload`, `test_a_text_field_without_a_kotlin_counterpart_fails` |
+
+Status `partial`: this is wired and tested against the fake host, whose rows are shaped after the stubs of
+python-multiplatform `26485a02` (#73), not a walked jar (`tests/fake_host.py` says which fields). The
+proof that matters, typing a composing input-method sequence with no Python callback per keystroke
+and the field's text asserted afterwards, is python-multiplatform's E2E test (#26), judged over up to
+four frames; it is not run here. Not modelled: a function-typed slot (`label`, `on_value_change`), which needs
+the binder's `NewFunction` rows.
+
 ## 6. Modifiers — extension functions as methods
 
 ### S6.1 `Modifier` extensions are methods on the receiver proxy — `implemented`
@@ -453,6 +493,7 @@ the binder lists no member that would win over these groups.
 | `color=0xFFFF0000` | ARGB integer for a colour | INTENT §5.5: not accepted; written `Color(0xFFFF0000)` |
 | `Spacer(start=..., top=...)` | spacing parameters | INTENT §5.6: not supported; written `Spacer(modifier=Modifier.padding(...))` |
 | `Column`, `Row`, `Spacer` | imported from `pythonx.compose.material3` | INTENT §5.2: served from both, by the manifest's `[aliases]` (`tests/test_chain.py::ManifestAliases`); render proof pending (#9) |
+| `TextField(text_state=..., padding=8)` | state object and spacing parameter | INTENT §5.8: written `TextField(state=..., modifier=Modifier.padding(8))`; S5.5, `partial` (#10) |
 | `Card`, `Button`, `Text`, `TextField` | as above | S5.2 |
 | `main.App`, `App.update(...)` | live screen replacement from a cell | INTENT §5.1: `@app` declares the root, a redeclaration replaces it, no update function (S5.4, `partial`, issue #11) |
 

@@ -65,6 +65,23 @@ def Main():
 </section>
 
 <section>
+<h2><span data-lang="en">A text field</span><span data-lang="ko">텍스트 필드</span></h2>
+<pre><code class="language-python">from pythonx.compose.material3 import TextField, Text
+from pythonx.compose.foundation.text.input import remember_text_field_state
+
+field = remember_text_field_state(&quot;&quot;)          # inside a composable
+TextField(state=field, label=lambda scope: Text(&quot;Message&quot;))
+field.text                                      # the committed text, read when you need it (say, on submit)
+
+# outside composition, such as a notebook cell
+from pythonx.compose.foundation.text.input import TextFieldState
+draft = TextFieldState(&quot;hi&quot;)
+draft.set_text_and_place_cursor_at_end(&quot;hello&quot;)
+draft.clear_text()</code></pre>
+<p data-lang="en">Compose keeps the text and the input method's composing region, so nothing is sent to Python per keystroke; you read <code>field.text</code> on demand. Keep this state apart from state you stream output into, such as <code>messages = state(&quot;&quot;)</code>. The notebook's <code>TextField(text_state=…, padding=8)</code> has no Kotlin counterpart and is written <code>TextField(state=…, modifier=Modifier.padding(8))</code>. <strong>Status: partial</strong> — tested against a fake host; the input-method proof is python-multiplatform's end-to-end test (#26).</p><p data-lang="ko">Compose 가 텍스트와 입력기의 조합 영역을 보관하므로 키 입력마다 파이썬으로 보내지는 것이 없고, 필요할 때 <code>field.text</code> 를 읽습니다. 이 상태는 출력을 흘려 넣는 상태(예: <code>messages = state(&quot;&quot;)</code>)와 분리해 두세요. 노트북의 <code>TextField(text_state=…, padding=8)</code> 은 Kotlin 에 대응이 없으며 <code>TextField(state=…, modifier=Modifier.padding(8))</code> 로 씁니다. <strong>상태: 부분</strong> — 가짜 호스트로 테스트되었으며, 입력기 증거는 python-multiplatform 의 종단 간 테스트(#26)입니다.</p>
+</section>
+
+<section>
 <h2><span data-lang="en">From the notebook's spelling to the real parameters</span><span data-lang="ko">노트북 표기에서 실제 매개변수로</span></h2>
 <p data-lang="en">The notebook's signatures are examples. The surface follows Compose:</p><p data-lang="ko">노트북의 시그니처는 예시입니다. 실제 표면은 Compose 를 따릅니다:</p>
 <div class="table-wrap"><table>
@@ -74,7 +91,7 @@ def Main():
 <tr><td><code>Text(font_size=30)</code></td><td><code>fontSize</code></td><td><code>font_size</code></td></tr>
 <tr><td><code>Column(horizontal_alignment=…)</code></td><td><code>horizontalAlignment</code></td><td><code>horizontal_alignment</code></td></tr>
 <tr><td><code>Button(corner_radius=50)</code></td><td><span data-lang="en">none — Compose takes a <code>shape</code></span><span data-lang="ko">없음 — Compose 는 <code>shape</code> 를 받음</span></td><td><code>shape</code></td></tr>
-<tr><td><code>TextField(text_state=…)</code></td><td><code>value</code>, <code>onValueChange</code></td><td><code>value</code>, <code>on_value_change</code></td></tr>
+<tr><td><code>TextField(text_state=…, padding=8)</code></td><td><code>state</code>, <code>modifier</code></td><td><code>state=…</code>, <code>modifier=Modifier.padding(8)</code></td></tr>
 </tbody></table></div>
 <p data-lang="en"><code>fontSize</code> is a <code>TextUnit</code>, which packs several fields into one value, so <code>font_size</code> refuses a raw number such as <code>30</code>.</p><p data-lang="ko"><code>fontSize</code> 는 여러 필드를 한 값에 담는 <code>TextUnit</code> 이므로, <code>font_size</code> 는 <code>30</code> 같은 숫자를 거절합니다.</p>
 </section>
@@ -96,7 +113,7 @@ def Main():
 <ul class="clean">
 <li><span data-lang="en">The colour-scheme factories cannot be called yet: they take 36 colour parameters. <code>DefaultIcons</code> is <code>Icons.Default</code>, an icon is a value (an <code>ImageVector</code> to a type checker) read without parentheses — <code>Icon(DefaultIcons.Add, content_description=None)</code>, not the notebook's <code>DefaultIcons.Add()</code> — and it is tested here against a fake host only; the real draw is in python-multiplatform's render test.</span><span data-lang="ko">색 스킴 팩토리는 색 매개변수를 36 개 받아 아직 호출할 수 없습니다. <code>DefaultIcons</code> 는 <code>Icons.Default</code> 이고, 아이콘은 괄호 없이 읽는 값(타입 검사기에는 <code>ImageVector</code>)입니다 — 노트북의 <code>DefaultIcons.Add()</code> 가 아니라 <code>Icon(DefaultIcons.Add, content_description=None)</code>. 여기서는 가짜 호스트로만 테스트되며, 실제 그리기는 python-multiplatform 의 렌더 테스트에 있습니다.</span></li>
 <li><span data-lang="en">A declared app root and Pythonic state — redefining a screen replaces it, with no update call — are planned (issue #11).</span><span data-lang="ko">선언형 앱 루트와 파이썬다운 상태 — 화면을 다시 정의하면 교체되고, 갱신 호출은 없음 — 는 계획 단계입니다(이슈 #11).</span></li>
-<li><span data-lang="en"><code>TextField</code> input-method (IME) handling is pending (issue #10).</span><span data-lang="ko"><code>TextField</code> 의 입력기(IME) 처리는 대기 중입니다(이슈 #10).</span></li>
+<li><span data-lang="en"><code>TextField(state=…)</code> is wired and tested against a fake host only; that the input method's composing sequence survives, with no Python callback per keystroke, is proved in python-multiplatform's end-to-end test (#26).</span><span data-lang="ko"><code>TextField(state=…)</code> 는 가짜 호스트로만 테스트되었습니다. 입력기의 조합 입력이 키 입력마다 파이썬 콜백 없이 유지되는지는 python-multiplatform 의 종단 간 테스트(#26)에서 증명합니다.</span></li>
 <li><span data-lang="en"><code>remember_saveable</code> and the coroutine scopes the notebook imports are planned.</span><span data-lang="ko">노트북이 import 하는 <code>remember_saveable</code>, 코루틴 스코프는 계획 단계입니다.</span></li>
 </ul>
 <div class="pager"><a href="concepts.html">← <span data-lang="en">Concepts</span><span data-lang="ko">개념</span></a><a href="guide-modifiers.html"><span data-lang="en">Modifiers</span><span data-lang="ko">모디파이어</span> →</a></div>
