@@ -301,10 +301,34 @@ class MethodKeywordsNeedTheBindersDescription(AdapterCase):
         self.assertEqual("padding__PaddingValues", self.host.calls[-1])
 
     def test_a_snake_case_keyword_is_the_binders_refusal(self):
+        import python_multiplatform
         import pythonx.compose.foundation.layout as layout
 
+        if hasattr(python_multiplatform, "python_name"):
+            self.skipTest("the binder translates names itself since python-multiplatform #131")
         with self.assertRaises(TypeError):
             self.empty().padding(padding_values=layout.padding_values_of(8))
+
+
+class TheBindersNamingRuleIsThisPackages(AdapterCase):
+    """python-multiplatform #131 restored the binder's own snake_case names, with this package's rule.
+
+    The two must not drift: a name the binder serves and a name this package's stubs and re-export
+    spell would otherwise differ. Skips on a binder that renames nothing.
+    """
+
+    NAMES = ("fillMaxWidth", "toURLString", "zIndex", "padding__Dp_Dp", "onClick", "Modifier",
+             "paddingValuesOf", "HTMLParser", "layoutDirection", "spacedBy", "x")
+
+    def test_both_rules_agree(self):
+        import python_multiplatform
+        from pythonx.compose._reexport import python_name
+
+        if not hasattr(python_multiplatform, "python_name"):
+            self.skipTest("this binder predates python-multiplatform #131")
+        for name in self.NAMES:
+            with self.subTest(name=name):
+                self.assertEqual(python_name(name), python_multiplatform.python_name(name))
 
 
 class Names(AdapterCase):
