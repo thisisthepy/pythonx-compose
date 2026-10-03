@@ -8,6 +8,9 @@ import pythonx.compose.ui.text
 from pythonx.compose.layout import Column as Column
 from pythonx.compose.layout import Row as Row
 from pythonx.compose.layout import Spacer as Spacer
+import pythonx.compose.material.icons as _alias_0
+
+DefaultIcons = _alias_0.Icons.Default
 
 class _ColorScheme_contentColorFor(_t.Protocol):
     def __call__(self, background_color: _t.Any) -> _t.Any: ...

@@ -160,7 +160,8 @@ standalone desktop toolkit.
 | Distribution (`pythonx-compose`) | 🟡 partial — the wheel carries the manifest, the re-export rule, the stubs and `py.typed` |
 | Declared app root (`@app`) and Pythonic state (`state`), no update call | 🟡 partial — binder path tested against a fake host shaped after python-multiplatform #38; real Compose is the E2E module (#11, #19); `state(1)` is refused by the binder (int in an `Any?` slot) |
 | `TextField` input-method (IME) handling | ⏳ planned (#10) |
-| `Icon`, `DefaultIcons`, colour schemes | ⏳ planned (python-multiplatform #37) |
+| `DefaultIcons` (`Icons.Default`), written `DefaultIcons.Add` | 🟡 partial — tested against a fake host shaped after python-multiplatform #37/#38; `Icon(DefaultIcons.Add, …)` is drawn in python-multiplatform's render test |
+| Colour schemes | ⏳ planned |
 | `remember_saveable`, coroutine scopes | ⏳ planned |
 
 The full list is on the guide's [Status page](docs/guide/status.html).

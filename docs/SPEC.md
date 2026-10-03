@@ -14,21 +14,21 @@ Each item carries a status:
 
 A behaviour change starts here, then becomes a failing test, then code (`AGENTS.md` §5).
 
-## 0. Test baseline (2026-10-03, after method keywords)
+## 0. Test baseline (2026-10-03, after DefaultIcons)
 
 Run from a worktree with `python -m pytest tests -q -rs` (pytest 8, mypy 2.4, CPython 3.13), where
 `UI.ipynb` is absent and its one test skips:
 
 | Environment | Result |
 |---|---|
-| No `PythonMultiplatform` checkout found | **116 passed, 87 skipped**, 128 subtests passed |
-| python-multiplatform `develop` at `31c092f0` or later (property rows, #38; `describe_member`, #54; besides `add_member_resolver` and `describe(module, name)`) | **202 passed, 1 skipped**, 155 subtests passed |
+| No `PythonMultiplatform` checkout found | **124 passed, 98 skipped**, 157 subtests passed |
+| python-multiplatform `develop` at `31c092f0` or later (property rows, #38; `describe_member`, #54; besides `add_member_resolver` and `describe(module, name)`) | **221 passed, 1 skipped**, 184 subtests passed |
 | an older checkout, without `describe_member` (python-multiplatform #54) | the same, with 7 more skipped |
 | an older one, without `describe(module, name)` (python-multiplatform #36) | with 13 more skipped again |
 | an older one still, without `add_member_resolver` | with 5 more skipped again |
 
 Measured in a worktree, which has `.tmp/kotlin-stubs.zip` but no `UI.ipynb`. Without a checkout, the
-86 tests that install the binder's layers through `tests/adapter.py` skip, plus the notebook test.
+97 tests that install the binder's layers through `tests/adapter.py` skip, plus the notebook test.
 Against a binder without `describe(module, name)`, the 13 that check grouped constants (§7, S7.1)
 skip. Against a binder without `describe_member`, the 7 that check a method's keywords (S4.1) skip; the 2
 that check the fallback (Kotlin keywords, names resolved) run. Against a binder older than `ba4c6f49`, the 5 that call a snake_case method on a proxy the
@@ -36,7 +36,7 @@ binder returned skip as well, because that needs its member resolver (python-mul
 `TheBinderPath` tests (S5.4). `tests/test_typing.py` skips where mypy is not installed. A skip is not a
 pass.
 
-Of the 116 that pass without a checkout, 48 check the type stubs and the wheel (S1.2); most of the
+Of the 124 that pass without a checkout, 51 check the type stubs and the wheel (S1.2); most of the
 rest assert **absence** (a retired token, a deleted file, a docstring that exists). Those are listed
 in §9 and are not counted as features.
 
@@ -104,7 +104,8 @@ and the name the interpreter resolves cannot drift.
   - a module that maps the same Kotlin package as an earlier one (`pythonx.compose.foundation.layout`)
     re-exports it (`from pythonx.compose.layout import *`), since at run time both names reach the
     same objects; `[aliases]` become re-exports too (`material3` exports `Column`, `Row`, `Spacer`
-    from `pythonx.compose.layout`); names a package defines itself (`runtime.Composable`) are
+    from `pythonx.compose.layout`; a name lent under another one is assigned its path in the
+    source's stub, `DefaultIcons = Icons.Default`, which upstream types as `Icons.Filled`); names a package defines itself (`runtime.Composable`) are
     carried over.
 - **How it is verified.** `tests/test_stubs.py` converts three fixtures: the fake host's
   declarations in the old and the current upstream format (and the current format with an object
@@ -126,7 +127,7 @@ and the name the interpreter resolves cannot drift.
   - Many parameter and return types are `Any`: upstream emits `Any` for a class that shares its
     name with a function (`PaddingValues`, `TextStyle`, `Color`), for packages it does not stub, and
     for an object's own type (`Alignment.Center: Alignment`, python-multiplatform's object self-type);
-    `Icons.Default.Add` is not stubbed upstream (python-multiplatform #68); `Dp` is `float`;
+    `Icons.Default` is typed `Icons.Filled`, but each icon on it (`Add`) is `Any` (python-multiplatform #68); `Dp` is `float`;
     `Arrangement.HorizontalOrVertical` constants and `spaced_by` return `Any` (above).
   - The `pythonx.compose` root module maps `androidx.compose`, which has no stub, so its stub is
     empty.
@@ -154,6 +155,21 @@ Current mapping:
 | `pythonx.compose.ui` (+ `.unit`, `.text`, `.graphics`) | `androidx.compose.ui` (+ same) |
 | `pythonx.compose.layout` | `androidx.compose.foundation.layout` |
 | `pythonx.compose.material3` | `androidx.compose.material3` |
+| `pythonx.compose.material.icons` | `androidx.compose.material.icons` |
+
+**`[aliases]`** lends a module names from another mapped module, as data. Two forms, both under
+`[aliases."<owner module>"]` keyed by the source module: a list of names lent under the **same**
+name (`"pythonx.compose.layout" = ["Column", "Row", "Spacer"]`), or a table `{ lent = "Path.To.Attr" }`
+that lends the attribute path under a **different** name
+(`"pythonx.compose.material.icons" = { DefaultIcons = "Icons.Default" }`, INTENT §5.7). The first
+segment of a path is a name of the source module; each further one is an attribute read. A name with
+no dot is resolved once and kept in the owner's namespace, as before. **A path with a dot is resolved
+on every read and never kept**: `Icons.Default` is a property of an object, which the binder serves
+live (a `STATIC_GETTER` is never cached, python-multiplatform `_adapt`), and the alias reads as the
+binder does, so `from pythonx.compose.material3 import DefaultIcons` gives the Kotlin object
+`Icons.Default` gives (a new proxy for the same Kotlin object on each read). `dir()` lists every
+lent name. `tests/test_pythonx_map.py::TestAliasSection` checks both forms against the manifest;
+`tests/test_chain.py::DefaultIconsAlias` checks them at run time.
 
 Caveat: `test_the_specification_resolves` reads `UI.ipynb` from the checkout it runs in. The
 notebook is git-ignored, so in a worktree or CI checkout it is absent, the expected set is empty,
@@ -272,11 +288,22 @@ toggle family, `TextField`, `Checkbox` and `Switch` are meant to be reached thro
   host binds no material3 declaration, so no test here exercises one; the render proof per widget
   is issue #9.
 
-### S5.3 `Icon` and colour schemes — `planned`
+### S5.3 `DefaultIcons`, `Icon` and colour schemes — `partial`
 
-`Icon` needs an `ImageBitmap` / `ImageVector` / `Painter`, and nothing bound produces one until the
-binder walks `material-icons-core` (python-multiplatform #37; then `DefaultIcons` is
-`Icons.Default`, INTENT §5.7). The two colour-scheme factories take 36 `Color` parameters against
+`DefaultIcons` is `implemented` against the fake host: `pythonx.compose.material.icons`
+(`androidx.compose.material.icons`) serves `Icons`; `Icons.Default` resolves to `Icons.Filled`
+and `Icons.Default.Add` is a top-level extension-property getter on `Icons.Filled` (a `GETTER` row,
+python-multiplatform #37/#38, read on the proxy); `from pythonx.compose.material3 import DefaultIcons`
+is `Icons.Default` by the manifest's `[aliases]` (§2), so `DefaultIcons.Add` is the `ImageVector` and
+an unknown icon is an `AttributeError`. An icon is a **property read, written without parentheses**:
+the notebook's `DefaultIcons.Add()` would call an `ImageVector`, which is not callable; INTENT §5.7
+says the intent is `DefaultIcons.Add`. The rows are shaped after python-multiplatform `31c092f0`
+(`_PROPERTIES`, `_read_property`) and the ecosystem report for #37; no walked
+`material-icons-core` row exists here, and `Icon(DefaultIcons.Add, ...)` is drawn only in
+python-multiplatform's render test. Tests: `tests/test_chain.py::DefaultIconsAlias`; stubs: the
+`material3` stub assigns `DefaultIcons = Icons.Default` (typed `Icons.Filled`; `Add` is `Any` until
+python-multiplatform #68), checked by `tests/test_typing.py::test_default_icons_imports_from_material3`. `Icon` itself is a Material 3 composable, served by the §3 rule.
+Still `planned`: the two colour-scheme factories take 36 `Color` parameters against
 the binding's omission cap (python-multiplatform `a6742a1c`). The hand-written `icon.py` /
 `color_scheme.py` that recorded this were dead code and are deleted (#31).
 
@@ -406,7 +433,7 @@ the binder lists no member that would win over these groups.
 |---|---|---|
 | `remember_saveable` | imported from `pythonx.compose.runtime`; state read/written with `getValue()` / `setValue()` | INTENT §5.1: `state(initial)` read and written through `.value` (S5.4, `partial`, #11; an `int` initial value is refused by the binder until python-multiplatform #69); keeping a value across recreation is not provided |
 | `DefaultCoroutineScope`, `MainCoroutineScope` | imported from `pythonx.compose.runtime` | INTENT §4.1, open |
-| `DefaultIcons` | `DefaultIcons.Add()` | INTENT §5.7: `Icons.Default` by alias, once python-multiplatform #37 binds `material-icons-core` |
+| `DefaultIcons` | `DefaultIcons.Add()` | INTENT §5.7, `implemented` as `DefaultIcons.Add`. The notebook's `Add()` is the spelling of its time; the current spelling is `Add`, a property read without parentheses, as for every constant (decided with the ecosystem lead; S5.3, `tests/test_chain.py::DefaultIconsAlias`, fake host) |
 | `modifier` | lower-case instance from `pythonx.compose.ui` | INTENT §5.4: not provided; written `Modifier` |
 | `color=0xFFFF0000` | ARGB integer for a colour | INTENT §5.5: not accepted; written `Color(0xFFFF0000)` |
 | `Spacer(start=..., top=...)` | spacing parameters | INTENT §5.6: not supported; written `Spacer(modifier=Modifier.padding(...))` |

@@ -649,6 +649,83 @@ class ManifestAliases(AdapterCase):
             material3.padding_values_of  # noqa: B018
 
 
+class DefaultIconsAlias(AdapterCase):
+    """INTENT 5.7: `DefaultIcons` is `Icons.Default`, lent by `material3` under another name and path."""
+
+    def label_of(self, proxy):
+        return self.host._object(proxy._pm_handle).label
+
+    def test_the_icons_module_serves_icons_by_the_rule(self):
+        from pythonx.compose.material.icons import Icons
+
+        default = Icons.Default  # held: dropping a proxy releases its handle
+        self.assertIs(self.host.filled, self.host._object(default._pm_handle))
+
+    def test_the_icon_is_the_extension_property_getter_on_icons_filled(self):
+        from pythonx.compose.material.icons import Icons
+
+        self.assertEqual("Add", self.label_of(Icons.Default.Add))
+        self.assertEqual(["Icons.Filled.Add"], self.host.calls)
+
+    def test_the_notebook_import_resolves(self):
+        from pythonx.compose.material3 import DefaultIcons
+
+        self.assertIsNotNone(DefaultIcons)
+
+    def test_default_icons_is_icons_default(self):
+        from pythonx.compose.material.icons import Icons
+        from pythonx.compose.material3 import DefaultIcons
+
+        # The same Kotlin object: a read yields a proxy, and both reads reach the one `Icons.Filled`.
+        default = Icons.Default
+        self.assertIs(self.host._object(default._pm_handle), self.host._object(DefaultIcons._pm_handle))
+        self.assertIs(self.host.filled, self.host._object(DefaultIcons._pm_handle))
+
+    def test_the_alias_reaches_the_getter(self):
+        from pythonx.compose.material3 import DefaultIcons
+
+        self.assertEqual("Add", self.label_of(DefaultIcons.Add))
+        self.assertEqual("Edit", self.label_of(DefaultIcons.Edit))
+        self.assertEqual(["Icons.Filled.Add", "Icons.Filled.Edit"], self.host.calls)
+
+    def test_the_alias_is_read_again_each_time_as_the_binder_serves_icons_default(self):
+        import pythonx.compose.material3 as material3
+
+        first, second = material3.DefaultIcons, material3.DefaultIcons
+        self.assertIsNot(first, second)
+        self.assertNotIn("DefaultIcons", vars(material3))
+
+    def test_dir_of_material3_lists_default_icons(self):
+        import pythonx.compose.material3 as material3
+
+        self.assertIn("DefaultIcons", dir(material3))
+
+    def test_an_unknown_icon_is_an_attribute_error(self):
+        from pythonx.compose.material3 import DefaultIcons
+
+        with self.assertRaises(AttributeError):
+            DefaultIcons.NoSuchIcon  # noqa: B018
+
+    def test_the_icon_is_a_value_not_a_call(self):
+        # The notebook writes `DefaultIcons.Add()`; an icon is a property read, so a call is refused.
+        from pythonx.compose.material3 import DefaultIcons
+
+        with self.assertRaises(TypeError):
+            DefaultIcons.Add()
+
+    def test_the_name_is_not_borrowed_by_another_module(self):
+        import pythonx.compose.layout as layout
+
+        with self.assertRaises(AttributeError):
+            layout.DefaultIcons  # noqa: B018
+
+    def test_the_list_form_still_lends_under_the_same_name(self):
+        from pythonx.compose.layout import Spacer as home
+        from pythonx.compose.material3 import Spacer
+
+        self.assertIs(home, Spacer)
+
+
 class SubmodulesWithoutABinder(unittest.TestCase):
     """`from pythonx.compose.ui import modifier` reaches the file even when no binder is installed.
 
