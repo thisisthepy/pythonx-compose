@@ -4,7 +4,7 @@
 
 # pythonx-compose
 
-**Compose UI 를 파이썬으로 — Compose 의 위젯 그대로, 파이썬다운 이름으로.**
+**Compose UI 를 파이썬으로, Compose 의 위젯 그대로, 파이썬다운 이름으로.**
 
 [![License: Apache-2.0](https://img.shields.io/badge/license-Apache--2.0-7c4dff.svg)](https://github.com/thisisthepy/pythonx-compose/blob/main/LICENSE)
 [![Python](https://img.shields.io/badge/python-3.11%2B-7c4dff.svg)](https://github.com/thisisthepy/pythonx-compose/blob/main/pyproject.toml)
@@ -19,7 +19,7 @@
 
 ## 왜 만드는가
 
-Jetpack Compose 와 Compose Multiplatform 은 UI 를 만드는 훌륭한 방법입니다 — Kotlin 을 쓴다면요.
+Jetpack Compose 와 Compose Multiplatform 은 UI 를 만드는 훌륭한 방법입니다. Kotlin 을 쓴다면요.
 `pythonx-compose` 는 파이썬을 쓰는 사람을 위한 것입니다. Compose 를 다시 구현하지도, 새 위젯 세트를
 만들지도 않습니다. [python-multiplatform](https://github.com/thisisthepy/python-multiplatform) 이
 Kotlin 이름 그대로 파이썬에 노출한 실제 `androidx.compose.*` API 를 가져와, 파이썬다운 패키지
@@ -53,7 +53,7 @@ def Greeting():
   수도 있습니다: `Alignment.Horizontal.End` 는 `Alignment.End` 입니다.
 - **`@Composable` 은 그대로.** 화면은 데코레이터가 붙은 파이썬 함수입니다.
 - **실제 패키지.** `pythonx/` 는 `androidx.compose.*` 를 import 해 재구성하는 평범한 파이썬
-  소스입니다. 바인더는 아무 이름도 바꾸지 않습니다 — 이름을 바꾸는 것은 이 패키지의 일입니다.
+  소스입니다. 바인더는 아무 이름도 바꾸지 않습니다. 이름을 바꾸는 것은 이 패키지의 일입니다.
 - **하나의 매니페스트.** [`pythonx-map.toml`](https://github.com/thisisthepy/pythonx-compose/blob/main/pythonx/compose/pythonx-map.toml) 이 어떤 `pythonx.compose.*`
   모듈이 어떤 Kotlin 패키지에 대응하는지 적습니다. 이 파일은 패키지 안에 있으며 wheel 에 함께
   담깁니다. 런타임과 `.pyi` 생성기가 같은 파일을 읽으므로, 편집기가 자동완성하는 이름과 인터프리터가
@@ -85,15 +85,22 @@ flowchart LR
 
 > [!NOTE]
 > `pythonx-compose` 는 **알파** 단계입니다. `0.1.0a1` 이 [PyPI](https://pypi.org/project/pythonx-compose/) 에
-> 있으며, 프리릴리스이므로 `pip install --pre pythonx-compose` 로 설치합니다.
+> 있으며, 프리릴리스이므로 uv(또는 ppp, tcl)로 설치합니다.
+
+```bash
+uv add --prerelease allow pythonx-compose
+# 또는 pypackpack 으로, ppp 워크스페이스의 패키지에 추가:
+ppp core add "pythonx-compose==0.1.0a1"
+# 또는 toolchain-lite 로:
+tcl install pythonx-compose
+```
 
 클론에서 테스트를 돌리려면:
 
 ```bash
 git clone https://github.com/thisisthepy/pythonx-compose
 cd pythonx-compose
-python3 -m pip install pytest      # 가상환경 안에서
-python3 -m pytest tests -q
+uv run --with pytest --with mypy pytest tests -q
 ```
 
 저장소 루트에서 지금 동작하는 것:
@@ -152,15 +159,15 @@ pip 패키지 **`pythonx-compose`**(파이썬 3.11 이상)로 배포되며, impo
 | `androidx.compose.*` 를 규칙 하나로 재노출하는 실제 디스크 패키지 `pythonx` | ✅ 구현, 테스트됨 |
 | snake_case 메서드를 쓰는 `Modifier` 체인, 오버로드 디스패치, 숫자로 쓰는 `Dp` | ✅ 구현, 바인더 계층으로 테스트됨 |
 | `layout` 뿐 아니라 `material3` 에서도 쓰는 `Column`, `Row`, `Spacer` | ✅ 구현, 테스트됨 |
-| `snake_case` 메서드 키워드 인자 | ✅ 구현, 테스트됨 — 모듈 함수와 메서드(메서드는 python-multiplatform 의 `describe_member` 필요) |
-| 빈 `Modifier` | 🟡 부분 — 클래스에서 시작하는 `Modifier.padding(16)` 은 실제 Compose 에서 앱이 제공하는 팩토리가 필요 |
-| `Alignment` / `Arrangement` | ✅ 구현 및 테스트 — `Alignment.Center`, `Arrangement.spaced_by(8)`, 그리고 `Alignment.End` 와 나란히 묶음 표기 `Alignment.Horizontal.End` |
-| Material 3 위젯 (`Text`, `Button`, `Card`, `TextField`, …) | 🟡 부분 — 규칙으로 재노출됨; 위젯별 렌더 증거 대기(#9) |
+| `snake_case` 메서드 키워드 인자 | ✅ 구현, 테스트됨: 모듈 함수와 메서드(메서드는 python-multiplatform 의 `describe_member` 필요) |
+| 빈 `Modifier` | 🟡 부분: 클래스에서 시작하는 `Modifier.padding(16)` 은 실제 Compose 에서 앱이 제공하는 팩토리가 필요 |
+| `Alignment` / `Arrangement` | ✅ 구현 및 테스트: `Alignment.Center`, `Arrangement.spaced_by(8)`, 그리고 `Alignment.End` 와 나란히 묶음 표기 `Alignment.Horizontal.End` |
+| Material 3 위젯 (`Text`, `Button`, `Card`, `TextField`, …) | 🟡 부분: 규칙으로 재노출됨; 위젯별 렌더 증거 대기(#9) |
 | 실제 Compose 1.11.1 에서 생성한 타입 스텁(`.pyi`), `py.typed` | ✅ 구현, mypy 로 검사; 아직 많은 타입이 `Any` 입니다(#12) |
-| 배포 (`pythonx-compose`) | 🟡 부분 — wheel 에 매니페스트, 재노출 규칙, 스텁, `py.typed` 포함 |
-| 갱신 호출 없는 선언형 앱 루트(`@app`)와 파이썬다운 상태(`state`) | 🟡 부분 — 바인더 경로는 python-multiplatform #38 모양의 가짜 호스트로 테스트됨, 실제 Compose 는 E2E 모듈(#11, #19), 숫자와 문자열은 `state` 로 왕복됨 |
-| `TextField(state=...)` 와 `TextFieldState` (`pythonx.compose.foundation.text.input`) | 🟡 부분 — python-multiplatform #73 모양의 가짜 호스트로 테스트됨; 입력기(IME) 조합 증거는 python-multiplatform E2E #26 (#10) |
-| `DefaultIcons`(`Icons.Default`), `DefaultIcons.Add` 로 씀 | 🟡 부분 — python-multiplatform #37/#38 모양의 가짜 호스트로 테스트됨; `Icon(DefaultIcons.Add, …)` 의 실제 그리기는 python-multiplatform 의 렌더 테스트에 있음 |
+| 배포 (`pythonx-compose`) | 🟡 부분: wheel 에 매니페스트, 재노출 규칙, 스텁, `py.typed` 포함 |
+| 갱신 호출 없는 선언형 앱 루트(`@app`)와 파이썬다운 상태(`state`) | 🟡 부분: 바인더 경로는 python-multiplatform #38 모양의 가짜 호스트로 테스트됨, 실제 Compose 는 E2E 모듈(#11, #19), 숫자와 문자열은 `state` 로 왕복됨 |
+| `TextField(state=...)` 와 `TextFieldState` (`pythonx.compose.foundation.text.input`) | 🟡 부분: python-multiplatform #73 모양의 가짜 호스트로 테스트됨; 입력기(IME) 조합 증거는 python-multiplatform E2E #26 (#10) |
+| `DefaultIcons`(`Icons.Default`), `DefaultIcons.Add` 로 씀 | 🟡 부분: python-multiplatform #37/#38 모양의 가짜 호스트로 테스트됨; `Icon(DefaultIcons.Add, …)` 의 실제 그리기는 python-multiplatform 의 렌더 테스트에 있음 |
 | 색 스킴 | ⏳ 계획 |
 | `remember_saveable`, 코루틴 스코프 | ⏳ 계획 |
 
@@ -168,15 +175,15 @@ pip 패키지 **`pythonx-compose`**(파이썬 3.11 이상)로 배포되며, impo
 
 ## 📖 문서
 
-- **가이드** — [`docs/guide/`](https://thisisthepy.github.io/pythonx-compose/), 영어 / 한국어
-- **English README** — [`README.md`](https://github.com/thisisthepy/pythonx-compose/blob/main/README.md)
+- **가이드**: [`docs/guide/`](https://thisisthepy.github.io/pythonx-compose/), 영어 / 한국어
+- **English README**: [`README.md`](https://github.com/thisisthepy/pythonx-compose/blob/main/README.md)
 
 ## 🔌 생태계
 
 | 저장소 | 역할 |
 |---|---|
 | [python-multiplatform](https://github.com/thisisthepy/python-multiplatform) | 바인더: Kotlin Multiplatform 에 임베딩한 CPython, Kotlin 을 Kotlin 이름 그대로 파이썬에 노출 |
-| **pythonx-compose** | 파이썬을 위해 재구성한 Compose — 이 저장소 |
+| **pythonx-compose** | 파이썬을 위해 재구성한 Compose (이 저장소) |
 | [toolchain](https://github.com/thisisthepy/toolchain) | Python Multiplatform 앱을 위한 Gradle 빌드 플러그인 |
 | [pypackpack](https://github.com/thisisthepy/pypackpack) | 파이썬 프로젝트의 멀티플랫폼 배포 |
 | [torchnative](https://github.com/thisisthepy/torchnative) | 실제 PyTorch 생태계를 기기에서 실행 |

@@ -14,8 +14,8 @@ overrides any default your tooling has.
 
 ## 2. Nothing is created outside this repository
 
-Everything your work produces — worktrees, agent prompts, logs, measurements, experiments, scratch
-files — lives **inside this repository's root directory.**
+Everything your work produces (worktrees, agent prompts, logs, measurements, experiments, scratch
+files) lives **inside this repository's root directory.**
 
 | What | Where |
 |---|---|
@@ -27,8 +27,8 @@ files — lives **inside this repository's root directory.**
 
 Before writing a file, check that its absolute path starts with this repository's root. If it does
 not, stop. The only exceptions are a path the user names explicitly, and caches that build tools
-manage themselves. **Re-pointing a shared cache or a home-directory symlink reaches other projects —
-ask first.**
+manage themselves. **Re-pointing a shared cache or a home-directory symlink reaches other projects.
+Ask first.**
 
 Writing to *another* repository is not an exception either. Do it only when told to work there.
 
@@ -41,8 +41,8 @@ existing modules and directories: source inside the package (`pythonx/`), CI scr
 The standing root entries are `pyproject.toml`, `README.md`, `LICENSE`, `PROJECT.md`, `AGENTS.md`,
 `pythonx/`, `scripts/` (approved by the maintainer, 2026-10-03), `tests/`, `docs/`, `.github/`,
 `.gitignore` and `.gitattributes`, plus the maintainer's
-untracked `UI.ipynb`. If a new top-level entry seems necessary, propose it — what it is, why, and
-why it cannot live inside an existing directory — and wait for approval.
+untracked `UI.ipynb`. If a new top-level entry seems necessary, propose it (what it is, why, and
+why it cannot live inside an existing directory) and wait for approval.
 
 ## 3. Worktrees link large artefacts instead of copying them
 
@@ -80,7 +80,7 @@ Every new feature goes through an issue and a pull request:
 
 1. Before starting, search the repository's issues (`gh issue list --state all --search "<keywords>"`).
 2. If no issue covers the work, open one (`gh issue create`) stating what and why, and the
-   completion criterion — which tests must pass.
+   completion criterion, that is, which tests must pass.
 3. Work on a `feat/<topic>` branch, push every commit, and open a pull request into `develop`
    whose body contains `Closes #<number>`.
 4. Merge into `develop` through that pull request (`gh pr merge --merge --delete-branch`), not by a
@@ -104,18 +104,18 @@ If a request conflicts with `docs/INTENT.md`, say so instead of implementing it.
 
 ## 6. User-authored files are specification
 
-Files the user wrote by hand — notebooks, example build files, sample apps — are the specification.
+Files the user wrote by hand (notebooks, example build files, sample apps) are the specification.
 Read them **first**. Never delete, rewrite, or `git add` them without being told to. Generated
 documentation (roadmaps, design notes) is a record of work, not a requirement; when the two
 disagree, the user's file wins.
 
 ## 7. Show a conclusion before acting on it
 
-Anything beyond the immediate request — another repository, a public API signature, deleting
-files, killing processes, force-pushing, changing branch protection — state what you would do and
+Anything beyond the immediate request (another repository, a public API signature, deleting
+files, killing processes, force-pushing, changing branch protection): state what you would do and
 why, and wait. Investigating, measuring, and reporting are always fine.
 
-**Push every commit right away.** After you commit — on a work branch or on `develop` — push it to
+**Push every commit right away.** After you commit, on a work branch or on `develop`, push it to
 the remote immediately; no confirmation is needed. Never push to `main` or `release` by hand, and
 never force-push without the user's explicit approval.
 
@@ -155,17 +155,17 @@ to implement", say what you counted against.
 - Give every agent prompt the absolute paths it may write to, and repeat rule 2 in it.
 - **Subagents do not run heavy local builds.** Subagents write code, design, investigate, review
   and document. Gradle builds, cargo builds, the test gate and model runs are done by the session
-  itself — one at a time on this machine — or by CI (GitHub Actions) on a pushed branch. Several
+  itself (one at a time on this machine) or by CI (GitHub Actions) on a pushed branch. Several
   sessions share one machine; parallel local builds slow every one of them.
 
 ---
 
-# Repository-specific rules — `pythonx-compose`
+# Repository-specific rules: `pythonx-compose`
 
 ## 11. The specification is the user's notebook
 
 `UI.ipynb` is this project's user-facing specification. It lives only in the maintainer's main
-checkout, is git-ignored, and is **never** copied, moved, edited, or `git add`ed — not even into a
+checkout, is git-ignored, and is **never** copied, moved, edited, or `git add`ed, not even into a
 worktree so a test can see it. Read it in place.
 
 - Its function signatures are **naming examples**. The rule they illustrate is: expose the original
@@ -181,7 +181,7 @@ worktree so a test can see it. Read it in place.
 
 - `python-multiplatform` exposes Kotlin declarations under their **Kotlin** names
   (`androidx.compose.material3`). It must never map `androidx` to `pythonx` or rename any Kotlin
-  namespace. Do not propose, add, or depend on such a feature there — including in test harnesses.
+  namespace. Do not propose, add, or depend on such a feature there, including in test harnesses.
 - `pythonx/` is a **real package on disk**. Its modules import the `androidx.compose.*` modules the
   binder exposes and restructure them Pythonically. A design in which something else synthesises
   `pythonx.*` (for example with `__path__ = []`) and the on-disk files cannot be imported is ruled
@@ -200,7 +200,7 @@ worktree so a test can see it. Read it in place.
 
 ## 14. Running the tests
 
-    python3 -m pytest tests -q
+    uv run --with pytest --with mypy pytest tests -q
 
 - The suite needs `pytest`; if the system Python has none, create a virtual environment under
   `.tmp/` (rule 2), not in the home directory.
@@ -229,11 +229,11 @@ worktree so a test can see it. Read it in place.
   publishes through PyPI trusted publishing (environment `pypi`). Pushing a tag alone publishes
   nothing. Never upload by hand, and never store a PyPI token.
 - `.pyi` stubs, `py.typed` and the manifest must end up **inside the wheel**. A `package-data`
-  pattern is not proof — build the wheel and list it before claiming something ships.
+  pattern is not proof: build the wheel and list it before claiming something ships.
 
 ## 16. Things you do not change without the maintainer
 
-- **The root layout** — see section 2, "Do not add top-level folders".
+- **The root layout**: see section 2, "Do not add top-level folders".
 - The retired `test/` sample, `pythonx/compose/lite/` and the `pythonx/compose/native` submodule
   were removed in #60; they stay reachable through the tag `archive/pre-restructure`. Do not bring
   them back.
@@ -241,10 +241,20 @@ worktree so a test can see it. Read it in place.
 ## 17. Documentation layout
 
 - `README.md` (English) and `docs/locale/README_ko.md` (Korean) say the same thing; change both.
+- Write in the house style, `docs/style/writing.md`: voice, the English and Korean pairing, terms
+  and mechanics. It is the reference for every thisisthepy repository's documentation.
 - `docs/guide/` is the bilingual GitHub Pages site. Every visible string exists in English and
-  Korean. `python3 .github/scripts/check_guide.py` is its checker, and `tests/test_guide.py` runs it
+  Korean. `uv run python .github/scripts/check_guide.py` is its checker, and `tests/test_guide.py` runs it
   in the suite.
 - No Markdown files directly under `docs/` other than `INTENT.md` and `SPEC.md`; other documents go
   in a topic subdirectory. `README.md` must not link to `AGENTS.md`, `PROJECT.md`,
-  `docs/INTENT.md` or `docs/SPEC.md` — those files do not exist on `main`.
+  `docs/INTENT.md` or `docs/SPEC.md`, because those files do not exist on `main`.
 - There is no `CLAUDE.md`: Claude Code reads this file directly. Rules go here.
+- No em-dash (U+2014) anywhere in documents or code: Markdown, the guide's HTML and CSS, workflows,
+  `pyproject.toml`, Python comments, docstrings and strings, tests. Split the sentence or use a
+  comma, colon or parentheses, whichever reads best. The en-dash in ranges (2023–2024, 3.11–3.13)
+  is fine.
+- Install and run examples use only uv, ppp (pypackpack) and tcl (toolchain-lite): `uv add
+  --prerelease allow pythonx-compose`, `ppp core add "pythonx-compose==0.1.0a1"`, `tcl install
+  pythonx-compose`, `uv run ...`. No `pip` examples. The published 0.1.0a1 Release notes are a
+  record and stay as they are.

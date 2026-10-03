@@ -31,9 +31,9 @@ r.lang=l;if(t==='dark'||t==='light'){r.setAttribute('data-theme',t);}})();</scri
 
 <div class="wrap">
 <section class="hero">
-<span class="eyebrow"><span class="dot"></span><span data-lang="en">pre-alpha · pip install --pre pythonx-compose</span><span data-lang="ko">pre-alpha · pip install --pre pythonx-compose</span></span>
+<span class="eyebrow"><span class="dot"></span><span data-lang="en">pre-alpha · uv add --prerelease allow pythonx-compose</span><span data-lang="ko">pre-alpha · uv add --prerelease allow pythonx-compose</span></span>
 <h1><span data-lang="en">Compose, <em>in Python.</em></span><span data-lang="ko">Compose 를, <em>파이썬으로.</em></span></h1>
-<p class="lead"><span data-lang="en">The real Compose widgets with their real parameters — restructured into a Python package, spelled the way Python spells things.</span><span data-lang="ko">진짜 Compose 위젯과 진짜 매개변수를 — 파이썬 패키지로 재구성해, 파이썬이 쓰는 방식대로 씁니다.</span></p>
+<p class="lead"><span data-lang="en">The real Compose widgets with their real parameters, restructured into a Python package, spelled the way Python spells things.</span><span data-lang="ko">진짜 Compose 위젯과 진짜 매개변수를, 파이썬 패키지로 재구성해, 파이썬이 쓰는 방식대로 씁니다.</span></p>
 <div class="cta">
 <a class="btn primary" href="getting-started.html"><span data-lang="en">Get started</span><span data-lang="ko">시작하기</span> →</a>
 <a class="btn" href="concepts.html"><span data-lang="en">How it works</span><span data-lang="ko">동작 방식</span></a>
@@ -77,15 +77,15 @@ r.lang=l;if(t==='dark'||t==='light'){r.setAttribute('data-theme',t);}})();</scri
 <h2><span data-lang="en">What it holds to</span><span data-lang="ko">지키는 것</span></h2>
 <div class="grid">
 <div class="card"><span class="glyph" translate="no">onClick → on_click</span><h3><span data-lang="en">The original API</span><span data-lang="ko">원래 API 그대로</span></h3><p data-lang="en">Compose's own parameters, in <code>snake_case</code>. No convenience parameters Kotlin does not have.</p><p data-lang="ko">Compose 자신의 매개변수를 <code>snake_case</code> 로. Kotlin 에 없는 편의 매개변수는 만들지 않습니다.</p></div>
-<div class="card"><span class="glyph" translate="no">Modifier.padding(16).size(24)</span><h3><span data-lang="en">Extensions are methods</span><span data-lang="ko">확장 함수는 메서드</span></h3><p data-lang="en">A Kotlin extension function is a method on its receiver, so chains read as they do in Kotlin — <code>fill_max_width()</code> included.</p><p data-lang="ko">Kotlin 확장 함수는 수신 객체의 메서드가 되어, 체인이 Kotlin 에서처럼 읽힙니다 — <code>fill_max_width()</code> 도 마찬가지입니다.</p></div>
+<div class="card"><span class="glyph" translate="no">Modifier.padding(16).size(24)</span><h3><span data-lang="en">Extensions are methods</span><span data-lang="ko">확장 함수는 메서드</span></h3><p data-lang="en">A Kotlin extension function is a method on its receiver, so chains read as they do in Kotlin, <code>fill_max_width()</code> included.</p><p data-lang="ko">Kotlin 확장 함수는 수신 객체의 메서드가 되어, 체인이 Kotlin 에서처럼 읽힙니다. <code>fill_max_width()</code> 도 마찬가지입니다.</p></div>
 <div class="card"><span class="glyph" translate="no">import androidx.compose…</span><h3><span data-lang="en">A real package</span><span data-lang="ko">실제 패키지</span></h3><p data-lang="en"><code>pythonx/</code> is ordinary Python on disk. Renaming happens here, never in the binder.</p><p data-lang="ko"><code>pythonx/</code> 는 디스크에 있는 평범한 파이썬입니다. 이름 바꾸기는 여기서 하고, 바인더에서는 하지 않습니다.</p></div>
 <div class="card"><span class="glyph" translate="no">@Composable</span><h3><span data-lang="en">Composable stays</span><span data-lang="ko">@Composable 은 그대로</span></h3><p data-lang="en">Screens are decorated Python functions, the way the notebook writes them.</p><p data-lang="ko">화면은 노트북이 쓰는 그대로, 데코레이터가 붙은 파이썬 함수입니다.</p></div>
 </div>
 <h3><span data-lang="en">What it is not</span><span data-lang="ko">이것이 아닌 것</span></h3>
 <ul class="clean not">
-<li><span data-lang="en">Not the binder — embedding CPython and the FFI belong to python-multiplatform.</span><span data-lang="ko">바인더가 아닙니다 — CPython 임베딩과 FFI 는 python-multiplatform 의 몫입니다.</span></li>
+<li><span data-lang="en">Not the binder: embedding CPython and the FFI belong to python-multiplatform.</span><span data-lang="ko">바인더가 아닙니다: CPython 임베딩과 FFI 는 python-multiplatform 의 몫입니다.</span></li>
 <li><span data-lang="en">Not a reimplementation of Compose, and not a new widget set.</span><span data-lang="ko">Compose 의 재구현도, 새 위젯 세트도 아닙니다.</span></li>
-<li><span data-lang="en">Not runtime reflection — bindings are produced at build time, because native images and Kotlin/Native have none.</span><span data-lang="ko">런타임 리플렉션이 아닙니다 — 네이티브 이미지와 Kotlin/Native 에는 리플렉션이 없으므로 바인딩은 빌드 타임에 만듭니다.</span></li>
+<li><span data-lang="en">Not runtime reflection: bindings are produced at build time, because native images and Kotlin/Native have none.</span><span data-lang="ko">런타임 리플렉션이 아닙니다: 네이티브 이미지와 Kotlin/Native 에는 리플렉션이 없으므로 바인딩은 빌드 타임에 만듭니다.</span></li>
 </ul>
 </section>
 </div>
@@ -93,7 +93,7 @@ r.lang=l;if(t==='dark'||t==='light'){r.setAttribute('data-theme',t);}})();</scri
 </main>
 <footer>
 <div class="wrap">
-<span><span data-lang="en">pythonx-compose — Compose, restructured for Python.</span><span data-lang="ko">pythonx-compose — 파이썬을 위해 재구성한 Compose.</span></span>
+<span><span data-lang="en">pythonx-compose: Compose, restructured for Python.</span><span data-lang="ko">pythonx-compose: 파이썬을 위해 재구성한 Compose.</span></span>
 <span><a href="https://github.com/thisisthepy/pythonx-compose">GitHub</a> · <span data-lang="en">Apache License 2.0</span><span data-lang="ko">Apache 라이선스 2.0</span></span>
 </div>
 </footer>

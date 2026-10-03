@@ -1,4 +1,4 @@
-# PROJECT — pythonx-compose
+# PROJECT: pythonx-compose
 
 프로젝트 운영에 필요한 핵심 사항을 정리한 문서입니다. 의도는 `docs/INTENT.md`, 동작 계약은
 `docs/SPEC.md`, 에이전트 규정은 `AGENTS.md` 에 있습니다.
@@ -28,13 +28,13 @@ Compose(`androidx.compose.*`)를 파이썬에서 쓰기 위한 pip 패키지 **`
 | 상태 | 항목 |
 |---|---|
 | 구현 | 매핑 매니페스트 `pythonx-map.toml`, `@Composable` 항등 데코레이터, 실제 디스크 패키지 `pythonx` 와 모듈 수준 규칙 기반 재노출(snake_case 이름·키워드·시그니처, 오버로드 디스패치, 값 클래스 허용 목록), 실제 Compose 1.11.1 에서 생성한 `.pyi` 스텁과 `py.typed`(wheel 포함, mypy 로 검사), `Alignment`/`Arrangement` 상수(평면 `Alignment.End` 와 묶음 `Alignment.Horizontal.End` 모두, #9), proxy 메서드의 snake_case 키워드 인자(`m.padding(padding_values=...)`, python-multiplatform `describe_member` 필요; Kotlin 이름도 실행 시 그대로 통하고 스텁은 snake_case 만) |
-| 부분 | 선언형 앱 루트 `@app`·`state`·`app_root`(#11; 로직은 테스트됨, 바인더 경로는 #38 모양의 가짜 호스트로 테스트됨, 실제 Compose 증거는 E2E 모듈 #19; 숫자·문자열 상태는 python-multiplatform #69 부터 왕복됨), 배포 설정, Material 3 위젯(렌더 증거는 python-multiplatform 에만), `Icon`(import 만 됨)·`DefaultIcons`(`Icons.Default` alias, 가짜 호스트로만 테스트됨, 스텁에서는 `DefaultIcons.Add` 가 `ImageVector`; `DefaultIcons.Add` 로 쓴다 — 노트북의 `DefaultIcons.Add()` 가 아님), `TextField(state=...)`·`TextFieldState`(#10; `pythonx.compose.foundation.text.input`, 가짜 호스트로 테스트됨, 노트북의 `text_state=`/`padding=` 는 `state=`/`modifier=Modifier.padding(8)`; IME 조합 증거는 python-multiplatform E2E #26) |
+| 부분 | 선언형 앱 루트 `@app`·`state`·`app_root`(#11; 로직은 테스트됨, 바인더 경로는 #38 모양의 가짜 호스트로 테스트됨, 실제 Compose 증거는 E2E 모듈 #19; 숫자·문자열 상태는 python-multiplatform #69 부터 왕복됨), 배포 설정, Material 3 위젯(렌더 증거는 python-multiplatform 에만), `Icon`(import 만 됨)·`DefaultIcons`(`Icons.Default` alias, 가짜 호스트로만 테스트됨, 스텁에서는 `DefaultIcons.Add` 가 `ImageVector`; `DefaultIcons.Add` 로 쓴다; 노트북의 `DefaultIcons.Add()` 가 아님), `TextField(state=...)`·`TextFieldState`(#10; `pythonx.compose.foundation.text.input`, 가짜 호스트로 테스트됨, 노트북의 `text_state=`/`padding=` 는 `state=`/`modifier=Modifier.padding(8)`; IME 조합 증거는 python-multiplatform E2E #26) |
 | 계획 | `remember_saveable`·색 스킴·코루틴 스코프 |
 
 ### 테스트 기준선
 
 ```
-python3 -m pytest tests -q
+uv run --with pytest --with mypy pytest tests -q
   PythonMultiplatform 체크아웃 없음       140 passed, 112 skipped
   python-multiplatform develop 31c092f0+    251 passed, 1 skipped
   describe_member 없는 체크아웃             같은 수, 그중 7 개 건너뜀  (python-multiplatform #54 이전)
@@ -84,9 +84,9 @@ docs/INTENT.md  docs/SPEC.md  docs/locale/  docs/guide/
 ## 5. 빌드·테스트
 
 ```bash
-python3 -m pytest tests -q                       # 파이썬 테스트
-PYTHONMULTIPLATFORM_HOME=<checkout> python3 -m pytest tests -q   # 바인더 계층 포함
-python3 .github/scripts/check_guide.py           # 가이드: HTML 파싱, 링크, en/ko 짝 (tests/test_guide.py 도 실행)
+uv run --with pytest --with mypy pytest tests -q   # 파이썬 테스트
+PYTHONMULTIPLATFORM_HOME=<checkout> uv run --with pytest --with mypy pytest tests -q   # 바인더 계층 포함
+uv run python .github/scripts/check_guide.py    # 가이드: HTML 파싱, 링크, en/ko 짝 (tests/test_guide.py 도 실행)
 ```
 
 - pytest 가 없으면 `.tmp/` 아래에 가상환경을 만든다 (홈 디렉터리 금지).
@@ -106,10 +106,10 @@ python3 .github/scripts/check_guide.py           # 가이드: HTML 파싱, 링�
 
 ## 7. 열린 질문 (메인테이너 결정 필요)
 
-1. **코루틴 스코프** — 노트북이 import 하는 `DefaultCoroutineScope`·`MainCoroutineScope`.
-2. **`pythonx-map.toml` 의 이중 표기** — `pythonx.compose.layout` 과
+1. **코루틴 스코프**: 노트북이 import 하는 `DefaultCoroutineScope`·`MainCoroutineScope`.
+2. **`pythonx-map.toml` 의 이중 표기**: `pythonx.compose.layout` 과
    `pythonx.compose.foundation.layout` 를 둘 다 유지할지.
-3. **릴리스·Pages 활성화** — `.github/scripts/release/` 와 `.github/workflows/`(release-sync, pages)는
+3. **릴리스·Pages 활성화**: `.github/scripts/release/` 와 `.github/workflows/`(release-sync, pages)는
    들어와 있다. main 보호는 메인테이너가 저장소 설정에서 직접 관리하며 main 은 잠겨 있다. 스크립트나
    에이전트는 보호 설정을 만들거나 바꾸지 않는다. release→main PR 머지는 메인테이너가 한다.
 
@@ -120,7 +120,7 @@ python3 .github/scripts/check_guide.py           # 가이드: HTML 파싱, 링�
   태그 `archive/pre-restructure` 로 되찾을 수 있다. `tools/` 는 없앴다: 스텁 생성기는
   `scripts/`(메인테이너 승인), 가이드 검사기와 릴리스 스크립트는 `.github/scripts/`.
 
-### 결정됨 (2026-10-03, #62) — 첫 PyPI 릴리스
+### 결정됨 (2026-10-03, #62): 첫 PyPI 릴리스
 
 - 워크플로 이름: `tests.yml` → `test.yml`, PyPI 배포는 `publish-pypi.yml`.
 - 첫 버전은 `0.1.0a1`(알파, 프리릴리스). PyPI 메타데이터(설명·README·라이선스·저자·URL·분류자)는 채웠고,
@@ -129,8 +129,8 @@ python3 .github/scripts/check_guide.py           # 가이드: HTML 파싱, 링�
   `publish-pypi.yml` 이 Release 태그와 `pyproject.toml` 버전을 대조하고, sdist·wheel 을 빌드하고,
   `twine check`·새 venv 스모크를 거쳐 트러스티드 퍼블리싱으로 올린다. 태그만 푸시해서는 아무것도
   올라가지 않는다(같은 버전은 PyPI 에 다시 올릴 수 없으므로 의도적인 단계로 둠). **현황: 0.1.0a1 배포됨**(2026-10-03, develop `134a641` 에서 pre-release
-  `v0.1.0a1`, publish-pypi run 37120641414; https://pypi.org/project/pythonx-compose/). 새 venv 에서
-  `pip install pythonx-compose==0.1.0a1` 후 import 스모크 통과.
+  `v0.1.0a1`, publish-pypi run 37120641414; https://pypi.org/project/pythonx-compose/). PyPI 에서 새로
+  설치한 0.1.0a1 이 import 스모크를 통과했다.
 
 ### 결정됨 (2026-10-03, `docs/INTENT.md` §5)
 
@@ -142,7 +142,7 @@ python3 .github/scripts/check_guide.py           # 가이드: HTML 파싱, 링�
 - **정렬 상수** 는 `Alignment.End` 와 `Alignment.Horizontal.End` 둘 다 지원한다.
 - 소문자 `modifier` 는 두지 않는다(`Modifier` 로 쓴다). ARGB 정수 색은 받지 않는다
   (`Color(0xFFFF0000)`). `Spacer(start=...)` 는 지원하지 않는다(`Modifier.padding`). `DefaultIcons` 는
-  `Icons.Default` 의 alias(매니페스트 `[aliases]` 의 `{ DefaultIcons = "Icons.Default" }`, 읽을 때마다 해석). — `docs/INTENT.md` §5.4–5.7
+  `Icons.Default` 의 alias(매니페스트 `[aliases]` 의 `{ DefaultIcons = "Icons.Default" }`, 읽을 때마다 해석). 근거는 `docs/INTENT.md` §5.4–5.7.
 - 합성된 `pythonx` 를 전제한 테스트·독스트링은 #7 에서 정리했다.
 
 ## 8. 관련 저장소

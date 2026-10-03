@@ -30,22 +30,20 @@ r.lang=l;if(t==='dark'||t==='light'){r.setAttribute('data-theme',t);}})();</scri
 <header class="page-head wrap"><p class="kicker"><span data-lang="en">Getting started</span><span data-lang="ko">시작하기</span></p><h1><span data-lang="en">From clone to first call</span><span data-lang="ko">클론부터 첫 호출까지</span></h1><p class="lead"><span data-lang="en">Five minutes, honest about what runs.</span><span data-lang="ko">5 분, 동작하는 범위를 솔직하게.</span></p></header>
 
 <div class="wrap doc narrow">
-<div class="note"><p data-lang="en">pythonx-compose is an alpha: 0.1.0a1 is on PyPI. As a pre-release it installs with <code>pip install --pre pythonx-compose</code>. This page shows how to get the source, run the tests, and what you can call today.</p><p data-lang="ko">pythonx-compose 는 알파 단계이며 0.1.0a1 이 PyPI 에 있습니다. 프리릴리스이므로 <code>pip install --pre pythonx-compose</code> 로 설치합니다. 이 페이지는 소스를 받고, 테스트를 돌리고, 지금 호출할 수 있는 것을 보여줍니다.</p></div>
+<div class="note"><p data-lang="en">pythonx-compose is an alpha: 0.1.0a1 is on PyPI. As a pre-release it installs with <code>uv add --prerelease allow pythonx-compose</code>; with ppp it is <code>ppp core add &quot;pythonx-compose==0.1.0a1&quot;</code>, with tcl <code>tcl install pythonx-compose</code>. It needs Python 3.11 or later. This page shows how to get the source, run the tests, and what you can call today.</p><p data-lang="ko">pythonx-compose 는 알파 단계이며 0.1.0a1 이 PyPI 에 있습니다. 프리릴리스이므로 <code>uv add --prerelease allow pythonx-compose</code> 로 설치하며, ppp 로는 <code>ppp core add &quot;pythonx-compose==0.1.0a1&quot;</code>, tcl 로는 <code>tcl install pythonx-compose</code> 입니다. 파이썬 3.11 이상이 필요합니다. 이 페이지는 소스를 받고, 테스트를 돌리고, 지금 호출할 수 있는 것을 보여줍니다.</p></div>
 
 <section class="flush">
 <h2><span data-lang="en">1. Get the source</span><span data-lang="ko">1. 소스 받기</span></h2>
 <pre><code class="language-bash">git clone https://github.com/thisisthepy/pythonx-compose
-cd pythonx-compose
-python3 -m venv .venv &amp;&amp; . .venv/bin/activate
-python3 -m pip install pytest mypy      # Python 3.11 or later</code></pre>
+cd pythonx-compose</code></pre>
 </section>
 
 <section>
 <h2><span data-lang="en">2. Run the tests</span><span data-lang="ko">2. 테스트 실행</span></h2>
-<pre><code class="language-bash">python3 -m pytest tests -q</code></pre>
+<pre><code class="language-bash">uv run --with pytest --with mypy pytest tests -q</code></pre>
 <p data-lang="en">Expect <strong>140 passed, 112 skipped</strong>. One skipped test reads the maintainer's <code>UI.ipynb</code>, which a clone does not have; mypy type-checks the stubs. The other skipped tests drive the binder's adaptation layer and need a <a href="https://github.com/thisisthepy/python-multiplatform">python-multiplatform</a> checkout beside this one, or:</p><p data-lang="ko"><strong>140 passed, 112 skipped</strong> 가 정상입니다. 건너뛴 테스트 하나는 클론에는 없는 메인테이너의 <code>UI.ipynb</code> 를 읽으며, mypy 는 스텁을 타입 검사합니다. 나머지 건너뛴 테스트는 바인더의 적응 계층을 구동하며, 옆에 <a href="https://github.com/thisisthepy/python-multiplatform">python-multiplatform</a> 체크아웃이 있거나 다음이 필요합니다:</p>
-<pre><code class="language-bash">PYTHONMULTIPLATFORM_HOME=/path/to/python-multiplatform python3 -m pytest tests -q</code></pre>
-<p data-lang="en">With a current one (<code>31c092f0</code> or later) <strong>251 pass</strong> and 1 skips (the <code>UI.ipynb</code> test); an older one skips 5 that call a snake_case method on a proxy the binder returned. That is expected and recorded.</p><p data-lang="ko">최신 체크아웃(<code>31c092f0</code> 이후)이면 <strong>230 개가 통과</strong>하고 1 개(<code>UI.ipynb</code> 테스트)를 건너뛰며, 오래된 체크아웃은 바인더가 돌려준 proxy 의 snake_case 메서드를 부르는 5 개를 <strong>건너뜁니다</strong>. 예상된 상태이며 기록되어 있습니다.</p>
+<pre><code class="language-bash">PYTHONMULTIPLATFORM_HOME=/path/to/python-multiplatform uv run --with pytest --with mypy pytest tests -q</code></pre>
+<p data-lang="en">With a current one (<code>31c092f0</code> or later) <strong>251 pass</strong> and 1 skips (the <code>UI.ipynb</code> test); an older one skips 5 that call a snake_case method on a proxy the binder returned. That is expected and recorded.</p><p data-lang="ko">최신 체크아웃(<code>31c092f0</code> 이후)이면 <strong>251 개가 통과</strong>하고 1 개(<code>UI.ipynb</code> 테스트)를 건너뛰며, 오래된 체크아웃은 바인더가 돌려준 proxy 의 snake_case 메서드를 부르는 5 개를 <strong>건너뜁니다</strong>. 예상된 상태이며 기록되어 있습니다.</p>
 </section>
 
 <section>
@@ -84,7 +82,7 @@ material3.Text
 
 <section>
 <h2><span data-lang="en">4. What you write in an app</span><span data-lang="ko">4. 앱 안에서 쓰는 코드</span></h2>
-<p data-lang="en">Inside an app whose Kotlin host has installed the binder, a screen looks like this — every name and parameter is Compose's own, spelled by the one rule:</p><p data-lang="ko">Kotlin 호스트가 바인더를 설치한 앱 안에서는, 화면이 이렇게 됩니다 — 모든 이름과 매개변수는 Compose 자신의 것이며, 규칙 하나로 표기됩니다:</p>
+<p data-lang="en">Inside an app whose Kotlin host has installed the binder, a screen looks like this: every name and parameter is Compose's own, spelled by the one rule:</p><p data-lang="ko">Kotlin 호스트가 바인더를 설치한 앱 안에서는, 화면이 이렇게 됩니다. 모든 이름과 매개변수는 Compose 자신의 것이며, 규칙 하나로 표기됩니다:</p>
 <pre><code class="language-python">from pythonx.compose.runtime import Composable
 from pythonx.compose.material3 import Text, Button, Column   # Column also from layout
 from pythonx.compose.layout import Arrangement
@@ -101,7 +99,7 @@ def Practice():
             Button(on_click=lambda: None, content=lambda: Text(&quot;Press&quot;)),
         ),
     )</code></pre>
-<p data-lang="en">Two things to know. A chain that starts from the class, <code>Modifier.padding(16)</code>, needs the app to register an empty-<code>Modifier</code> factory against real Compose — see <a href="guide-modifiers.html">Modifiers</a>. And the screen above runs inside the app; a declared app root that redefining a screen replaces (issue #11) is planned, not built.</p><p data-lang="ko">알아 둘 것이 두 가지 있습니다. 클래스에서 시작하는 체인 <code>Modifier.padding(16)</code> 은 실제 Compose 에서 앱이 빈 <code>Modifier</code> 팩토리를 등록해야 합니다 — <a href="guide-modifiers.html">모디파이어</a>를 보세요. 그리고 위 화면은 앱 안에서 실행됩니다. 화면을 다시 정의하면 교체되는 선언형 앱 루트(이슈 #11)는 계획 단계이며 아직 만들어지지 않았습니다.</p>
+<p data-lang="en">Two things to know. A chain that starts from the class, <code>Modifier.padding(16)</code>, needs the app to register an empty-<code>Modifier</code> factory against real Compose; see <a href="guide-modifiers.html">Modifiers</a>. And the screen above runs inside the app; a declared app root that redefining a screen replaces (issue #11) is planned, not built.</p><p data-lang="ko">알아 둘 것이 두 가지 있습니다. 클래스에서 시작하는 체인 <code>Modifier.padding(16)</code> 은 실제 Compose 에서 앱이 빈 <code>Modifier</code> 팩토리를 등록해야 합니다. <a href="guide-modifiers.html">모디파이어</a>를 보세요. 그리고 위 화면은 앱 안에서 실행됩니다. 화면을 다시 정의하면 교체되는 선언형 앱 루트(이슈 #11)는 계획 단계이며 아직 만들어지지 않았습니다.</p>
 <div class="pager"><span></span><a href="concepts.html"><span data-lang="en">Concepts</span><span data-lang="ko">개념</span> →</a></div>
 </section>
 </div>
@@ -109,7 +107,7 @@ def Practice():
 </main>
 <footer>
 <div class="wrap">
-<span><span data-lang="en">pythonx-compose — Compose, restructured for Python.</span><span data-lang="ko">pythonx-compose — 파이썬을 위해 재구성한 Compose.</span></span>
+<span><span data-lang="en">pythonx-compose: Compose, restructured for Python.</span><span data-lang="ko">pythonx-compose: 파이썬을 위해 재구성한 Compose.</span></span>
 <span><a href="https://github.com/thisisthepy/pythonx-compose">GitHub</a> · <span data-lang="en">Apache License 2.0</span><span data-lang="ko">Apache 라이선스 2.0</span></span>
 </div>
 </footer>
