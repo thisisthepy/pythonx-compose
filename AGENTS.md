@@ -188,6 +188,11 @@ worktree so a test can see it. Read it in place.
   depending on it is allowed, and this package keeps no member resolver or keyword wrapper of its
   own. What stays here: the module grouping, the snake-case-only `pythonx` surface, aliases, objects
   and grouped constants, the value-class allowlist, the app root and the Pythonic stubs.
+- **`pythonx` is a namespace package shared by every pythonx library.** Never add
+  `pythonx/__init__.py`: pythonx-compose, pythonx-concurrent, pythonx-graphics and pythonx-platform
+  all install into `pythonx`, and an `__init__.py` from any one of them would hide the others. This
+  package owns only `pythonx/compose/`. `tests/test_wheel.py` and the publish workflow refuse a
+  wheel that contains `pythonx/__init__.py`.
 - `pythonx/` is a **real package on disk**. Its modules import the `androidx.compose.*` modules the
   binder exposes and restructure them Pythonically. A design in which something else synthesises
   `pythonx.*` (for example with `__path__ = []`) and the on-disk files cannot be imported is ruled
