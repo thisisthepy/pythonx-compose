@@ -1,10 +1,30 @@
 [build-system]
-requires = ["setuptools>=42", "wheel"]
+requires = ["setuptools>=77", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "pythonx-compose"
-version = "0.0.1"
+version = "0.1.0a1"
+description = "Pythonic Compose UI for Python on Kotlin Multiplatform, through python-multiplatform"
+readme = {file = "README.md", content-type = "text/markdown"}
+license = "MIT"
+license-files = ["LICENSE"]
+authors = [
+    {name = "BREW (b-re-w)"},
+    {name = "Jong-uk Lee (rnoro5122)"},
+]
+keywords = ["compose", "jetpack-compose", "compose-multiplatform", "kotlin-multiplatform", "ui", "python-multiplatform"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Software Development :: User Interfaces",
+    "Typing :: Typed",
+]
 dependencies = [
 ]
 #dependencies-kotlin = [
@@ -12,6 +32,12 @@ dependencies = [
 #]
 requires-python = ">= 3.11"  # tomllib, which reads the manifest at run time
 #requires-kotlin = ">= 1.4.32"
+
+[project.urls]
+Homepage = "https://github.com/thisisthepy/pythonx-compose"
+Source = "https://github.com/thisisthepy/pythonx-compose"
+Issues = "https://github.com/thisisthepy/pythonx-compose/issues"
+Documentation = "https://thisisthepy.github.io/pythonx-compose/"
 
 [tool.setuptools.packages.find]
 include = ["pythonx.compose*"]
@@ -21,18 +47,3 @@ include = ["pythonx.compose*"]
 # not descend, so `"pythonx.compose"` alone would ship `pythonx/compose/*.pyi` and drop
 # `pythonx/compose/ui/*.pyi` -- which is where most of the generated stubs land.
 "*" = ["*.pyi", "py.typed", "pythonx-map.toml"]
-#authors = [
-#    {name = "Pradyun Gedam", email = "irack000@gmail.com"},
-#    {name = "Tzu-Ping Chung", email = "tzu-ping@example.com"}
-#]
-#maintainers = [
-#    {name = "Brett Cannon", email = "brett@example.com"}
-#]
-#description = "Lovely Spam! Wonderful Spam!"
-#readme = "README.rst"
-#license = {file = "LICENSE.txt"}
-#keywords = ["egg", "bacon", "sausage", "tomatoes", "Lobster Thermidor"]
-#classifiers = [
-#    "Development Status :: 4 - Beta",
-#    "Programming Language :: Python"
-#]

@@ -35,8 +35,8 @@ Compose(`androidx.compose.*`)를 파이썬에서 쓰기 위한 pip 패키지 **`
 
 ```
 python3 -m pytest tests -q
-  PythonMultiplatform 체크아웃 없음       133 passed, 112 skipped
-  python-multiplatform develop 31c092f0+    244 passed, 1 skipped
+  PythonMultiplatform 체크아웃 없음       139 passed, 112 skipped
+  python-multiplatform develop 31c092f0+    250 passed, 1 skipped
   describe_member 없는 체크아웃             같은 수, 그중 7 개 건너뜀  (python-multiplatform #54 이전)
   describe(module, name) 없는 체크아웃      같은 수, 그중 13 개 건너뜀  (python-multiplatform #36 이전)
   그보다 오래된 체크아웃                    거기에 5 개 더 건너뜀  (member resolver 없음)
@@ -119,6 +119,16 @@ python3 .github/scripts/check_guide.py           # 가이드: HTML 파싱, 링�
   서브모듈 `pythonx/compose/native`(→ thisisthepy/swing-graalvm-demo @ 090f0190)는 삭제했고,
   태그 `archive/pre-restructure` 로 되찾을 수 있다. `tools/` 는 없앴다: 스텁 생성기는
   `pythonx/_build/`, 가이드 검사기와 릴리스 스크립트는 `.github/scripts/`.
+
+### 결정됨 (2026-10-03, #62) — 첫 PyPI 릴리스
+
+- 워크플로 이름: `tests.yml` → `test.yml`, PyPI 배포는 `publish-pypi.yml`.
+- 첫 버전은 `0.1.0a1`(알파, 프리릴리스). PyPI 메타데이터(설명·README·MIT·저자·URL·분류자)는 채웠고,
+  README 의 링크는 pypi.org 에서 열리도록 절대 URL 이다(`main` 링크는 `main` 이 `develop` 을 따라잡은 뒤에 열린다).
+- 배포 방법: 릴리스할 커밋에 `v0.1.0a1` 태그를 푸시하면 `publish-pypi.yml` 이 태그와 `pyproject.toml`
+  버전을 대조하고, sdist·wheel 을 빌드하고, `twine check`·새 venv 스모크를 거쳐 트러스티드 퍼블리싱으로
+  올린다. **현황: 업로드 전.** 태그 푸시는 메인테이너 승인을 기다리고, GitHub 환경 `pypi`(`v*` 태그만 허용)
+  와 PyPI pending publisher 는 메인테이너가 설정한다.
 
 ### 결정됨 (2026-10-03, `docs/INTENT.md` §5)
 

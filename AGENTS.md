@@ -209,7 +209,7 @@ worktree so a test can see it. Read it in place.
   feature it needs (the member resolver, `ba4c6f49`; `describe(module, name)`, #36; see
   `docs/SPEC.md` §0). Report both numbers and say which environment you ran in. A skip is not
   a pass.
-- The suite runs on GitHub Actions (`.github/workflows/tests.yml`) in both environments, without and
+- The suite runs on GitHub Actions (`.github/workflows/test.yml`) in both environments, without and
   with a python-multiplatform checkout, for every pull request into `develop`. Local runs are for
   quick checks of the part you changed; leave the full two-environment run to CI.
   It also runs daily against python-multiplatform `develop` as it is that day; a failed daily run
@@ -222,6 +222,10 @@ worktree so a test can see it. Read it in place.
 
 - The distribution name is `pythonx-compose` (`pyproject.toml`); the import package is
   `pythonx.compose`.
+- **Release.** After the maintainer approves, tag the commit to release `v<version>` (the
+  `pyproject.toml` version, e.g. `v0.1.0a1`) and push the tag; `.github/workflows/publish-pypi.yml`
+  builds, checks and publishes through PyPI trusted publishing (environment `pypi`). Never upload
+  by hand, and never store a PyPI token.
 - `.pyi` stubs, `py.typed` and the manifest must end up **inside the wheel**. A `package-data`
   pattern is not proof — build the wheel and list it before claiming something ships.
 

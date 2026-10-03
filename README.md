@@ -1,4 +1,4 @@
-English | [한국어](docs/locale/README_ko.md)
+English | [한국어](https://github.com/thisisthepy/pythonx-compose/blob/main/docs/locale/README_ko.md)
 
 <div align="center">
 
@@ -6,12 +6,12 @@ English | [한국어](docs/locale/README_ko.md)
 
 **Write Compose user interfaces in Python — with Compose's own widgets, spelled the Python way.**
 
-[![License: MIT](https://img.shields.io/badge/license-MIT-7c4dff.svg)](LICENSE)
-[![Python](https://img.shields.io/badge/python-3.11%2B-7c4dff.svg)](pyproject.toml)
-[![pip](https://img.shields.io/badge/pip-pythonx--compose-7c4dff.svg)](pyproject.toml)
+[![License: MIT](https://img.shields.io/badge/license-MIT-7c4dff.svg)](https://github.com/thisisthepy/pythonx-compose/blob/main/LICENSE)
+[![Python](https://img.shields.io/badge/python-3.11%2B-7c4dff.svg)](https://github.com/thisisthepy/pythonx-compose/blob/main/pyproject.toml)
+[![pip](https://img.shields.io/badge/pip-pythonx--compose-7c4dff.svg)](https://github.com/thisisthepy/pythonx-compose/blob/main/pyproject.toml)
 [![Status](https://img.shields.io/badge/status-pre--alpha-lightgrey.svg)](#-status)
 
-[Guide](docs/guide/index.html) · [Getting started](docs/guide/getting-started.html) · [Concepts](docs/guide/concepts.html) · [Status](docs/guide/status.html)
+[Guide](https://thisisthepy.github.io/pythonx-compose/) · [Getting started](https://thisisthepy.github.io/pythonx-compose/getting-started.html) · [Concepts](https://thisisthepy.github.io/pythonx-compose/concepts.html) · [Status](https://thisisthepy.github.io/pythonx-compose/status.html)
 
 </div>
 
@@ -56,7 +56,7 @@ proofs are still pending. See [Status](#-status).</sub>
 - **`@Composable` stays.** Screens are decorated Python functions.
 - **A real package.** `pythonx/` is ordinary Python source that imports `androidx.compose.*` and
   reshapes it. The binder never renames anything — renaming is this package's job.
-- **One manifest.** [`pythonx-map.toml`](pythonx/compose/pythonx-map.toml) says which `pythonx.compose.*` module
+- **One manifest.** [`pythonx-map.toml`](https://github.com/thisisthepy/pythonx-compose/blob/main/pythonx/compose/pythonx-map.toml) says which `pythonx.compose.*` module
   stands for which Kotlin package. It lives inside the package and ships in the wheel. The runtime
   and the `.pyi` generator read the same file, so what your editor completes is what the interpreter
   resolves.
@@ -86,7 +86,10 @@ Each module is a real file whose `__init__.py` calls one re-export rule; names r
 ## 🚀 Quick start
 
 > [!NOTE]
-> `pythonx-compose` is **pre-alpha** and not yet published to PyPI.
+> `pythonx-compose` is **pre-alpha**. The first alpha, `0.1.0a1`, is released to PyPI when the
+> maintainer tags it; a pre-release needs `pip install --pre pythonx-compose`.
+
+From a clone, to run the tests:
 
 ```bash
 git clone https://github.com/thisisthepy/pythonx-compose
@@ -164,12 +167,12 @@ standalone desktop toolkit.
 | Colour schemes | ⏳ planned |
 | `remember_saveable`, coroutine scopes | ⏳ planned |
 
-The full list is on the guide's [Status page](docs/guide/status.html).
+The full list is on the guide's [Status page](https://thisisthepy.github.io/pythonx-compose/status.html).
 
 ## 📖 Documentation
 
-- **Guide** — [`docs/guide/`](docs/guide/index.html), bilingual (English / 한국어)
-- **Korean README** — [`docs/locale/README_ko.md`](docs/locale/README_ko.md)
+- **Guide** — [`docs/guide/`](https://thisisthepy.github.io/pythonx-compose/), bilingual (English / 한국어)
+- **Korean README** — [`docs/locale/README_ko.md`](https://github.com/thisisthepy/pythonx-compose/blob/main/docs/locale/README_ko.md)
 
 ## 🔌 Ecosystem
 
@@ -185,7 +188,7 @@ The full list is on the guide's [Status page](docs/guide/status.html).
 ## 🤝 Contributing
 
 Development is intent-first and test-first: a change starts as a specification change, then a
-failing test, then code. The [guide](docs/guide/status.html) lists what is open and where help is
+failing test, then code. The [guide](https://thisisthepy.github.io/pythonx-compose/status.html) lists what is open and where help is
 useful. Please open an issue before large changes.
 
 ## Maintainers
@@ -197,4 +200,4 @@ useful. Please open an issue before large changes.
 
 ## License
 
-[MIT](LICENSE) © 2023–2024 BREW (b-re-w), Jong-uk Lee (rnoro5122)
+[MIT](https://github.com/thisisthepy/pythonx-compose/blob/main/LICENSE) © 2023–2024 BREW (b-re-w), Jong-uk Lee (rnoro5122)

@@ -21,8 +21,8 @@ Run from a worktree with `python -m pytest tests -q -rs` (pytest 8, mypy 2.4, CP
 
 | Environment | Result |
 |---|---|
-| No `PythonMultiplatform` checkout found | **133 passed, 112 skipped**, 167 subtests passed |
-| python-multiplatform `develop` at `31c092f0` or later (property rows, #38; `describe_member`, #54; besides `add_member_resolver` and `describe(module, name)`) | **244 passed, 1 skipped**, 198 subtests passed |
+| No `PythonMultiplatform` checkout found | **139 passed, 112 skipped**, 167 subtests passed |
+| python-multiplatform `develop` at `31c092f0` or later (property rows, #38; `describe_member`, #54; besides `add_member_resolver` and `describe(module, name)`) | **250 passed, 1 skipped**, 198 subtests passed |
 | an older checkout, without `describe_member` (python-multiplatform #54) | the same, with 7 more skipped |
 | an older one, without `describe(module, name)` (python-multiplatform #36) | with 13 more skipped again |
 | an older one still, without `add_member_resolver` | with 5 more skipped again |
@@ -36,7 +36,7 @@ binder returned skip as well, because that needs its member resolver (python-mul
 `TheBinderPath` tests (S5.4). A binder without the `@Composable` binding (`push_composer`) skips the 13 text-field tests (S5.5). `tests/test_typing.py` skips where mypy is not installed. A skip is not a
 pass.
 
-Of the 133 that pass without a checkout, 73 check the type stubs and the wheel (S1.2); most of the
+Of the 139 that pass without a checkout, 73 check the type stubs and the wheel (S1.2); most of the
 rest assert **absence** (a retired token, a deleted file, a docstring that exists). Those are listed
 in §9 and are not counted as features.
 
@@ -46,13 +46,22 @@ in §9 and are not counted as features.
 
 ### S1.1 Installed as `pythonx-compose`, importing `pythonx.compose` — `partial`
 
-`pyproject.toml` declares `name = "pythonx-compose"`, version `0.0.1`, setuptools build,
+`pyproject.toml` declares `name = "pythonx-compose"`, version `0.1.0a1`, setuptools build,
 `requires-python >= 3.11` (the runtime reads the manifest with `tomllib`), and
 `packages.find include = ["pythonx.compose*"]`.
 
 - Shipped and tested: `tests/test_wheel.py` builds the wheel from a copy of the sources and finds
   `pythonx/compose/pythonx-map.toml`, the re-export rule, and an `__init__.py` for every mapped
   module (issue #13). The manifest lives inside the package directory so `package-data` carries it.
+- PyPI metadata: description, `README.md` as the long description (its links are absolute, since
+  pypi.org cannot resolve relative ones), `license = "MIT"` with `LICENSE`, the two authors as
+  `LICENSE` names them (no emails), keywords, classifiers (Alpha, Python 3.11-3.13, Typed) and
+  project URLs. `build-system.requires` is `setuptools>=77`, which understands that license form.
+- Released by pushing a tag `v<version>` (`.github/workflows/publish-pypi.yml`): the workflow checks
+  the tag equals `v` + the `pyproject.toml` version (`.github/scripts/check_release_version.py`,
+  `tests/test_release_version.py`), builds the sdist and wheel, runs `twine check`, smoke-installs
+  the wheel in a fresh venv, then uploads through PyPI trusted publishing (environment `pypi`, no
+  token). Nothing is uploaded by hand.
 - Typed: the wheel carries `py.typed` and the generated `.pyi` stubs (S1.2, issue #12).
 
 ### S1.2 Type stubs ship in the wheel — `implemented`
