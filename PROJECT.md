@@ -128,9 +128,9 @@ python3 .github/scripts/check_guide.py           # 가이드: HTML 파싱, 링�
 - 배포 방법: 릴리스할 커밋에 태그 `v0.1.0a1` 로 GitHub Release 를 게시하면(알파는 pre-release 표시)
   `publish-pypi.yml` 이 Release 태그와 `pyproject.toml` 버전을 대조하고, sdist·wheel 을 빌드하고,
   `twine check`·새 venv 스모크를 거쳐 트러스티드 퍼블리싱으로 올린다. 태그만 푸시해서는 아무것도
-  올라가지 않는다(같은 버전은 PyPI 에 다시 올릴 수 없으므로 의도적인 단계로 둠). **현황: 업로드 전.**
-  Release 게시는 메인테이너 승인을 기다린다. GitHub 환경 `pypi`(`v*` 태그만 허용)는 만들었고, PyPI
-  pending publisher 는 메인테이너가 등록한다.
+  올라가지 않는다(같은 버전은 PyPI 에 다시 올릴 수 없으므로 의도적인 단계로 둠). **현황: 0.1.0a1 배포됨**(2026-10-03, develop `134a641` 에서 pre-release
+  `v0.1.0a1`, publish-pypi run 37120641414; https://pypi.org/project/pythonx-compose/). 새 venv 에서
+  `pip install pythonx-compose==0.1.0a1` 후 import 스모크 통과.
 
 ### 결정됨 (2026-10-03, `docs/INTENT.md` §5)
 

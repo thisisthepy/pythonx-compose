@@ -86,8 +86,8 @@ Each module is a real file whose `__init__.py` calls one re-export rule; names r
 ## 🚀 Quick start
 
 > [!NOTE]
-> `pythonx-compose` is **pre-alpha**. The first alpha, `0.1.0a1`, is released to PyPI when the
-> maintainer tags it; a pre-release needs `pip install --pre pythonx-compose`.
+> `pythonx-compose` is an **alpha**. `0.1.0a1` is on [PyPI](https://pypi.org/project/pythonx-compose/);
+> as a pre-release it installs with `pip install --pre pythonx-compose`.
 
 From a clone, to run the tests:
 

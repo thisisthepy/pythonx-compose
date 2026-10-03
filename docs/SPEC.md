@@ -44,7 +44,7 @@ in §9 and are not counted as features.
 
 ## 1. Distribution
 
-### S1.1 Installed as `pythonx-compose`, importing `pythonx.compose` — `partial`
+### S1.1 Installed as `pythonx-compose`, importing `pythonx.compose` — `implemented`
 
 `pyproject.toml` declares `name = "pythonx-compose"`, version `0.1.0a1`, setuptools build,
 `requires-python >= 3.11` (the runtime reads the manifest with `tomllib`), and
@@ -57,6 +57,8 @@ in §9 and are not counted as features.
   pypi.org cannot resolve relative ones), `license = "MIT"` with `LICENSE`, the two authors as
   `LICENSE` names them (no emails), keywords, classifiers (Alpha, Python 3.11-3.13, Typed) and
   project URLs. `build-system.requires` is `setuptools>=77`, which understands that license form.
+- **0.1.0a1 is on PyPI** (2026-10-03: pre-release `v0.1.0a1` on develop `134a641`, publish-pypi run
+  37120641414; a fresh-venv `pip install pythonx-compose==0.1.0a1` imports cleanly).
 - Released by publishing a GitHub Release tagged `v<version>` (`.github/workflows/publish-pypi.yml`,
   trigger `release: published`; a bare tag push publishes nothing): the workflow checks the
   Release's tag equals `v` + the `pyproject.toml` version (`.github/scripts/check_release_version.py`,
