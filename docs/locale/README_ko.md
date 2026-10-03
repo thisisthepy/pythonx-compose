@@ -4,7 +4,7 @@
 
 # pythonx-compose
 
-**Compose UI 를 파이썬으로, Compose 의 위젯 그대로, 파이썬다운 이름으로.**
+**파이썬으로 Compose Multiplatform UI 를 만듭니다: 파이썬 선언형 UI 프레임워크**
 
 [![License: Apache-2.0](https://img.shields.io/badge/license-Apache--2.0-7c4dff.svg)](https://github.com/thisisthepy/pythonx-compose/blob/main/LICENSE)
 [![Python](https://img.shields.io/badge/python-3.11%2B-7c4dff.svg)](https://github.com/thisisthepy/pythonx-compose/blob/main/pyproject.toml)
