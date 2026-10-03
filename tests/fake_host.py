@@ -63,6 +63,8 @@ ARRANGEMENT_VERTICAL = ARRANGEMENT + ".Vertical"
 ARRANGEMENT_BOTH = ARRANGEMENT + ".HorizontalOrVertical"
 ALIGNMENT = "androidx.compose.ui.Alignment"
 COLOR = "androidx.compose.ui.graphics.Color"
+# python-multiplatform-compose, the host module (python-multiplatform #18, #174).
+COMPOSE_HOST = "python.multiplatform.compose"
 ALIGNMENT_HORIZONTAL = ALIGNMENT + ".Horizontal"
 ALIGNMENT_VERTICAL = ALIGNMENT + ".Vertical"
 
@@ -171,6 +173,7 @@ class FakeHost:
         self.composable_calls = []
         self.last_text_field_flags = None
         self.last_text_field_modifier = None
+        self.saveable_calls = []
         self._composer = None
         self._build()
 
@@ -305,6 +308,7 @@ class FakeHost:
         self._scalar_boxes()
         self._build_text_field()
         self._build_color()
+        self._build_saveable()
         self._add(
             EMPTY_MODIFIER, 0, (), (), (), "OBJECT", MODIFIER, False, None, (),
             lambda args: StubModifier(),
@@ -543,6 +547,26 @@ class FakeHost:
             return None
         self.release(args[0])
         return held
+
+    def _build_saveable(self):
+        """`rememberSaveableWrapper(initial)`, shaped after python-multiplatform #174 (`8c56f19b`).
+
+        A `@Composable` in python-multiplatform-compose (`RememberSaveable.kt`) that wraps the state
+        matching the boxed value's Kotlin type in `rememberSaveable { ... }`, and refuses any other
+        type. Here it logs `initial` and returns a fresh state; the type dispatch, and that Compose
+        keeps the state across recomposition, rotation and process restart, are
+        python-multiplatform's proof (`RememberSaveableRenderTest`), not this fixture's.
+        """
+
+        def remember(args):
+            self.saveable_calls.append(args[0])
+            return StubState(args[0])
+
+        self._composable(
+            f"{COMPOSE_HOST}.rememberSaveableWrapper",
+            (("initial", "OBJECT", KOTLIN_ANY, False),),
+            remember, MUTABLE_STATE,
+        )
 
     def _build_color(self):
         """`Color`: a Kotlin object whose name is also a function in its package (python-multiplatform #78).

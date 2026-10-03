@@ -225,6 +225,25 @@ class TheStubsTypeCheck(unittest.TestCase):
             DefaultIcons.NotAnIcon
         """, "NotAnIcon", "[attr-defined]")
 
+    def test_remember_saveable_types_the_notebook_spelling(self):
+        """Issue #102: `getValue()`, `setValue(...)` and `.value` on what `remember_saveable` returns."""
+        self.assertPasses("""
+            from pythonx.compose.runtime import SaveableState, remember_saveable
+
+            messages: SaveableState = remember_saveable("")
+            backup = messages.getValue()
+            messages.setValue("changed")
+            messages.value = backup
+            current = messages.value
+        """)
+
+    def test_what_remember_saveable_returns_has_no_other_spelling(self):
+        self.assertFails("""
+            from pythonx.compose.runtime import remember_saveable
+
+            remember_saveable("").get_value()
+        """, "get_value")
+
     def test_a_text_field_state_types_the_state_overload(self):
         """Issue #10: `TextField(state=...)`, the state made by `pythonx.compose.foundation.text.input`."""
         self.assertPasses("""
