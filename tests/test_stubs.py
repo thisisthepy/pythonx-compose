@@ -8,6 +8,10 @@ binder's own `@overload` sets, Kotlin objects either as `<Object>/__init__.pyi` 
 parent stub). So `TheStubMatchesTheRuntime` can do what a stub is for and check it: the signature an
 editor reads from the stub is the signature `inspect.signature` reports at run time.
 
+`kotlin_stubs_v3` is the format of python-multiplatform #53, #44 and #38: an object stub that declares its
+nested Kotlin types as classes (`End: Horizontal`), object functions as explicit overloads, and properties
+with `@name.setter`.
+
 `TheCommittedStubs` holds the stubs this repository ships to the real input, python-multiplatform's
 `kotlin-stubs` artefact, when it has been downloaded to `.tmp/kotlin-stubs.zip`.
 """
@@ -34,6 +38,7 @@ import gen_stubs  # noqa: E402
 
 KOTLIN_STUBS = HERE / "fixtures" / "kotlin_stubs"
 KOTLIN_STUBS_V2 = HERE / "fixtures" / "kotlin_stubs_v2"
+KOTLIN_STUBS_V3 = HERE / "fixtures" / "kotlin_stubs_v3"
 ARTEFACT = REPO / ".tmp" / "kotlin-stubs.zip"
 PACKAGE = REPO / "pythonx"
 COMPOSE = PACKAGE / "compose"
@@ -386,6 +391,74 @@ class TheConstantGroups(unittest.TestCase):
         for name, cls in _classes(self.stubs[UI]).items():
             with self.subTest(cls=name):
                 self.assertEqual({}, _nested(cls))
+
+
+class TheObjectAndPropertyFormat(unittest.TestCase):
+    """The upstream format of python-multiplatform #53 (objects), #38 (properties) and #44."""
+
+    def setUp(self):
+        self.stubs = _generated(KOTLIN_STUBS_V3)
+        self.alignment = _classes(self.stubs[UI])["Alignment"]
+        self.arrangement = _classes(self.stubs[LAYOUT])["Arrangement"]
+
+    def test_a_property_and_its_setter_are_renamed_together(self):
+        scene = _classes(self.stubs[UI])["Scene"]
+        functions = [n for n in scene.body if isinstance(n, ast.FunctionDef)]
+        self.assertEqual(["layout_direction", "layout_direction", "is_minimized", "is_minimized"],
+                         [f.name for f in functions])
+        self.assertEqual(
+            [["property"], ["layout_direction.setter"], ["property"], ["is_minimized.setter"]],
+            [[ast.unparse(d) for d in f.decorator_list] for f in functions],
+        )
+
+    def test_an_objects_nested_types_become_the_constant_groups(self):
+        """The nested class is the Kotlin type and the notebook's group at once."""
+        nested = _nested(self.alignment)
+        self.assertEqual(["Horizontal", "Vertical"], sorted(nested))
+        self.assertEqual({"End"}, _constants(nested["Horizontal"]))
+        self.assertEqual({"Top"}, _constants(nested["Vertical"]))
+        self.assertIn("Kotlin: androidx.compose.ui.Alignment.Horizontal", ast.get_docstring(nested["Horizontal"]))
+
+    def test_a_constant_is_typed_with_its_nested_type_qualified(self):
+        for cls, name, annotation in (
+            (self.alignment, "End", "_t.ClassVar[Alignment.Horizontal]"),
+            (self.alignment, "Center", "_t.ClassVar[_t.Any]"),
+            (_nested(self.alignment)["Horizontal"], "End", "_t.ClassVar[Alignment.Horizontal]"),
+            (self.arrangement, "End", "_t.ClassVar[Arrangement.Horizontal]"),
+            # Derived from another nested type upstream, though Kotlin's is also a Vertical: Any.
+            (self.arrangement, "SpaceBetween", "_t.ClassVar[_t.Any]"),
+            (_nested(self.arrangement)["HorizontalOrVertical"], "SpaceBetween", "_t.ClassVar[_t.Any]"),
+        ):
+            with self.subTest(constant=name, annotation=annotation):
+                self.assertEqual(annotation, ast.unparse(_members(cls)[name].annotation))
+
+    def test_a_nested_types_base_is_qualified_too(self):
+        bases = _nested(self.arrangement)["HorizontalOrVertical"].bases
+        self.assertEqual(["Arrangement.Horizontal"], [ast.unparse(b) for b in bases])
+
+    def test_a_reference_to_an_objects_nested_type_names_the_pythonx_module(self):
+        column = _functions(self.stubs[LAYOUT])["Column"][0]
+        self.assertEqual(
+            ["pythonx.compose.ui.Alignment.Vertical", "pythonx.compose.ui.Alignment.Horizontal"],
+            [ast.unparse(a.annotation) for a in column.args.args],
+        )
+        aligned = _members(self.arrangement)["aligned__Horizontal"]
+        self.assertEqual("pythonx.compose.ui.Alignment.Horizontal", ast.unparse(aligned.args.args[0].annotation))
+        self.assertEqual("Arrangement.Horizontal", ast.unparse(aligned.returns))
+
+    def test_an_object_function_is_a_snake_case_static_method(self):
+        members = self.arrangement.body
+        spaced = [n for n in members if isinstance(n, ast.FunctionDef) and n.name.startswith("spaced_by")]
+        self.assertEqual(["spaced_by", "spaced_by__Dp"], sorted(f.name for f in spaced))
+        for function in spaced:
+            self.assertIn("staticmethod", [ast.unparse(d) for d in function.decorator_list])
+            self.assertEqual("_t.Any", ast.unparse(function.returns))
+
+    def test_an_object_functions_overload_set_gets_its_base_name(self):
+        aligned = [n for n in self.arrangement.body if isinstance(n, ast.FunctionDef) and n.name == "aligned"]
+        self.assertEqual(2, len(aligned))
+        for function in aligned:
+            self.assertEqual(["staticmethod", "_t.overload"], [ast.unparse(d) for d in function.decorator_list])
 
 
 class TheCommittedStubs(unittest.TestCase):
