@@ -28,15 +28,15 @@ Compose(`androidx.compose.*`)를 파이썬에서 쓰기 위한 pip 패키지 **`
 | 상태 | 항목 |
 |---|---|
 | 구현 | 매핑 매니페스트 `pythonx-map.toml`, `@Composable` 항등 데코레이터, 실제 디스크 패키지 `pythonx` 와 모듈 수준 규칙 기반 재노출(snake_case 이름·키워드·시그니처, 오버로드 디스패치, 값 클래스 허용 목록), 실제 Compose 1.11.1 에서 생성한 `.pyi` 스텁과 `py.typed`(wheel 포함, mypy 로 검사), `Alignment`/`Arrangement` 상수(평면 `Alignment.End` 와 묶음 `Alignment.Horizontal.End` 모두, #9), proxy 메서드의 snake_case 키워드 인자(`m.padding(padding_values=...)`, python-multiplatform `describe_member` 필요; Kotlin 이름도 실행 시 그대로 통하고 스텁은 snake_case 만) |
-| 부분 | 선언형 앱 루트 `@app`·`state`·`app_root`(#11; 로직은 테스트됨, 바인더 경로는 #38 모양의 가짜 호스트로 테스트됨, 실제 Compose 증거는 E2E 모듈 #19, 바인더가 `Any?` 칸의 int 를 거부하므로 `state(1)` 은 아직 TypeError, python-multiplatform #69 대기), 배포 설정, Material 3 위젯(렌더 증거는 python-multiplatform 에만), `Icon`(import 만 됨)·`DefaultIcons`(`Icons.Default` alias, 가짜 호스트로만 테스트됨; `DefaultIcons.Add` 로 쓴다 — 노트북의 `DefaultIcons.Add()` 가 아님) |
+| 부분 | 선언형 앱 루트 `@app`·`state`·`app_root`(#11; 로직은 테스트됨, 바인더 경로는 #38 모양의 가짜 호스트로 테스트됨, 실제 Compose 증거는 E2E 모듈 #19; 숫자·문자열 상태는 python-multiplatform #69 부터 왕복됨), 배포 설정, Material 3 위젯(렌더 증거는 python-multiplatform 에만), `Icon`(import 만 됨)·`DefaultIcons`(`Icons.Default` alias, 가짜 호스트로만 테스트됨; `DefaultIcons.Add` 로 쓴다 — 노트북의 `DefaultIcons.Add()` 가 아님) |
 | 계획 | `remember_saveable`·색 스킴·코루틴 스코프 |
 
 ### 테스트 기준선
 
 ```
 python3 -m pytest tests -q
-  PythonMultiplatform 체크아웃 없음       124 passed, 98 skipped
-  python-multiplatform develop 31c092f0+    221 passed, 1 skipped
+  PythonMultiplatform 체크아웃 없음       124 passed, 99 skipped
+  python-multiplatform develop 31c092f0+    222 passed, 1 skipped
   describe_member 없는 체크아웃             같은 수, 그중 7 개 건너뜀  (python-multiplatform #54 이전)
   describe(module, name) 없는 체크아웃      같은 수, 그중 13 개 건너뜀  (python-multiplatform #36 이전)
   그보다 오래된 체크아웃                    거기에 5 개 더 건너뜀  (member resolver 없음)

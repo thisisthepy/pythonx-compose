@@ -258,13 +258,29 @@ class TheBinderPath(unittest.TestCase):
         self.assertEqual("b", label.value)
         self.assertEqual(["a", "b"], self.host_states()[0].writes)
 
-    def test_an_int_state_is_refused_by_the_binder_not_papered_over(self):
-        # `PythonxAdapter._coerce`: an int in an `Any?` slot would cross as an object handle, so the
-        # binder refuses it. `state(1)` is therefore an error today; `pythonx` does not box it.
-        # python-multiplatform #69 boxes scalars in `Any` slots: when it lands, this becomes a round trip.
+    def test_scalars_round_trip_through_a_kotlin_any(self):
+        """python-multiplatform #69 boxes a scalar for an `Any` slot and unboxes it on read.
+
+        This used to pin the refusal (`state(1)` was a TypeError); #69 is what reversed it.
+        """
+        if not hasattr(self.binding, "_box_scalar"):
+            self.skipTest("needs python-multiplatform #69 (scalar boxing for Any slots)")
+        counter = self.runtime.state(0)
+        self.assertEqual(0, counter.value)
+        counter.value = counter.value + 1
+        self.assertEqual(1, counter.value)
+        for value in (True, 2**40, 1.5, "text"):
+            with self.subTest(value=value):
+                holder = self.runtime.state(value)
+                self.assertEqual(value, holder.value)
+                self.assertIs(type(value), type(holder.value))
+
+    def test_an_int_beyond_64_bits_is_refused_with_the_reason(self):
+        if not hasattr(self.binding, "_box_scalar"):
+            self.skipTest("needs python-multiplatform #69 (scalar boxing for Any slots)")
         with self.assertRaises(TypeError) as raised:
-            self.runtime.state(1)
-        self.assertIn("int", str(raised.exception))
+            self.runtime.state(2**64)
+        self.assertIn("64 bits", str(raised.exception))
 
 
 if __name__ == "__main__":
