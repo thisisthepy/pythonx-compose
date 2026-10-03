@@ -160,8 +160,15 @@ class FakeHost:
         if property_row:
             unpacked.insert(0, self._object(args[0]))
         result = body(unpacked)
-        if row[7] == "OBJECT" and row[8] != KOTLIN_ANY:
-            return self._handle(result)
+        if row[7] == "OBJECT":
+            if row[8] is None:
+                return result  # `unboxScalar`: a Python scalar or None, never a handle
+            if row[8] != KOTLIN_ANY:
+                return self._handle(result)
+            if isinstance(result, (bool, int, float, str)):
+                # A scalar held in a `kotlin.Any` is a Kotlin box, so it crosses as a handle and the
+                # binding layer unboxes it through `unboxScalar` (python-multiplatform #69).
+                return self._handle(result)
         return result
 
     def _unpack(self, value, tag, type_name):
@@ -253,6 +260,7 @@ class FakeHost:
         return body
 
     def _build(self):
+        self._scalar_boxes()
         self._add(
             EMPTY_MODIFIER, 0, (), (), (), "OBJECT", MODIFIER, False, None, (),
             lambda args: StubModifier(),
@@ -386,6 +394,32 @@ class FakeHost:
     def _read_icon(self, icon):
         self.calls.append(f"Icons.Filled.{icon}")
         return StubConstant(icon)
+
+    def _scalar_boxes(self):
+        """`PythonCallables`' box entries, the shape python-multiplatform 26485a02 (#69) registers.
+
+        `PythonxAdapter._box_scalar` turns a Python scalar bound for a `kotlin.Any` slot into the
+        handle of a Kotlin box by calling one of these; `unboxScalar` turns a handle read back out of
+        such a slot into the scalar again, releasing it, or answers None for any other object.
+        Names and fields are those of `PythonCallables.kt` (`boxEntry`, `UNBOX_SCALAR`).
+        """
+        prefix = "python.multiplatform.ffi.pythonx.PythonCallables."
+        for leaf, tag, type_name in (
+            ("boxInt", "INT", "kotlin.Int"), ("boxLong", "INT", "kotlin.Long"),
+            ("boxDouble", "FLOAT", "kotlin.Double"), ("boxBoolean", "BOOLEAN", "kotlin.Boolean"),
+            ("boxString", "STRING", "kotlin.String"),
+        ):
+            self._add(prefix + leaf, 1, ("value",), (tag,), (type_name,), "INT", None, False, None,
+                      (False,), lambda args: self._handle(args[0]))
+        self._add(prefix + "unboxScalar", 1, ("handle",), ("INT",), ("kotlin.Long",), "OBJECT", None,
+                  False, None, (False,), self._unbox)
+
+    def _unbox(self, args):
+        held = self._handles.get(args[0])
+        if not isinstance(held, (bool, int, float, str)):
+            return None
+        self.release(args[0])
+        return held
 
     def _constant(self, name, declared):
         self._add(name, 0, (), (), (), "OBJECT", declared, False, None, (),

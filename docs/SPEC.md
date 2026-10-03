@@ -21,8 +21,8 @@ Run from a worktree with `python -m pytest tests -q -rs` (pytest 8, mypy 2.4, CP
 
 | Environment | Result |
 |---|---|
-| No `PythonMultiplatform` checkout found | **124 passed, 98 skipped**, 157 subtests passed |
-| python-multiplatform `develop` at `31c092f0` or later (property rows, #38; `describe_member`, #54; besides `add_member_resolver` and `describe(module, name)`) | **221 passed, 1 skipped**, 184 subtests passed |
+| No `PythonMultiplatform` checkout found | **124 passed, 99 skipped**, 157 subtests passed |
+| python-multiplatform `develop` at `31c092f0` or later (property rows, #38; `describe_member`, #54; besides `add_member_resolver` and `describe(module, name)`) | **222 passed, 1 skipped**, 184 subtests passed |
 | an older checkout, without `describe_member` (python-multiplatform #54) | the same, with 7 more skipped |
 | an older one, without `describe(module, name)` (python-multiplatform #36) | with 13 more skipped again |
 | an older one still, without `add_member_resolver` | with 5 more skipped again |
@@ -261,10 +261,10 @@ re-export rule, and the module's own names win.
 
 Evidence: python-multiplatform #38 (`31c092f0`) binds generic functions and property getters and
 setters, and an `Any?` slot carries a Python object as itself, so `mutableStateOf(x)` is callable and
-the returned `MutableState`'s `.value` reads and writes. One consequence: the binder refuses an
-`int` in an `Any?` slot (it would cross as an object handle), so `state(1)` raises `TypeError` today
-and `pythonx` does not box it. python-multiplatform #69 makes the binder box scalars in an `Any`
-slot (bool, int, float, str) and unbox them on read; when it lands this refusal and its test flip. Tests: `tests/test_app_root.py::TheLogic` (11) and `::TheStateFactory`
+the returned `MutableState`'s `.value` reads and writes. Since python-multiplatform #69 (PR #81) the
+binder boxes a Python scalar for an `Any` slot (bool, int within 64 bits, float, str) and unboxes it
+on read, so `state(0)` and `counter.value += 1` work; an int beyond 64 bits is refused with the
+reason. `pythonx` does none of this itself. Tests: `tests/test_app_root.py::TheLogic` (11) and `::TheStateFactory`
 (4) run against a test-only fake state patched in for `_new_state`; `::TheBinderPath` (5) uses the
 real `_new_state` through the binder's Python layer and `tests/fake_host.py`, whose `mutableStateOf`
 and `MutableState.value` rows are shaped after #38 (`KotlinSurface.kt`, `PythonxAdapter.kt`), not
@@ -431,7 +431,7 @@ the binder lists no member that would win over these groups.
 
 | Name | Notebook use | Note |
 |---|---|---|
-| `remember_saveable` | imported from `pythonx.compose.runtime`; state read/written with `getValue()` / `setValue()` | INTENT §5.1: `state(initial)` read and written through `.value` (S5.4, `partial`, #11; an `int` initial value is refused by the binder until python-multiplatform #69); keeping a value across recreation is not provided |
+| `remember_saveable` | imported from `pythonx.compose.runtime`; state read/written with `getValue()` / `setValue()` | INTENT §5.1: `state(initial)` read and written through `.value` (S5.4, `partial`, #11; scalars round-trip since python-multiplatform #69); keeping a value across recreation is not provided |
 | `DefaultCoroutineScope`, `MainCoroutineScope` | imported from `pythonx.compose.runtime` | INTENT §4.1, open |
 | `DefaultIcons` | `DefaultIcons.Add()` | INTENT §5.7, `implemented` as `DefaultIcons.Add`. The notebook's `Add()` is the spelling of its time; the current spelling is `Add`, a property read without parentheses, as for every constant (decided with the ecosystem lead; S5.3, `tests/test_chain.py::DefaultIconsAlias`, fake host) |
 | `modifier` | lower-case instance from `pythonx.compose.ui` | INTENT §5.4: not provided; written `Modifier` |
