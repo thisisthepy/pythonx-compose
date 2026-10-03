@@ -209,16 +209,16 @@ Required by INTENT §2.2: `import pythonx.compose.material3` (and every other ma
 Every module in `pythonx-map.toml` is a file on disk whose `__init__.py` hands its name to one rule,
 `pythonx/compose/_reexport.py` (issue #8). A name read from it resolves, on first use, against the
 Kotlin package the manifest maps it to: upper-case names keep their Kotlin spelling, every other
-name is reached by its snake_case spelling only, keywords are matched to the declaration's own
-parameter names, `inspect.signature` reports snake_case names, and the manifest's value-class
-allowlist is handed to the binder. Names the package defines itself (`runtime.Composable`) win.
+name is reached by its snake_case spelling, functions are the binder's own callables (whose
+snake_case keywords and `inspect.signature` are the binder's since python-multiplatform #131), and
+the manifest's value-class allowlist is handed to the binder. Names the package defines itself (`runtime.Composable`) win.
 
 Evidence: `tests/test_runtime_module.py::TheModuleIsTheFileOnDisk`,
 `tests/test_ui_init_module.py::TheUiInitModuleIsTheFileOnDisk`, and `tests/test_chain.py`
 (`Names`, `Laziness`, `OverloadDispatch::test_the_module_function_dispatches_with_snake_case_keywords`,
 `ValueClasses::test_the_manifest_allowlist_is_what_lets_a_number_through`), against the binder's
-real Python and the fake host. Disabling the name rule fails 15 tests, the keyword mapping 1, the
-allowlist priming 12.
+real Python and the fake host. Disabling the name rule fails 15 tests and the allowlist priming 12
+(measured before #79 moved keyword translation into the binder).
 
 Methods on a proxy the binder returned (`m.fill_max_width()`) and their keyword arguments
 (`m.padding(padding_values=...)`) are the binder's own since python-multiplatform #131 (develop
