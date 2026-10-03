@@ -286,8 +286,10 @@ Tests: `tests/test_runtime_module.py::TheRuntimeSeam` (4 tests) and `::TheChaquo
 
 ### S5.4 The app root, `app` and `state`: `partial` (the binder path is tested against a fake host shaped after python-multiplatform #38; real Compose is the E2E module, issue #19)
 
-The host draws with `PythonContent("pythonx.compose.runtime", "app_root")` (python-multiplatform #18,
-issue #11). `pythonx.compose.runtime` provides:
+The host draws with `PythonAppView(module = "pythonx.compose.runtime", attribute = "app_root")`
+(python-multiplatform #18 and #105; issue #11). The binder owns the redraw: `PythonAppView` reads
+the `app_root` State inside the composition, so a redeclared root is drawn again (seen in the
+python-multiplatform #26 diagnosis). `pythonx.compose.runtime` provides:
 
 - `app_root`: a Compose `MutableState` whose `.value` is a zero-argument callable, or `None` (the
   host draws nothing). It is created on first read, by the binder's

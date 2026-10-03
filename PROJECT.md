@@ -61,7 +61,7 @@ GitHub 마일스톤과 같은 내용이다. 날짜는 2026-10-03 에 정했고, 
 날짜 근거:
 
 - **M1 (2주):** 바인더 계약(`inspect.signature`, `python_multiplatform.describe`)이 PythonMultiplatform `d00f413f` 에 착지했다. 남은 일은 이 저장소의 순수 Python 과 가짜 호스트 하네스뿐이라 JVM 빌드가 필요 없다.
-- **M2 (M1 뒤 3주):** 위젯마다 JVM 렌더 테스트가 필요하다. 처음엔 Gradle 캐시 링크가 끊겼다고 보고 4주로 잡았으나, 캐시는 `PythonMultiplatform/.caches` 로 다시 걸려 Compose 픽스처가 통과하고 있었고, 노트북 관련 질문도 INTENT §5 로 결정됐다. 남은 위험은 `TextField(state=...)` 의 IME 조합 증거(python-multiplatform E2E #26)와, 앱 루트 교체를 Kotlin 컴포지션이 관찰하는 진입점(바인더 몫일 수 있음)이다.
+- **M2 (M1 뒤 3주):** 위젯마다 JVM 렌더 테스트가 필요하다. 처음엔 Gradle 캐시 링크가 끊겼다고 보고 4주로 잡았으나, 캐시는 `PythonMultiplatform/.caches` 로 다시 걸려 Compose 픽스처가 통과하고 있었고, 노트북 관련 질문도 INTENT §5 로 결정됐다. 남은 위험은 `TextField(state=...)` 의 IME 조합 증거(python-multiplatform E2E #26)와, 앱 루트 교체를 Kotlin 컴포지션이 관찰하는 진입점이다. 진입점은 바인더 몫으로 정해졌다(2026-10-04): python-multiplatform 의 `PythonAppView` 가 `app_root` State 를 컴포지션 안에서 읽고, #26 진단에서 다시 선언한 루트가 실제로 다시 그려짐을 확인했다.
 - **M3 (M2 뒤 2주):** 스텁은 M1 규칙만 있으면 만들 수 있어 M2 와 겹쳐 진행할 수 있다. 다만 노트북 위젯의 최종 이름이 M2 에서 정해지므로 마감은 M2 뒤로 둔다.
 
 ## 4. 구조
