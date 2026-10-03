@@ -31,6 +31,11 @@ jobs:
       - name: Build the sdist and the wheel
         run: python -m build
       - run: twine check dist/*
+      - name: Keep pythonx a namespace package
+        run: |
+          if unzip -l dist/*.whl | grep -q ' pythonx/__init__.py$'; then
+            echo 'pythonx/__init__.py would hide the other pythonx libraries'; exit 1
+          fi
       # Importing needs no binder: names resolve lazily, on first use.
       - name: Smoke-install the wheel in a fresh venv
         run: |

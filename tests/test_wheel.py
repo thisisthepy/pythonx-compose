@@ -95,6 +95,10 @@ class TheWheel(unittest.TestCase):
             with self.subTest(prefix=prefix):
                 self.assertEqual([], sorted(n for n in self.names if n.startswith(prefix)))
 
+    def test_pythonx_stays_a_namespace_package(self):
+        # Every pythonx library installs into `pythonx`; an `__init__.py` from one would hide the rest.
+        self.assertNotIn("pythonx/__init__.py", self.names)
+
     def test_the_re_export_rule_ships(self):
         self.assertIn("pythonx/compose/_reexport.py", self.names)
 
