@@ -222,6 +222,6 @@ worktree so a test can see it. Read it in place.
 - `docs/guide/` is the bilingual GitHub Pages site. Every visible string exists in English and
   Korean. `python3 tools/check_guide.py` is its test; run it after any guide change.
 - No Markdown files directly under `docs/` other than `INTENT.md` and `SPEC.md`; other documents go
-  in a topic subdirectory. `README.md` must not link to `AGENTS.md`, `PROJECT.md`, `CLAUDE.md`,
+  in a topic subdirectory. `README.md` must not link to `AGENTS.md`, `PROJECT.md`,
   `docs/INTENT.md` or `docs/SPEC.md` — those files do not exist on `main`.
-- `CLAUDE.md` contains exactly one line, `@AGENTS.md`. Rules go in this file.
+- There is no `CLAUDE.md`: Claude Code reads this file directly. Rules go here.
