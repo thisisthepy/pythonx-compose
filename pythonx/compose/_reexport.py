@@ -171,7 +171,7 @@ def _pythonic(value, name):
     if isinstance(value, types.ModuleType):
         # A Kotlin object served as a sub-package. Since python-multiplatform #35 the binder lists it
         # and exposes it as an attribute of its parent, so the name table reaches it directly.
-        return KotlinObject(value)
+        return _kotlin_object(value)
     # A function is the binder's own callable: since python-multiplatform #131 it takes snake_case
     # keywords and reports them in `inspect.signature` itself.
     return value
@@ -196,7 +196,7 @@ def _resolve(kotlin, name: str):
             nested = importlib.import_module(kotlin.__name__ + "." + name)
         except ImportError:
             return None
-        return KotlinObject(nested), True
+        return _kotlin_object(nested), True
     return None
 
 
@@ -274,6 +274,25 @@ class KotlinObject:
 
     def __repr__(self):
         return f"<pythonx view of Kotlin object {self._kotlin.__name__}>"
+
+
+class CallableKotlinObject(KotlinObject):
+    """A Kotlin object whose name is also a function in its package (`Color`), callable as that function.
+
+    The binder makes such a module callable (python-multiplatform #78): `Color(0xFFFFFFFF)` calls
+    the `Color` function, while `Color.Red` is still a constant of the object. Calling goes to the
+    binder's module itself, which resolves the function on every call.
+    """
+
+    __slots__ = ()
+
+    def __call__(self, *args, **kwargs):
+        return self._kotlin(*args, **kwargs)
+
+
+def _kotlin_object(kotlin_module):
+    """The namespace for a Kotlin object module: callable only when the binder made the module callable."""
+    return CallableKotlinObject(kotlin_module) if callable(kotlin_module) else KotlinObject(kotlin_module)
 
 
 class ConstantGroup:

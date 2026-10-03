@@ -35,8 +35,8 @@ Compose(`androidx.compose.*`)를 파이썬에서 쓰기 위한 pip 패키지 **`
 
 ```
 uv run --with pytest --with mypy pytest tests -q
-  PythonMultiplatform 체크아웃 없음       148 passed, 109 skipped
-  python-multiplatform develop 31c092f0+    256 passed, 1 skipped
+  PythonMultiplatform 체크아웃 없음       148 passed, 113 skipped
+  python-multiplatform develop 31c092f0+    260 passed, 1 skipped
   describe_member 없는 체크아웃             같은 수, 그중 7 개 건너뜀  (python-multiplatform #54 이전)
   describe(module, name) 없는 체크아웃      같은 수, 그중 13 개 건너뜀  (python-multiplatform #36 이전)
   그보다 오래된 체크아웃                    거기에 5 개 더 건너뜀  (#131 이전, snake_case 이름 없음)
