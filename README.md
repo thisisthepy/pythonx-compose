@@ -88,13 +88,13 @@ Each module is a real file whose `__init__.py` calls one re-export rule; names r
 ## 🚀 Quick start
 
 > [!NOTE]
-> `pythonx-compose` is an **alpha**. `0.1.0a1` is on [PyPI](https://pypi.org/project/pythonx-compose/);
+> `pythonx-compose` is an **alpha**. `0.1.0a2` is on [PyPI](https://pypi.org/project/pythonx-compose/);
 > as a pre-release it installs with uv (or ppp, or tcl):
 
 ```bash
 uv add --prerelease allow pythonx-compose
 # or, with pypackpack, into a package of a ppp workspace:
-ppp core add "pythonx-compose==0.1.0a1"
+ppp core add "pythonx-compose==0.1.0a2"
 # or, with toolchain-lite:
 tcl install pythonx-compose
 ```

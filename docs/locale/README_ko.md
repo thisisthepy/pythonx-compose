@@ -86,13 +86,13 @@ flowchart LR
 ## 🚀 빠른 시작
 
 > [!NOTE]
-> `pythonx-compose` 는 **알파** 단계입니다. `0.1.0a1` 이 [PyPI](https://pypi.org/project/pythonx-compose/) 에
+> `pythonx-compose` 는 **알파** 단계입니다. `0.1.0a2` 가 [PyPI](https://pypi.org/project/pythonx-compose/) 에
 > 있으며, 프리릴리스이므로 uv(또는 ppp, tcl)로 설치합니다.
 
 ```bash
 uv add --prerelease allow pythonx-compose
 # 또는 pypackpack 으로, ppp 워크스페이스의 패키지에 추가:
-ppp core add "pythonx-compose==0.1.0a1"
+ppp core add "pythonx-compose==0.1.0a2"
 # 또는 toolchain-lite 로:
 tcl install pythonx-compose
 ```
