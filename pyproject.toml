@@ -7,7 +7,7 @@ name = "pythonx-compose"
 version = "0.1.0a1"
 description = "Pythonic Compose UI for Python on Kotlin Multiplatform, through python-multiplatform"
 readme = {file = "README.md", content-type = "text/markdown"}
-license = "MIT"
+license = "Apache-2.0"
 license-files = ["LICENSE"]
 authors = [
     {name = "BREW (b-re-w)"},
