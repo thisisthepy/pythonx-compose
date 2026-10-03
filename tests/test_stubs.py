@@ -147,7 +147,7 @@ class TheConversion(unittest.TestCase):
         runtime = self.stubs[COMPOSE / "runtime" / "__init__.pyi"]
         self.assertIn("app_root: State", runtime)
         self.assertIn("def app(root)", runtime)
-        self.assertIn("def state(initial)", runtime)
+        self.assertNotIn("def state(", runtime, "state() is removed (INTENT 5.11)")
 
     def test_every_stub_is_valid_python(self):
         for path, text in self.stubs.items():

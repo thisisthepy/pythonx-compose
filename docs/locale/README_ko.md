@@ -167,7 +167,7 @@ pip 패키지 **`pythonx-compose`**(파이썬 3.11 이상)로 배포되며, impo
 | Material 3 위젯 (`Text`, `Button`, `Card`, `TextField`, …) | 🟡 부분: 규칙으로 재노출됨; 위젯별 렌더 증거 대기(#9) |
 | 실제 Compose 1.11.1 에서 생성한 타입 스텁(`.pyi`), `py.typed` | ✅ 구현, mypy 로 검사; 아직 많은 타입이 `Any` 입니다(#12) |
 | 배포 (`pythonx-compose`) | 🟡 부분: wheel 에 매니페스트, 재노출 규칙, 스텁, `py.typed` 포함 |
-| 갱신 호출 없는 선언형 앱 루트(`@app`)와 파이썬다운 상태(`state`) | 🟡 부분: 바인더 경로는 python-multiplatform #38 모양의 가짜 호스트로 테스트됨, 실제 Compose 는 E2E 모듈(#11, #19), 숫자와 문자열은 `state` 로 왕복됨 |
+| 갱신 호출 없는 선언형 앱 루트(`@app`), 상태는 Kotlin 의 `mutable_state_of` | 🟡 부분: 바인더 경로는 python-multiplatform #38 모양의 가짜 호스트로 테스트됨, 실제 Compose 에서는 python-multiplatform 노트북 E2E 가 통과(#11, #19), 숫자와 문자열은 왕복됨 |
 | `TextField(state=...)` 와 `TextFieldState` (`pythonx.compose.foundation.text.input`) | 🟡 부분: python-multiplatform #73 모양의 가짜 호스트로 테스트됨; 입력기(IME) 조합 증거는 python-multiplatform E2E #26 (#10) |
 | `DefaultIcons`(`Icons.Default`), `DefaultIcons.Add` 로 씀 | 🟡 부분: python-multiplatform #37/#38 모양의 가짜 호스트로 테스트됨; `Icon(DefaultIcons.Add, …)` 의 실제 그리기는 python-multiplatform 의 렌더 테스트에 있음 |
 | 색 스킴 | ⏳ 계획 |

@@ -35,21 +35,22 @@ A plain `def Screen(): Button(...)` already works with no wrapper, no base class
 slot detection; `@Composable` changes nothing about that and exists only so the notebook's own
 spelling keeps working.
 
-## The app root and `state`
+## The app root
 
-`@app` declares the screen the host draws; `state(initial)` makes a value Compose observes. The host
-is configured once with
+`@app` declares the screen the host draws. The host is configured once with
 `PythonAppView(module = "pythonx.compose.runtime", attribute = "app_root")`: it reads the module
 attribute `app_root`, a Compose `MutableState` whose `.value` is a zero-argument callable or `None`
 (nothing is drawn). `app(fn)` writes `app_root.value = fn` and returns `fn` unchanged, so declaring
 the root again -- in a notebook cell, say -- replaces the screen. There is deliberately no update or
 refresh function (`docs/INTENT.md` section 5.1).
 
-Both states come from `_new_state`, the one place that asks the binder for
-`androidx.compose.runtime.mutableStateOf`. `app_root` is created on first read, because the binder may
-be installed after `pythonx` is imported. A Python object with a `.value` would not make Compose
-recompose, so when the binder cannot supply `mutableStateOf` (python-multiplatform #38) `_new_state`
-raises instead of falling back to one.
+`app_root` comes from `_new_state`, the internal function that asks the binder for
+`androidx.compose.runtime.mutableStateOf`; it is created on first read, because the binder may be
+installed after `pythonx` is imported. A screen's own state is not a name of this package: it is
+Kotlin's `mutable_state_of`, re-exported by the rule, or `remember_saveable` (`docs/INTENT.md`
+sections 5.9 and 5.11; the former `state()` is removed, issue #101). A Python object with a `.value`
+would not make Compose recompose, so when the binder cannot supply `mutableStateOf`
+(python-multiplatform #38) `_new_state` raises instead of falling back to one.
 
 ## How it is reached
 
@@ -97,11 +98,6 @@ def _new_state(initial):
             "calling it from Python needs python-multiplatform #38"
         ) from missing
     return make(initial)
-
-
-def state(initial):
-    """A Compose state holding `initial`; read and write it through `.value`."""
-    return _new_state(initial)
 
 
 def app(root):

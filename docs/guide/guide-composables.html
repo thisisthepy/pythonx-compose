@@ -51,17 +51,17 @@ from pythonx.compose.layout import Column                   # Kotlin's home; sam
 
 <section>
 <h2><span data-lang="en">Declare the app and keep state</span><span data-lang="ko">앱 선언과 상태</span></h2>
-<pre><code class="language-python">from pythonx.compose.runtime import app, state
+<pre><code class="language-python">from pythonx.compose.runtime import app, mutable_state_of
 from pythonx.compose.material3 import Text, Button
 
-count = state(0)
+count = mutable_state_of(0)
 
 @app
 def Main():
     Button(on_click=lambda: setattr(count, &quot;value&quot;, count.value + 1),
            content=lambda: Text(f&quot;Clicked {count.value}&quot;))</code></pre>
-<p data-lang="en"><code>@app</code> declares the screen the host draws and returns the function unchanged. Declaring it again, for example in a notebook cell, replaces the screen; there is no update call. <code>state(initial)</code> is a Compose state, read and written through <code>.value</code>. The host is configured once with <code>PythonAppView(module = &quot;pythonx.compose.runtime&quot;, attribute = &quot;app_root&quot;)</code>.</p><p data-lang="ko"><code>@app</code> 은 호스트가 그리는 화면을 선언하고 함수를 그대로 돌려줍니다. 노트북 셀 등에서 다시 선언하면 화면이 바뀌며, 갱신 호출은 없습니다. <code>state(initial)</code> 는 Compose 상태이며 <code>.value</code> 로 읽고 씁니다. 호스트는 <code>PythonAppView(module = &quot;pythonx.compose.runtime&quot;, attribute = &quot;app_root&quot;)</code> 로 한 번만 설정합니다.</p>
-<p data-lang="en"><strong>Status: partial.</strong> The binder path, which creates the state through Compose's <code>mutableStateOf</code>, is tested against a fake host shaped after python-multiplatform #38; proof against real Compose is still the E2E module. Numbers and strings round-trip: <code>state(0)</code> and <code>count.value += 1</code> work (python-multiplatform #69).</p><p data-lang="ko"><strong>상태: 부분.</strong> Compose 의 <code>mutableStateOf</code> 로 상태를 만드는 바인더 경로는 python-multiplatform #38 모양의 가짜 호스트로 테스트되었으며, 실제 Compose 증거는 아직 E2E 모듈입니다. 숫자와 문자열은 왕복됩니다: <code>state(0)</code> 과 <code>count.value += 1</code> 이 동작합니다(python-multiplatform #69).</p>
+<p data-lang="en"><code>@app</code> declares the screen the host draws and returns the function unchanged. Declaring it again, for example in a notebook cell, replaces the screen; there is no update call. <code>mutable_state_of(initial)</code> is Compose's own <code>mutableStateOf</code>, read and written through <code>.value</code>; there is no second name for it. The host is configured once with <code>PythonAppView(module = &quot;pythonx.compose.runtime&quot;, attribute = &quot;app_root&quot;)</code>.</p><p data-lang="ko"><code>@app</code> 은 호스트가 그리는 화면을 선언하고 함수를 그대로 돌려줍니다. 노트북 셀 등에서 다시 선언하면 화면이 바뀌며, 갱신 호출은 없습니다. <code>mutable_state_of(initial)</code> 는 Compose 의 <code>mutableStateOf</code> 그대로이며 <code>.value</code> 로 읽고 씁니다. 다른 이름은 두지 않습니다. 호스트는 <code>PythonAppView(module = &quot;pythonx.compose.runtime&quot;, attribute = &quot;app_root&quot;)</code> 로 한 번만 설정합니다.</p>
+<p data-lang="en"><strong>Status: partial.</strong> The binder path, which creates the state through Compose's <code>mutableStateOf</code>, is tested against a fake host shaped after python-multiplatform #38; against real Compose, python-multiplatform's notebook E2E passes. Numbers and strings round-trip: <code>mutable_state_of(0)</code> and <code>count.value += 1</code> work (python-multiplatform #69).</p><p data-lang="ko"><strong>상태: 부분.</strong> Compose 의 <code>mutableStateOf</code> 로 상태를 만드는 바인더 경로는 python-multiplatform #38 모양의 가짜 호스트로 테스트되었으며, 실제 Compose 에서는 python-multiplatform 의 노트북 E2E 가 통과합니다. 숫자와 문자열은 왕복됩니다: <code>mutable_state_of(0)</code> 과 <code>count.value += 1</code> 이 동작합니다(python-multiplatform #69).</p>
 </section>
 
 <section>
@@ -112,7 +112,6 @@ draft.clear_text()</code></pre>
 <h2><span data-lang="en">What does not work yet</span><span data-lang="ko">아직 안 되는 것</span></h2>
 <ul class="clean">
 <li><span data-lang="en">The colour-scheme factories cannot be called yet: they take 36 colour parameters. <code>DefaultIcons</code> is <code>Icons.Default</code>, an icon is a value (an <code>ImageVector</code> to a type checker) read without parentheses: <code>Icon(DefaultIcons.Add, content_description=None)</code>, not the notebook's <code>DefaultIcons.Add()</code>. It is tested here against a fake host only; the real draw is in python-multiplatform's render test.</span><span data-lang="ko">색 스킴 팩토리는 색 매개변수를 36 개 받아 아직 호출할 수 없습니다. <code>DefaultIcons</code> 는 <code>Icons.Default</code> 이고, 아이콘은 괄호 없이 읽는 값(타입 검사기에는 <code>ImageVector</code>)입니다. 노트북의 <code>DefaultIcons.Add()</code> 가 아니라 <code>Icon(DefaultIcons.Add, content_description=None)</code>. 여기서는 가짜 호스트로만 테스트되며, 실제 그리기는 python-multiplatform 의 렌더 테스트에 있습니다.</span></li>
-<li><span data-lang="en">A declared app root and Pythonic state (redefining a screen replaces it, with no update call) are planned (issue #11).</span><span data-lang="ko">선언형 앱 루트와 파이썬다운 상태(화면을 다시 정의하면 교체되고, 갱신 호출은 없음)는 계획 단계입니다(이슈 #11).</span></li>
 <li><span data-lang="en"><code>TextField(state=…)</code> is wired and tested against a fake host only; that the input method's composing sequence survives, with no Python callback per keystroke, is proved in python-multiplatform's end-to-end test (#26).</span><span data-lang="ko"><code>TextField(state=…)</code> 는 가짜 호스트로만 테스트되었습니다. 입력기의 조합 입력이 키 입력마다 파이썬 콜백 없이 유지되는지는 python-multiplatform 의 종단 간 테스트(#26)에서 증명합니다.</span></li>
 <li><span data-lang="en"><code>remember_saveable</code> and the coroutine scopes the notebook imports are planned.</span><span data-lang="ko">노트북이 import 하는 <code>remember_saveable</code>, 코루틴 스코프는 계획 단계입니다.</span></li>
 </ul>

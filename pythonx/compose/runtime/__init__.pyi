@@ -173,8 +173,5 @@ def Composable(target):
 
 app_root: State
 
-def state(initial):
-    ...
-
 def app(root):
     ...
