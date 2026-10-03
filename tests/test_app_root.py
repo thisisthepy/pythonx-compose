@@ -1,6 +1,7 @@
 """`@app`, `state` and `app_root` in `pythonx.compose.runtime` (issue #11, docs/INTENT.md section 5.1).
 
-The host draws with `PythonContent("pythonx.compose.runtime", "app_root")`: it reads the module
+The host draws with
+`PythonAppView(module = "pythonx.compose.runtime", attribute = "app_root")`: it reads the module
 attribute `app_root`, a Compose State whose `.value` is a zero-argument callable or None. `@app`
 writes that value, so redeclaring the root replaces the screen; there is no update function.
 

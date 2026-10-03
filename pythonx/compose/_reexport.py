@@ -1,33 +1,29 @@
 """The one rule that makes a `pythonx.compose.*` module a Pythonic view of a Kotlin package.
 
-The binder (`python-multiplatform`) serves every bound Kotlin package under its **Kotlin** name --
-`androidx.compose.foundation.layout` -- with Kotlin's own surface: declaration names, keyword
-arguments by Kotlin parameter name, Kotlin defaults, overload dispatch. It renames nothing, and it
-publishes what a Pythonic layer needs to rename by rule: `inspect.signature(fn)` with the Kotlin
-parameter names, and `python_multiplatform.describe(fn)` with one dict per overload.
+The binder (`python-multiplatform`) serves every bound Kotlin package under its **Kotlin** name
+(`androidx.compose.foundation.layout`), and since its #131 it also serves the Pythonic spellings
+itself: snake_case names and keyword arguments, by this module's rule (`python_name`), with the
+Kotlin spelling still working and `inspect.signature` reporting the snake_case keywords. It never
+renames a namespace: `pythonx` is this package.
 
-This module is that layer. A mapped package's `__init__.py` is one line::
+This module groups those Kotlin packages into `pythonx.compose.*`. A mapped package's `__init__.py`
+is one line::
 
     __getattr__, __dir__ = reexport(__name__)
 
 and every name in it then resolves against the Kotlin package `pythonx-map.toml` maps it to:
 
-- **Names.** A name that starts upper-case -- a type, an object, a `@Composable` -- keeps its Kotlin
-  spelling (`Modifier`, `Text`). Any other name is reached by its snake_case spelling only
+- **Names.** A name that starts upper-case (a type, an object, a `@Composable`) keeps its Kotlin
+  spelling (`Modifier`, `Text`). Any other name is listed and reached by its snake_case spelling
   (`fillMaxWidth` -> `fill_max_width`, `toURLString` -> `to_url_string`), and an explicit overload
-  keeps its suffix (`padding__Dp`). The inverse is never computed: the module's real Kotlin names
-  are converted forward and looked up, so a name the reverse rule could not invert still resolves.
-- **Keywords.** `on_click=` reaches the parameter Kotlin calls `onClick`, matched against the
-  declaration's own parameter names (every overload's), never derived.
-- **Signatures.** A re-exported function answers `inspect.signature` with the snake_case names;
-  defaults stay `python_multiplatform.KOTLIN_DEFAULT`.
+  keeps its suffix (`padding__Dp`). The rule is applied forward to the module's real Kotlin names,
+  so a name the reverse rule could not invert still resolves.
+- **Functions** are the binder's own callables; their keywords and signatures are the binder's.
 - **Value classes.** The manifest's `raw-primitive-allowed` list is handed to the binder once per
   installed binding layer, so `padding(16)` reaches a `Dp` parameter.
-- **Methods on a proxy.** The same name rule is registered as the binder's member resolver, so
-  `Modifier.padding(16).fill_max_width()` reaches `fillMaxWidth` on a proxy Kotlin returned, and
-  `m.padding(padding_values=...)` reaches `paddingValues`: the resolver also answers a keyword map,
-  read from `python_multiplatform.describe_member`. The Kotlin spelling still works. The binder
-  caches the alias in its own registry; its proxy classes keep Kotlin names in `dir()`.
+- **Methods on a proxy** are the binder's: since python-multiplatform #131 it serves
+  `Modifier.padding(16).fill_max_width()` and `m.padding(padding_values=...)` itself, by this
+  package's rule, with the Kotlin spelling still working. Nothing here takes part.
 
 - **Grouped constants.** Inside a Kotlin object served as a namespace, a type nested in it that
   is not one of its members groups the constants declared as exactly that type, so the notebook's
@@ -50,7 +46,6 @@ from __future__ import annotations
 
 import importlib
 import importlib.util
-import inspect
 import re
 import sys
 import types
@@ -116,77 +111,16 @@ def binding_layer():
 _PRIMED = weakref.WeakSet()
 
 
-_MEMBER_KEYWORDS: "weakref.WeakKeyDictionary" = weakref.WeakKeyDictionary()
-
-
-def _method_keywords(kotlin_type_name: str, kotlin_member_name: str) -> dict:
-    """`{snake_case(p): p}` for every parameter `p` of every declaration of a proxy's member.
-
-    Read with `python_multiplatform.describe_member`, which lists each overload's parameters without
-    invoking anything (the receiver slot is not among them). It is metadata, so it is kept per
-    (type, member), under the `describe_member` of the binding layer that answered: a new layer
-    starts with an empty table. A keyword whose snake_case spelling is its own is left out, and a
-    binder without `describe_member`, or a member it does not describe, has no map.
-    """
-    describe_member = getattr(sys.modules.get(ROOT_MODULE), "describe_member", None)
-    if describe_member is None:
-        return {}
-    try:
-        known = _MEMBER_KEYWORDS.setdefault(describe_member, {})
-    except TypeError:  # something that cannot be weakly referenced: nothing to key a cache by
-        known = {}
-    key = (kotlin_type_name, kotlin_member_name)
-    if key not in known:
-        keywords: dict = {}
-        try:
-            declarations = describe_member(kotlin_type_name, kotlin_member_name)
-        except (TypeError, AttributeError):
-            declarations = ()
-        for declaration in declarations:
-            for parameter in declaration.get("parameters", ()):
-                kotlin_parameter = parameter.get("name")
-                if kotlin_parameter and snake_case(kotlin_parameter) != kotlin_parameter:
-                    keywords.setdefault(snake_case(kotlin_parameter), kotlin_parameter)
-        known[key] = keywords
-    return known[key]
-
-
-def member_name(kotlin_type_name: str, requested: str, kotlin_member_names):
-    """The binder's member-resolver hook: the Kotlin member a Pythonic name means on a proxy, and
-    the keywords it takes.
-
-    The binder asks for a name its proxy has no Kotlin member of
-    (`python_multiplatform.binding.add_member_resolver`): the rule is the module rule applied
-    forward to the proxy's real member names, so `fill_max_width` finds `fillMaxWidth`. It asks
-    again for a Kotlin member name when a call passes keywords. The answer is then
-    `(kotlin_name, {python_keyword: kotlinParameter})`, the parameters of every overload of that
-    member, so `m.padding(padding_values=...)` reaches `paddingValues`. Without a keyword to map the
-    answer is the name alone, which is all a binder without `describe_member` can be given.
-    """
-    if requested in kotlin_member_names:
-        target = requested
-    else:
-        matches = [name for name in kotlin_member_names if python_name(name) == requested]
-        target = matches[0] if len(matches) == 1 else None
-    if target is None:
-        return None
-    keywords = _method_keywords(kotlin_type_name, target)
-    return (target, keywords) if keywords else target
-
-
 def _prime(binding) -> None:
-    """Hand this binding layer the manifest's value-class allowlist and the member rule, once.
+    """Hand this binding layer the manifest's value-class allowlist, once.
 
-    The member rule needs python-multiplatform's `add_member_resolver`; on a binder without it,
-    methods on a returned proxy stay reachable by their Kotlin names only.
+    Method names and keywords on a proxy are the binder's own since python-multiplatform #131
+    (snake_case by this package's rule); nothing is registered for them here.
     """
     if binding in _PRIMED:
         return
     for kotlin_type in manifest().get("value-classes", {}).get("raw-primitive-allowed", ()):
         binding.allow_raw_primitive(kotlin_type)
-    add_member_resolver = getattr(binding, "add_member_resolver", None)
-    if add_member_resolver is not None:
-        add_member_resolver(member_name)
     _PRIMED.add(binding)
 
 
@@ -233,72 +167,14 @@ def _declared_type(kotlin, kotlin_name: str):
     return described.get("kind"), described.get("returns")
 
 
-def _describe(fn):
-    root = sys.modules.get(ROOT_MODULE)
-    if root is None or not hasattr(root, "describe"):
-        return ()
-    try:
-        return root.describe(fn)
-    except (TypeError, AttributeError):
-        return ()
-
-
-class PythonicFunction:
-    """A binder callable seen through the naming rule: snake_case keywords and signature.
-
-    Calls go straight to the binder's callable with the keywords translated; overload selection,
-    defaults and value classes are the binder's. A keyword that matches no parameter is passed on
-    unchanged, so the binder's own refusal -- which lists the candidates -- is what the caller sees.
-    """
-
-    __slots__ = ("_kotlin", "_keywords", "__name__", "__qualname__")
-
-    def __init__(self, kotlin_fn, name):
-        self._kotlin = kotlin_fn
-        self.__name__ = name
-        self.__qualname__ = name
-        keywords = {}
-        for row in _describe(kotlin_fn):
-            for parameter in row.get("parameters", ()):
-                kotlin_parameter = parameter["name"]
-                keywords.setdefault(snake_case(kotlin_parameter), kotlin_parameter)
-        self._keywords = keywords
-
-    @property
-    def __kotlin__(self):
-        """The binder's callable this wraps."""
-        return self._kotlin
-
-    @property
-    def __kotlin_rows__(self):
-        return self._kotlin.__kotlin_rows__
-
-    @property
-    def __signature__(self):
-        kotlin_signature = inspect.signature(self._kotlin)
-        return kotlin_signature.replace(parameters=[
-            parameter if parameter.kind in (parameter.VAR_POSITIONAL, parameter.VAR_KEYWORD)
-            else parameter.replace(name=snake_case(parameter.name))
-            for parameter in kotlin_signature.parameters.values()
-        ])
-
-    def __call__(self, *args, **kwargs):
-        if kwargs:
-            kwargs = {self._keywords.get(key, key): value for key, value in kwargs.items()}
-        return self._kotlin(*args, **kwargs)
-
-    def __repr__(self):
-        return f"<pythonx function {self.__name__} -> {self._kotlin!r}>"
-
-
 def _pythonic(value, name):
     if isinstance(value, types.ModuleType):
         # A Kotlin object served as a sub-package. Since python-multiplatform #35 the binder lists it
         # and exposes it as an attribute of its parent, so the name table reaches it directly.
-        return KotlinObject(value)
-    if isinstance(value, type) or not callable(value):
-        return value
-    return PythonicFunction(value, name)
+        return _kotlin_object(value)
+    # A function is the binder's own callable: since python-multiplatform #131 it takes snake_case
+    # keywords and reports them in `inspect.signature` itself.
+    return value
 
 
 def _resolve(kotlin, name: str):
@@ -320,7 +196,7 @@ def _resolve(kotlin, name: str):
             nested = importlib.import_module(kotlin.__name__ + "." + name)
         except ImportError:
             return None
-        return KotlinObject(nested), True
+        return _kotlin_object(nested), True
     return None
 
 
@@ -398,6 +274,25 @@ class KotlinObject:
 
     def __repr__(self):
         return f"<pythonx view of Kotlin object {self._kotlin.__name__}>"
+
+
+class CallableKotlinObject(KotlinObject):
+    """A Kotlin object whose name is also a function in its package (`Color`), callable as that function.
+
+    The binder makes such a module callable (python-multiplatform #78): `Color(0xFFFFFFFF)` calls
+    the `Color` function, while `Color.Red` is still a constant of the object. Calling goes to the
+    binder's module itself, which resolves the function on every call.
+    """
+
+    __slots__ = ()
+
+    def __call__(self, *args, **kwargs):
+        return self._kotlin(*args, **kwargs)
+
+
+def _kotlin_object(kotlin_module):
+    """The namespace for a Kotlin object module: callable only when the binder made the module callable."""
+    return CallableKotlinObject(kotlin_module) if callable(kotlin_module) else KotlinObject(kotlin_module)
 
 
 class ConstantGroup:

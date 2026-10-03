@@ -1,4 +1,4 @@
-/* pythonx-compose guide — shared thisisthepy family tokens, accent #7c4dff. */
+/* pythonx-compose guide: shared thisisthepy family tokens, accent #7c4dff. */
 :root {
   --bg: #fbfbfa; --fg: #16181d; --muted: #5b6270; --line: #e6e6e3; --code-bg: #f3f3f1;
   --radius: 10px; --maxw: 72rem;
@@ -146,7 +146,7 @@ a.card:hover { text-decoration: none; border-color: var(--accent); }
 
 ul.clean { padding-left: 1.1rem; margin: 0 0 1rem; }
 ul.clean li { margin: 0.3rem 0; }
-.not li::marker { content: "— "; color: var(--muted); }
+.not li::marker { content: "– "; color: var(--muted); }
 
 /* Tables */
 .table-wrap { overflow-x: auto; margin: 1rem 0 1.5rem; border: 1px solid var(--line); border-radius: var(--radius); }
