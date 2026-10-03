@@ -21,14 +21,14 @@ Run from a worktree with `uv run --with pytest --with mypy pytest tests -q -rs` 
 
 | Environment | Result |
 |---|---|
-| No `PythonMultiplatform` checkout found | **148 passed, 114 skipped**, 164 subtests passed |
-| python-multiplatform `develop` at `31c092f0` or later (property rows, #38; `describe_member`, #54; besides `add_member_resolver` and `describe(module, name)`) | **261 passed, 1 skipped**, 195 subtests passed |
+| No `PythonMultiplatform` checkout found | **151 passed, 123 skipped**, 186 subtests passed |
+| python-multiplatform `develop` at `31c092f0` or later (property rows, #38; `describe_member`, #54; besides `add_member_resolver` and `describe(module, name)`) | **273 passed, 1 skipped**, 232 subtests passed |
 | an older checkout, before python-multiplatform #131 (no binder-side snake_case names) | the same, with the snake_case method tests skipped |
 | an older one, without `describe(module, name)` (python-multiplatform #36) | with 13 more skipped again |
 | an older one still, without `add_member_resolver` | with 5 more skipped again |
 
 Measured in a worktree, which has `.tmp/kotlin-stubs.zip` but no `UI.ipynb`. Without a checkout, the
-113 tests that install the binder's layers through `tests/adapter.py` skip (one of them against the
+122 tests that install the binder's layers through `tests/adapter.py` skip (one of them against the
 installed wheel, #88), plus the notebook test.
 Against a binder without `describe(module, name)`, the 13 that check grouped constants (§7, S7.1)
 skip. Against a binder before python-multiplatform #131, the tests that call a snake_case method or
@@ -406,47 +406,57 @@ reads the committed text. Not exercised there: the AWT layer that decodes an `In
 which needs a window. Not modelled here: a function-typed slot (`label`, `on_value_change`), which needs
 the binder's `NewFunction` rows.
 
-### S5.6 `remember_saveable`, and the notebook's state spelling: `planned`
+### S5.6 `remember_saveable`, and the notebook's state spelling: `partial` (the Python half is tested here against the fake host; that Compose saves and restores the state is python-multiplatform's test)
 
 INTENT §5.9 (2026-10-04). The 2024 demo the notebook ran against (PyREPL `abc6952`) wrote
 `cls.messages = messages = remember_saveable("")` in its root, and `UI.ipynb` cells 9 to 13 read
 `main.App.messages`, `main.App.messages.getValue()` and `main.App.messages.setValue(...)`.
 
 - `remember_saveable(initial)`, from `pythonx.compose.runtime`, calls the host's `@Composable`
-  `rememberSaveableWrapper(init, type)` (python-multiplatform's `python-multiplatform-compose`,
-  package `python.multiplatform.compose`, exposed through the binder; python-multiplatform #174;
-  this repository's #102). It follows pycomposeui's `rememberSaveableWrapper`: `type` is
-  chosen in Python from the initial value, and Kotlin wraps the matching state in
-  `rememberSaveable { ... }`:
+  `python.multiplatform.compose.rememberSaveableWrapper(initial)` (python-multiplatform #174,
+  `8c56f19b`; `python-multiplatform-compose`, `RememberSaveable.kt`). The value is passed as it
+  is. The type rule is Kotlin's alone, after pycomposeui's wrapper of that name: the boxed value's
+  Kotlin type picks the state wrapped in `rememberSaveable { ... }`.
 
-  | Python value | `type` | Kotlin state |
+  | Python value | Kotlin type | Kotlin state |
   |---|---|---|
-  | `bool` | `"bool"` | `mutableStateOf(Boolean)` |
-  | `int` within 32 bits | `"int"` | `mutableIntStateOf` |
-  | `int` beyond 32 bits, within 64 | `"long"` | `mutableLongStateOf` |
-  | `float` | `"float"` | `mutableDoubleStateOf` |
-  | `str` | `"str"` | `mutableStateOf(String)` |
+  | `int` within 32 bits | `Int` | `mutableIntStateOf` |
+  | larger `int`, within 64 bits | `Long` | `mutableLongStateOf` |
+  | `float` | `Double` | `mutableDoubleStateOf` |
+  | `bool` | `Boolean` | `mutableStateOf` |
+  | `str` | `String` | `mutableStateOf` |
 
-  `bool` is tested before `int`, because a Python `bool` is an `int`. (pycomposeui sent `"bool"`
-  from Python but matched `"boolean"` in Kotlin, so its booleans fell through to the generic
-  branch.) Any other value is a `TypeError` here until a saver for it is specified, and an `int`
-  beyond 64 bits is a `TypeError` too.
-- It returns a thin wrapper over the Kotlin `MutableState`, with `getValue()`, `setValue(value)` and
-  `.value` (read and write). Every read goes through `MutableState.value`, so Compose records the
-  snapshot read and recomposes on a write; the wrapper holds nothing of its own.
-- It works only inside a composition, as in Kotlin: called outside one, it raises `RuntimeError`.
+  Any other value is refused by Kotlin with an error naming its type (`list`). An `int` beyond 64
+  bits is refused before that, as a `TypeError`, by the binder's scalar boxing (python-multiplatform
+  #69).
+- It returns a `SaveableState`: a thin wrapper over the Kotlin `MutableState`, with `getValue()`,
+  `setValue(value)` and `.value` (read and write). Every read goes through `MutableState.value`, so
+  Compose records the snapshot read and recomposes on a write; the wrapper holds nothing else. The
+  stub types it (`remember_saveable(initial: bool | int | float | str) -> SaveableState`), and the
+  stub generator carries a class the package defines over with its public methods and properties.
+- It works only inside a composition, as in Kotlin: called outside one, the binder raises
+  `RuntimeError`. When the wrapper is not bound, `remember_saveable` raises `RuntimeError` naming
+  #174 and the host's `artifactIncludePackages` entry, `python.multiplatform.compose.RememberSaveableKt`.
 - How `main.App.messages` exists: the app attaches it, as the 2024 demo did. Inside
   `def App():` it writes `App.messages = messages = remember_saveable("")`. `@app` returns the
   function unchanged, so `main.App` is that function and `main.App.messages` is the state from its
   latest composition. There is no framework lookup by variable name. Before the first composition,
   `main.App.messages` does not exist yet.
-- Surviving rotation and process restart is Compose's `SaveableStateRegistry`. The host places
-  `PythonAppView` under it, and the save-and-restore proof is python-multiplatform's (the same
-  issue).
+- Surviving rotation and process restart is Compose's `SaveableStateRegistry`, proved in
+  python-multiplatform's `RememberSaveableRenderTest` (saved, scene closed, restored into a new
+  scene).
 
-Tests here (planned): the type rule, the wrapper's three spellings over one state, the error outside
-a composition, and an app that attaches `App.messages` as above. They run against fake host rows
-shaped after the agreed `rememberSaveableWrapper`.
+Tests: `tests/test_remember_saveable.py` (9 tests, against fake host rows shaped after
+`8c56f19b`):
+- `TheValueSent`: the value reaches Kotlin unchanged; an `int` beyond 64 bits is refused.
+- `TheWrapper`: the three spellings over one state; every read goes to the Kotlin state.
+- `OutsideTheComposition`.
+- `TheNotebookSpelling`: cells 9 to 13 as written, against an `@app` root that attaches
+  `App.messages`.
+
+Stubs: `tests/test_stubs.py::TheConversion::test_a_class_the_package_defines_keeps_its_public_members`.
+Typing: `tests/test_typing.py::test_remember_saveable_types_the_notebook_spelling` and
+`test_what_remember_saveable_returns_has_no_other_spelling`.
 
 ### S5.7 `DefaultCoroutineScope`, `MainCoroutineScope`: `planned` (after pythonx-concurrent)
 
@@ -589,7 +599,7 @@ the binder lists no member that would win over these groups.
 
 | Name | Notebook use | Note |
 |---|---|---|
-| `remember_saveable` | imported from `pythonx.compose.runtime`; `main.App.messages` read/written with `getValue()` / `setValue()` (cells 9 to 13) | INTENT §5.9: supported as written, `.value` as the alias; S5.6, `planned` |
+| `remember_saveable` | imported from `pythonx.compose.runtime`; `main.App.messages` read/written with `getValue()` / `setValue()` (cells 9 to 13) | INTENT §5.9: supported as written, `.value` as the alias; S5.6, `partial` (#102; save and restore proved in python-multiplatform #174) |
 | `DefaultCoroutineScope`, `MainCoroutineScope` | imported from `pythonx.compose.runtime` | INTENT §5.10: built on pythonx-concurrent; S5.7, `planned` |
 | `DefaultIcons` | `DefaultIcons.Add()` | INTENT §5.7, `implemented` as `DefaultIcons.Add`. The notebook's `Add()` is the spelling of its time; the current spelling is `Add`, a property read without parentheses, as for every constant (decided with the ecosystem lead; S5.3, `tests/test_chain.py::DefaultIconsAlias`, fake host) |
 | `modifier` | lower-case instance from `pythonx.compose.ui` | INTENT §5.4: not provided; written `Modifier` |

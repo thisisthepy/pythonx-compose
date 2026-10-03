@@ -52,6 +52,25 @@ sections 5.9 and 5.11; the former `state()` is removed, issue #101). A Python ob
 would not make Compose recompose, so when the binder cannot supply `mutableStateOf`
 (python-multiplatform #38) `_new_state` raises instead of falling back to one.
 
+## `remember_saveable`
+
+`remember_saveable(initial)` is Compose's `rememberSaveable`: the value survives recomposition,
+rotation and process restart (`docs/INTENT.md` section 5.9). It calls the host's `@Composable`
+`python.multiplatform.compose.rememberSaveableWrapper(initial)` (python-multiplatform #174), which
+picks the Kotlin state from the value's type (Int, Long, Double, Boolean, String) and refuses any
+other, as pycomposeui's wrapper of that name did. The value is passed as it is; the type rule is
+Kotlin's alone. Like any composable, it works only inside a composition.
+
+It returns a `SaveableState`, a thin wrapper over that Kotlin `MutableState`, with the notebook's
+`getValue()` / `setValue(value)` (cells 9 to 13) and `.value` as the Pythonic alias. Every read goes
+through `MutableState.value`, so Compose records the read and recomposes on a write; nothing is
+cached here. The app attaches the state to its root itself, as the 2024 demo did
+(`App.messages = messages = remember_saveable("")` inside `def App():`), which is how
+`main.App.messages` exists; there is no lookup by variable name.
+
+A host app binds the wrapper by listing `python.multiplatform.compose.RememberSaveableKt` in its
+`artifactIncludePackages`.
+
 ## How it is reached
 
 By its own dotted name: `import pythonx.compose.runtime` loads this file. The binder used to put a
@@ -63,6 +82,7 @@ synthetic `pythonx` with `__path__ = []` into `sys.modules`, which made every fi
 
 from __future__ import annotations
 
+import importlib
 import sys
 
 
@@ -107,6 +127,51 @@ def app(root):
     """
     sys.modules[__name__].app_root.value = root
     return root
+
+
+_SAVEABLE_HOST = "python.multiplatform.compose"
+
+
+class SaveableState:
+    """What `remember_saveable` returns: the notebook's `getValue()` / `setValue(value)` over a
+    Compose `MutableState`, with `.value` as the Pythonic alias. Holds nothing but the state."""
+
+    __slots__ = ("_state",)
+
+    def __init__(self, state):
+        self._state = state
+
+    def getValue(self):
+        """The current value, read from the Kotlin state (a snapshot read Compose records)."""
+        return self._state.value
+
+    def setValue(self, value):
+        """Write the Kotlin state; a composable that read it recomposes."""
+        self._state.value = value
+
+    @property
+    def value(self):
+        return self._state.value
+
+    @value.setter
+    def value(self, value):
+        self._state.value = value
+
+    def __repr__(self):
+        return f"SaveableState({self._state.value!r})"
+
+
+def remember_saveable(initial: bool | int | float | str) -> SaveableState:
+    """Compose's `rememberSaveable` for an int, float, bool or str; call it inside a composition."""
+    try:
+        wrapper = importlib.import_module(_SAVEABLE_HOST).rememberSaveableWrapper
+    except (ImportError, AttributeError) as missing:
+        raise RuntimeError(
+            f"{_SAVEABLE_HOST}.rememberSaveableWrapper is not bound: it needs python-multiplatform #174, "
+            "and the host app must list python.multiplatform.compose.RememberSaveableKt in "
+            "artifactIncludePackages"
+        ) from missing
+    return SaveableState(wrapper(initial))
 
 
 from pythonx.compose._reexport import reexport

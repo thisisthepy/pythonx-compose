@@ -174,7 +174,8 @@ standalone desktop toolkit.
 | `TextField(state=...)` with `TextFieldState` (`pythonx.compose.foundation.text.input`) | 🟡 partial: tested against a fake host shaped after python-multiplatform #73; the input-method (IME) composing proof is python-multiplatform E2E #26 (#10) |
 | `DefaultIcons` (`Icons.Default`), written `DefaultIcons.Add` | 🟡 partial: tested against a fake host shaped after python-multiplatform #37/#38; `Icon(DefaultIcons.Add, …)` is drawn in python-multiplatform's render test |
 | Colour schemes | ⏳ planned |
-| `remember_saveable`, coroutine scopes | ⏳ planned |
+| `remember_saveable` with the notebook's `getValue()` / `setValue()` | 🟡 partial: tested against a fake host; save and restore is python-multiplatform's test (#174) |
+| Coroutine scopes (`DefaultCoroutineScope`, `MainCoroutineScope`) | ⏳ planned, after pythonx-concurrent |
 
 The full list is on the guide's [Status page](https://thisisthepy.github.io/pythonx-compose/status.html).
 
