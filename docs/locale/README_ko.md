@@ -1,4 +1,4 @@
-[English](../../README.md) | 한국어
+[English](https://github.com/thisisthepy/pythonx-compose/blob/main/README.md) | 한국어
 
 <div align="center">
 
@@ -6,12 +6,12 @@
 
 **Compose UI 를 파이썬으로 — Compose 의 위젯 그대로, 파이썬다운 이름으로.**
 
-[![License: MIT](https://img.shields.io/badge/license-MIT-7c4dff.svg)](../../LICENSE)
-[![Python](https://img.shields.io/badge/python-3.11%2B-7c4dff.svg)](../../pyproject.toml)
-[![pip](https://img.shields.io/badge/pip-pythonx--compose-7c4dff.svg)](../../pyproject.toml)
+[![License: MIT](https://img.shields.io/badge/license-MIT-7c4dff.svg)](https://github.com/thisisthepy/pythonx-compose/blob/main/LICENSE)
+[![Python](https://img.shields.io/badge/python-3.11%2B-7c4dff.svg)](https://github.com/thisisthepy/pythonx-compose/blob/main/pyproject.toml)
+[![pip](https://img.shields.io/badge/pip-pythonx--compose-7c4dff.svg)](https://github.com/thisisthepy/pythonx-compose/blob/main/pyproject.toml)
 [![Status](https://img.shields.io/badge/status-pre--alpha-lightgrey.svg)](#-현황)
 
-[가이드](../guide/index.html) · [시작하기](../guide/getting-started.html) · [개념](../guide/concepts.html) · [현황](../guide/status.html)
+[가이드](https://thisisthepy.github.io/pythonx-compose/) · [시작하기](https://thisisthepy.github.io/pythonx-compose/getting-started.html) · [개념](https://thisisthepy.github.io/pythonx-compose/concepts.html) · [현황](https://thisisthepy.github.io/pythonx-compose/status.html)
 
 </div>
 
@@ -54,7 +54,7 @@ def Greeting():
 - **`@Composable` 은 그대로.** 화면은 데코레이터가 붙은 파이썬 함수입니다.
 - **실제 패키지.** `pythonx/` 는 `androidx.compose.*` 를 import 해 재구성하는 평범한 파이썬
   소스입니다. 바인더는 아무 이름도 바꾸지 않습니다 — 이름을 바꾸는 것은 이 패키지의 일입니다.
-- **하나의 매니페스트.** [`pythonx-map.toml`](../../pythonx/compose/pythonx-map.toml) 이 어떤 `pythonx.compose.*`
+- **하나의 매니페스트.** [`pythonx-map.toml`](https://github.com/thisisthepy/pythonx-compose/blob/main/pythonx/compose/pythonx-map.toml) 이 어떤 `pythonx.compose.*`
   모듈이 어떤 Kotlin 패키지에 대응하는지 적습니다. 이 파일은 패키지 안에 있으며 wheel 에 함께
   담깁니다. 런타임과 `.pyi` 생성기가 같은 파일을 읽으므로, 편집기가 자동완성하는 이름과 인터프리터가
   해석하는 이름이 어긋나지 않습니다.
@@ -84,7 +84,10 @@ flowchart LR
 ## 🚀 빠른 시작
 
 > [!NOTE]
-> `pythonx-compose` 는 **pre-alpha** 단계이며 아직 PyPI 에 배포되지 않았습니다.
+> `pythonx-compose` 는 **pre-alpha** 단계입니다. 첫 알파 `0.1.0a1` 은 메인테이너가 태그를 달면 PyPI 에
+> 배포되며, 프리릴리스이므로 `pip install --pre pythonx-compose` 로 설치합니다.
+
+클론에서 테스트를 돌리려면:
 
 ```bash
 git clone https://github.com/thisisthepy/pythonx-compose
@@ -161,12 +164,12 @@ pip 패키지 **`pythonx-compose`**(파이썬 3.11 이상)로 배포되며, impo
 | 색 스킴 | ⏳ 계획 |
 | `remember_saveable`, 코루틴 스코프 | ⏳ 계획 |
 
-전체 목록은 가이드의 [현황 페이지](../guide/status.html)에 있습니다.
+전체 목록은 가이드의 [현황 페이지](https://thisisthepy.github.io/pythonx-compose/status.html)에 있습니다.
 
 ## 📖 문서
 
-- **가이드** — [`docs/guide/`](../guide/index.html), 영어 / 한국어
-- **English README** — [`README.md`](../../README.md)
+- **가이드** — [`docs/guide/`](https://thisisthepy.github.io/pythonx-compose/), 영어 / 한국어
+- **English README** — [`README.md`](https://github.com/thisisthepy/pythonx-compose/blob/main/README.md)
 
 ## 🔌 생태계
 
@@ -182,7 +185,7 @@ pip 패키지 **`pythonx-compose`**(파이썬 3.11 이상)로 배포되며, impo
 ## 🤝 기여
 
 개발은 의도 우선, 테스트 우선입니다: 변경은 스펙 변경으로 시작해, 실패하는 테스트를 거쳐, 코드로
-끝납니다. 열린 항목과 도움이 필요한 곳은 [가이드](../guide/status.html)에 있습니다. 큰 변경 전에는
+끝납니다. 열린 항목과 도움이 필요한 곳은 [가이드](https://thisisthepy.github.io/pythonx-compose/status.html)에 있습니다. 큰 변경 전에는
 이슈를 먼저 열어 주세요.
 
 ## 메인테이너
@@ -194,4 +197,4 @@ pip 패키지 **`pythonx-compose`**(파이썬 3.11 이상)로 배포되며, impo
 
 ## 라이선스
 
-[MIT](../../LICENSE) © 2023–2024 BREW (b-re-w), Jong-uk Lee (rnoro5122)
+[MIT](https://github.com/thisisthepy/pythonx-compose/blob/main/LICENSE) © 2023–2024 BREW (b-re-w), Jong-uk Lee (rnoro5122)

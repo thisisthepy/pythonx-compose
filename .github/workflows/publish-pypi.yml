@@ -1,0 +1,54 @@
+name: Publish to PyPI
+
+# A pushed `v*` tag releases that commit. The tag must be `v` + the version in pyproject.toml. The
+# upload uses PyPI trusted publishing: no token is stored anywhere; PyPI trusts this workflow and
+# the `pypi` environment, whose deployment policy allows `v*` tags only.
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - run: python -m pip install build twine
+      - name: Check the tag against pyproject.toml
+        run: python .github/scripts/check_release_version.py "$GITHUB_REF_NAME"
+      - name: Build the sdist and the wheel
+        run: python -m build
+      - run: twine check dist/*
+      # Importing needs no binder: names resolve lazily, on first use.
+      - name: Smoke-install the wheel in a fresh venv
+        run: |
+          python -m venv .smoke
+          .smoke/bin/pip install dist/*.whl
+          .smoke/bin/python -c "import pythonx.compose, pythonx.compose.ui, pythonx.compose.material3; import importlib.resources as r; assert r.files('pythonx.compose').joinpath('pythonx-map.toml').is_file()"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist/
+          if-no-files-found: error
+
+  publish:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: pypi
+      url: https://pypi.org/p/pythonx-compose
+    permissions:
+      id-token: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist/
+      - uses: pypa/gh-action-pypi-publish@release/v1
