@@ -133,6 +133,14 @@ class TheConversion(unittest.TestCase):
         runtime = self.stubs[COMPOSE / "runtime" / "__init__.pyi"]
         self.assertIn("def Composable(target)", runtime)
 
+    def test_a_public_annotated_name_the_package_declares_is_carried_over(self):
+        # `runtime.app_root` is created on first read by a module `__getattr__`, so `__init__.py`
+        # only annotates it; the stub must still say it exists.
+        runtime = self.stubs[COMPOSE / "runtime" / "__init__.pyi"]
+        self.assertIn("app_root: State", runtime)
+        self.assertIn("def app(root)", runtime)
+        self.assertIn("def state(initial)", runtime)
+
     def test_every_stub_is_valid_python(self):
         for path, text in self.stubs.items():
             with self.subTest(stub=str(path.relative_to(REPO))):

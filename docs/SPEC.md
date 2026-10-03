@@ -14,26 +14,26 @@ Each item carries a status:
 
 A behaviour change starts here, then becomes a failing test, then code (`AGENTS.md` §5).
 
-## 0. Test baseline (2026-10-03, after issue #9's grouped constants)
+## 0. Test baseline (2026-10-03, after issue #11's app root)
 
 Run from a worktree with `python -m pytest tests -q -rs` (pytest 8, mypy 2.4, CPython 3.13), where
 `UI.ipynb` is absent and its one test skips:
 
 | Environment | Result |
 |---|---|
-| No `PythonMultiplatform` checkout found | **91 passed, 73 skipped**, 122 subtests passed |
-| python-multiplatform `develop` at `d6d39787` or later (has `add_member_resolver` and `describe(module, name)`) | **163 passed, 1 skipped**, 149 subtests passed |
+| No `PythonMultiplatform` checkout found | **106 passed, 75 skipped**, 122 subtests passed |
+| python-multiplatform `develop` at `d6d39787` or later (has `add_member_resolver` and `describe(module, name)`) | **178 passed, 3 skipped**, 149 subtests passed |
 | an older checkout, without `describe(module, name)` (python-multiplatform #36) | the same, with 13 more skipped |
 | an older one still, without `add_member_resolver` | with 5 more skipped again |
 
 Without a checkout, the 72 tests that install the binder's layers through `tests/adapter.py` skip.
 Against a binder without `describe(module, name)`, the 13 that check grouped constants (§7, S7.1)
 skip. Against a binder older than `ba4c6f49`, the 5 that call a snake_case method on a proxy the
-binder returned skip as well, because that needs its member resolver (python-multiplatform #17). The 1 skip in both
-rows is `UI.ipynb`'s (§2). `tests/test_typing.py` skips where mypy is not installed. A skip is not a
+binder returned skip as well, because that needs its member resolver (python-multiplatform #17). The 3 skips against a current checkout are `UI.ipynb`'s (§2) and the 2 that need
+python-multiplatform #38 (S5.4). `tests/test_typing.py` skips where mypy is not installed. A skip is not a
 pass.
 
-Of the 91 that pass without a checkout, 37 check the type stubs and the wheel (S1.2); most of the
+Of the 106 that pass without a checkout, 38 check the type stubs and the wheel (S1.2); most of the
 rest assert **absence** (a retired token, a deleted file, a docstring that exists). Those are listed
 in §9 and are not counted as features.
 
@@ -194,6 +194,30 @@ job.
 Tests: `tests/test_runtime_module.py::TheRuntimeSeam` (4 tests) and `::TheChaquopyMechanismIsGone`
 (3 tests), importing `pythonx.compose.runtime` the ordinary way.
 
+### S5.4 The app root, `app` and `state` — `partial` (logic tested; the binder path waits for python-multiplatform #38)
+
+The host draws with `PythonContent("pythonx.compose.runtime", "app_root")` (python-multiplatform #18,
+issue #11). `pythonx.compose.runtime` provides:
+
+- `app_root` — a Compose `MutableState` whose `.value` is a zero-argument callable, or `None` (the
+  host draws nothing). It is created on first read, by the binder's
+  `androidx.compose.runtime.mutableStateOf(None)`, because the binder may be installed after `pythonx`
+  is imported; afterwards it is an ordinary module attribute, the same object every time.
+- `@app` — `app(fn)` sets `app_root.value = fn` and returns `fn` unchanged. Declaring the root again
+  replaces the value, so the screen follows. There is no update or refresh function (INTENT §5.1).
+- `state(initial)` — `mutableStateOf(initial)`, read and written through `.value`; no `getValue` or
+  `setValue`.
+
+Both states come from one internal function, `_new_state`. When the binder cannot supply
+`mutableStateOf` it raises `RuntimeError` naming python-multiplatform #38. No pure-Python state is a
+fallback: it would not make Compose recompose. Names other than `app_root` still resolve through the
+re-export rule, and the module's own names win.
+
+Tests: `tests/test_app_root.py::TheLogic` (11) and `::TheStateFactory` (4) run against a test-only
+fake state patched in for `_new_state`; `::TheBinderPath` (2) uses the real one and skips, "needs
+python-multiplatform #38", until the binder binds `mutableStateOf`. The stub carries `app`, `state`
+and `app_root` (`tests/test_stubs.py`).
+
 ### S5.2 Material 3 composables reach Python without per-widget wrappers — `partial`
 
 `Text`, `Button`, `Card`, `ListItem`, `Badge`, `BadgedBox`, `MaterialTheme`, `IconButton` and its
@@ -335,7 +359,7 @@ the binder lists no member that would win over these groups.
 
 | Name | Notebook use | Note |
 |---|---|---|
-| `remember_saveable` | imported from `pythonx.compose.runtime`; state read/written with `getValue()` / `setValue()` | INTENT §5.1: Pythonic attribute access instead of the accessors |
+| `remember_saveable` | imported from `pythonx.compose.runtime`; state read/written with `getValue()` / `setValue()` | INTENT §5.1: `state(initial)` read and written through `.value` (S5.4, `partial`, #38); keeping a value across recreation is not provided |
 | `DefaultCoroutineScope`, `MainCoroutineScope` | imported from `pythonx.compose.runtime` | INTENT §4.1, open |
 | `DefaultIcons` | `DefaultIcons.Add()` | INTENT §5.7: `Icons.Default` by alias, once python-multiplatform #37 binds `material-icons-core` |
 | `modifier` | lower-case instance from `pythonx.compose.ui` | INTENT §5.4: not provided; written `Modifier` |
@@ -343,7 +367,7 @@ the binder lists no member that would win over these groups.
 | `Spacer(start=..., top=...)` | spacing parameters | INTENT §5.6: not supported; written `Spacer(modifier=Modifier.padding(...))` |
 | `Column`, `Row`, `Spacer` | imported from `pythonx.compose.material3` | INTENT §5.2: served from both, by the manifest's `[aliases]` (`tests/test_chain.py::ManifestAliases`); render proof pending (#9) |
 | `Card`, `Button`, `Text`, `TextField` | as above | S5.2 |
-| `main.App`, `App.update(...)` | live screen replacement from a cell | INTENT §5.1: a declared root that a redefinition replaces, no update function (issue #11) |
+| `main.App`, `App.update(...)` | live screen replacement from a cell | INTENT §5.1: `@app` declares the root, a redeclaration replaces it, no update function (S5.4, `partial`, issue #11) |
 
 ## 9. Repository hygiene (not behaviour)
 
