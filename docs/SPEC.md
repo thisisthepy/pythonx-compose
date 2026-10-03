@@ -46,7 +46,7 @@ in §9 and are not counted as features.
 
 ### S1.1 Installed as `pythonx-compose`, importing `pythonx.compose`: `implemented`
 
-`pyproject.toml` declares `name = "pythonx-compose"`, version `0.1.0a1`, setuptools build,
+`pyproject.toml` declares `name = "pythonx-compose"`, version `0.1.0a2`, setuptools build,
 `requires-python >= 3.11` (the runtime reads the manifest with `tomllib`), and
 `packages.find include = ["pythonx.compose*"]`.
 

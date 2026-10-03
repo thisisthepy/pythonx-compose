@@ -44,7 +44,7 @@ visible string of the guide in `data-lang="en"` and `data-lang="ko"`).
   or parentheses. The en-dash in ranges (2023–2024) is fine.
 - **Install and run examples use uv, ppp (pypackpack) and tcl (toolchain-lite) only.** No `pip`
   examples. Show uv first: `uv add --prerelease allow pythonx-compose`, then
-  `ppp core add "pythonx-compose==0.1.0a1"` and `tcl install pythonx-compose`; run with `uv run ...`.
+  `ppp core add "pythonx-compose==0.1.0a2"` and `tcl install pythonx-compose`; run with `uv run ...`.
 - **Numbers carry their source.** A test count names the environment it was measured in; a claim
   about upstream names the commit, PR or issue.
 - **Links** in README files are absolute (they are read on pypi.org too), and README files never

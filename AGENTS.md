@@ -230,7 +230,7 @@ worktree so a test can see it. Read it in place.
 - The distribution name is `pythonx-compose` (`pyproject.toml`); the import package is
   `pythonx.compose`.
 - **Release.** After the maintainer approves, publish a GitHub Release whose tag is `v<version>`
-  (the `pyproject.toml` version, e.g. `v0.1.0a1`; mark an alpha or beta as a pre-release) on the
+  (the `pyproject.toml` version, e.g. `v0.1.0a2`; mark an alpha or beta as a pre-release) on the
   commit to release; `.github/workflows/publish-pypi.yml` runs on the Release, checks, builds and
   publishes through PyPI trusted publishing (environment `pypi`). Pushing a tag alone publishes
   nothing. Never upload by hand, and never store a PyPI token.
@@ -261,6 +261,6 @@ worktree so a test can see it. Read it in place.
   comma, colon or parentheses, whichever reads best. The en-dash in ranges (2023–2024, 3.11–3.13)
   is fine.
 - Install and run examples use only uv, ppp (pypackpack) and tcl (toolchain-lite): `uv add
-  --prerelease allow pythonx-compose`, `ppp core add "pythonx-compose==0.1.0a1"`, `tcl install
+  --prerelease allow pythonx-compose`, `ppp core add "pythonx-compose==0.1.0a2"`, `tcl install
   pythonx-compose`, `uv run ...`. No `pip` examples. The published 0.1.0a1 Release notes are a
   record and stay as they are.
