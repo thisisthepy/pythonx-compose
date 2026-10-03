@@ -84,8 +84,8 @@ flowchart LR
 ## 🚀 빠른 시작
 
 > [!NOTE]
-> `pythonx-compose` 는 **pre-alpha** 단계입니다. 첫 알파 `0.1.0a1` 은 메인테이너가 태그를 달면 PyPI 에
-> 배포되며, 프리릴리스이므로 `pip install --pre pythonx-compose` 로 설치합니다.
+> `pythonx-compose` 는 **알파** 단계입니다. `0.1.0a1` 이 [PyPI](https://pypi.org/project/pythonx-compose/) 에
+> 있으며, 프리릴리스이므로 `pip install --pre pythonx-compose` 로 설치합니다.
 
 클론에서 테스트를 돌리려면:
 
