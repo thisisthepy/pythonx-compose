@@ -21,21 +21,21 @@ Run from a worktree with `uv run --with pytest --with mypy pytest tests -q -rs` 
 
 | Environment | Result |
 |---|---|
-| No `PythonMultiplatform` checkout found | **140 passed, 112 skipped**, 167 subtests passed |
-| python-multiplatform `develop` at `31c092f0` or later (property rows, #38; `describe_member`, #54; besides `add_member_resolver` and `describe(module, name)`) | **251 passed, 1 skipped**, 198 subtests passed |
+| No `PythonMultiplatform` checkout found | **148 passed, 109 skipped**, 167 subtests passed |
+| python-multiplatform `develop` at `31c092f0` or later (property rows, #38; `describe_member`, #54; besides `add_member_resolver` and `describe(module, name)`) | **256 passed, 1 skipped**, 198 subtests passed |
 | an older checkout, before python-multiplatform #131 (no binder-side snake_case names) | the same, with the snake_case method tests skipped |
 | an older one, without `describe(module, name)` (python-multiplatform #36) | with 13 more skipped again |
 | an older one still, without `add_member_resolver` | with 5 more skipped again |
 
 Measured in a worktree, which has `.tmp/kotlin-stubs.zip` but no `UI.ipynb`. Without a checkout, the
-110 tests that install the binder's layers through `tests/adapter.py` skip, plus the notebook test.
+108 tests that install the binder's layers through `tests/adapter.py` skip, plus the notebook test.
 Against a binder without `describe(module, name)`, the 13 that check grouped constants (§7, S7.1)
 skip. Against a binder before python-multiplatform #131, the tests that call a snake_case method or
 pass a snake_case keyword on a proxy the binder returned skip, because those names are the binder's. The skip against a current checkout is `UI.ipynb`'s (§2). A binder older than #38 skips the 5
 `TheBinderPath` tests (S5.4). A binder without the `@Composable` binding (`push_composer`) skips the 13 text-field tests (S5.5). `tests/test_typing.py` skips where mypy is not installed. A skip is not a
 pass.
 
-Of the 140 that pass without a checkout, 73 check the type stubs and the wheel (S1.2); most of the
+Of the 148 that pass without a checkout, 73 check the type stubs and the wheel (S1.2); most of the
 rest assert **absence** (a retired token, a deleted file, a docstring that exists). Those are listed
 in §9 and are not counted as features.
 
