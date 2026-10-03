@@ -141,13 +141,25 @@ class TheConversion(unittest.TestCase):
         runtime = self.stubs[COMPOSE / "runtime" / "__init__.pyi"]
         self.assertIn("def Composable(target)", runtime)
 
+    def test_a_class_the_package_defines_keeps_its_public_members(self):
+        # `remember_saveable` returns `SaveableState` (issue #102); an editor must see its three
+        # spellings, so a class is carried over with its public methods, not as an empty body.
+        runtime = self.stubs[COMPOSE / "runtime" / "__init__.pyi"]
+        self.assertIn("class SaveableState:", runtime)
+        for member in ("def getValue(self)", "def setValue(self, value)", "def value(self)"):
+            with self.subTest(member=member):
+                self.assertIn(member, runtime)
+        self.assertIn("def remember_saveable(initial", runtime)
+        body = runtime.partition("class SaveableState:")[2].partition("\ndef ")[0]
+        self.assertNotIn("_state", body, "private attributes stay out of the stub")
+
     def test_a_public_annotated_name_the_package_declares_is_carried_over(self):
         # `runtime.app_root` is created on first read by a module `__getattr__`, so `__init__.py`
         # only annotates it; the stub must still say it exists.
         runtime = self.stubs[COMPOSE / "runtime" / "__init__.pyi"]
         self.assertIn("app_root: State", runtime)
         self.assertIn("def app(root)", runtime)
-        self.assertIn("def state(initial)", runtime)
+        self.assertNotIn("def state(", runtime, "state() is removed (INTENT 5.11)")
 
     def test_every_stub_is_valid_python(self):
         for path, text in self.stubs.items():

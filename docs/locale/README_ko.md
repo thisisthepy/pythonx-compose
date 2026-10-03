@@ -86,13 +86,13 @@ flowchart LR
 ## 🚀 빠른 시작
 
 > [!NOTE]
-> `pythonx-compose` 는 **알파** 단계입니다. `0.1.0a1` 이 [PyPI](https://pypi.org/project/pythonx-compose/) 에
+> `pythonx-compose` 는 **알파** 단계입니다. `0.1.0a2` 가 [PyPI](https://pypi.org/project/pythonx-compose/) 에
 > 있으며, 프리릴리스이므로 uv(또는 ppp, tcl)로 설치합니다.
 
 ```bash
 uv add --prerelease allow pythonx-compose
 # 또는 pypackpack 으로, ppp 워크스페이스의 패키지에 추가:
-ppp core add "pythonx-compose==0.1.0a1"
+ppp core add "pythonx-compose==0.1.0a2"
 # 또는 toolchain-lite 로:
 tcl install pythonx-compose
 ```
@@ -167,11 +167,12 @@ pip 패키지 **`pythonx-compose`**(파이썬 3.11 이상)로 배포되며, impo
 | Material 3 위젯 (`Text`, `Button`, `Card`, `TextField`, …) | 🟡 부분: 규칙으로 재노출됨; 위젯별 렌더 증거 대기(#9) |
 | 실제 Compose 1.11.1 에서 생성한 타입 스텁(`.pyi`), `py.typed` | ✅ 구현, mypy 로 검사; 아직 많은 타입이 `Any` 입니다(#12) |
 | 배포 (`pythonx-compose`) | 🟡 부분: wheel 에 매니페스트, 재노출 규칙, 스텁, `py.typed` 포함 |
-| 갱신 호출 없는 선언형 앱 루트(`@app`)와 파이썬다운 상태(`state`) | 🟡 부분: 바인더 경로는 python-multiplatform #38 모양의 가짜 호스트로 테스트됨, 실제 Compose 는 E2E 모듈(#11, #19), 숫자와 문자열은 `state` 로 왕복됨 |
+| 갱신 호출 없는 선언형 앱 루트(`@app`), 상태는 Kotlin 의 `mutable_state_of` | 🟡 부분: 바인더 경로는 python-multiplatform #38 모양의 가짜 호스트로 테스트됨, 실제 Compose 에서는 python-multiplatform 노트북 E2E 가 통과(#11, #19), 숫자와 문자열은 왕복됨 |
 | `TextField(state=...)` 와 `TextFieldState` (`pythonx.compose.foundation.text.input`) | 🟡 부분: python-multiplatform #73 모양의 가짜 호스트로 테스트됨; 입력기(IME) 조합 증거는 python-multiplatform E2E #26 (#10) |
 | `DefaultIcons`(`Icons.Default`), `DefaultIcons.Add` 로 씀 | 🟡 부분: python-multiplatform #37/#38 모양의 가짜 호스트로 테스트됨; `Icon(DefaultIcons.Add, …)` 의 실제 그리기는 python-multiplatform 의 렌더 테스트에 있음 |
 | 색 스킴 | ⏳ 계획 |
-| `remember_saveable`, 코루틴 스코프 | ⏳ 계획 |
+| 노트북의 `getValue()` / `setValue()` 를 쓰는 `remember_saveable` | 🟡 부분: 가짜 호스트로 테스트됨, 저장과 복원은 python-multiplatform 의 테스트(#174) |
+| 코루틴 스코프(`DefaultCoroutineScope`, `MainCoroutineScope`) | ⏳ 계획, pythonx-concurrent 이후 |
 
 전체 목록은 가이드의 [현황 페이지](https://thisisthepy.github.io/pythonx-compose/status.html)에 있습니다.
 

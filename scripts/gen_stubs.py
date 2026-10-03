@@ -719,8 +719,28 @@ def own_definitions(init_py: Path) -> list[str]:
             # A name the module answers through its own `__getattr__` (`runtime.app_root`).
             stubs.append(ast.unparse(node) + "\n")
         elif isinstance(node, ast.ClassDef) and not node.name.startswith("_"):
-            stubs.append(f"class {node.name}: ...\n")
+            stubs.append(_own_class(node))
     return stubs
+
+
+def _own_class(node: ast.ClassDef) -> str:
+    """A class the package defines, with its public methods and properties (`SaveableState`)."""
+    members = []
+    for item in node.body:
+        if isinstance(item, ast.FunctionDef) and not item.name.startswith("_"):
+            item.body = [ast.Expr(ast.Constant(...))]
+            # Keep `@property` and `@<name>.setter`; anything else is runtime behaviour.
+            item.decorator_list = [
+                d for d in item.decorator_list
+                if (isinstance(d, ast.Name) and d.id == "property")
+                or (isinstance(d, ast.Attribute) and d.attr == "setter")
+            ]
+            members.append(item)
+    if not members:
+        return f"class {node.name}: ...\n"
+    text = ast.unparse(ast.ClassDef(name=node.name, bases=[], keywords=[], body=members,
+                                    decorator_list=[], type_params=[]))
+    return text + "\n"
 
 
 def generate(kotlin_stubs: Path, package_root: Path, notes: list[str] | None = None) -> dict[Path, str]:

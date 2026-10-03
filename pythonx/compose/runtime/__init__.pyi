@@ -173,8 +173,24 @@ def Composable(target):
 
 app_root: State
 
-def state(initial):
+def app(root):
     ...
 
-def app(root):
+class SaveableState:
+
+    def getValue(self):
+        ...
+
+    def setValue(self, value):
+        ...
+
+    @property
+    def value(self):
+        ...
+
+    @value.setter
+    def value(self, value):
+        ...
+
+def remember_saveable(initial: bool | int | float | str) -> SaveableState:
     ...
