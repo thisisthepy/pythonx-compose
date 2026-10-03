@@ -39,6 +39,7 @@ import gen_stubs  # noqa: E402
 KOTLIN_STUBS = HERE / "fixtures" / "kotlin_stubs"
 KOTLIN_STUBS_V2 = HERE / "fixtures" / "kotlin_stubs_v2"
 KOTLIN_STUBS_V3 = HERE / "fixtures" / "kotlin_stubs_v3"
+KOTLIN_STUBS_V4 = HERE / "fixtures" / "kotlin_stubs_v4"
 ARTEFACT = REPO / ".tmp" / "kotlin-stubs.zip"
 PACKAGE = REPO / "pythonx"
 COMPOSE = PACKAGE / "compose"
@@ -476,6 +477,62 @@ class TheObjectAndPropertyFormat(unittest.TestCase):
         self.assertEqual(2, len(aligned))
         for function in aligned:
             self.assertEqual(["staticmethod", "_t.overload"], [ast.unparse(d) for d in function.decorator_list])
+
+
+class TheMultiBaseAndIconFormat(unittest.TestCase):
+    """python-multiplatform #71 (a nested type lists every base) and #68 (icons are typed properties)."""
+
+    def setUp(self):
+        self.stubs = _generated(KOTLIN_STUBS_V4)
+        self.arrangement = _classes(self.stubs[LAYOUT])["Arrangement"]
+
+    def test_a_nested_type_with_two_bases_is_trusted_and_names_both(self):
+        both = _nested(self.arrangement)["HorizontalOrVertical"]
+        self.assertEqual(["Arrangement.Horizontal", "Arrangement.Vertical"], [ast.unparse(b) for b in both.bases])
+        for cls, name in ((self.arrangement, "SpaceBetween"), (both, "SpaceBetween")):
+            self.assertEqual(
+                "_t.ClassVar[Arrangement.HorizontalOrVertical]", ast.unparse(_members(cls)[name].annotation)
+            )
+        spaced = [n for n in self.arrangement.body if isinstance(n, ast.FunctionDef) and n.name == "spaced_by"]
+        self.assertEqual("Arrangement.HorizontalOrVertical", ast.unparse(spaced[0].returns))
+
+    def test_a_nested_type_with_one_base_is_still_any(self):
+        """The old input cannot say it is also a `Vertical`: nothing is claimed (the v3 fixture)."""
+        arrangement = _classes(_generated(KOTLIN_STUBS_V3)[LAYOUT])["Arrangement"]
+        self.assertEqual("_t.ClassVar[_t.Any]", ast.unparse(_members(arrangement)["SpaceBetween"].annotation))
+
+    def test_a_single_sided_constant_keeps_its_one_type(self):
+        self.assertEqual("_t.ClassVar[Arrangement.Horizontal]", ast.unparse(_members(self.arrangement)["End"].annotation))
+
+    def test_an_icon_is_a_property_typed_as_an_image_vector(self):
+        icons = _classes(self.stubs[ICONS])["Icons"]
+        add = _members(_nested(icons)["Filled"])["Add"]
+        self.assertEqual(["property"], [ast.unparse(d) for d in add.decorator_list])
+        self.assertEqual("pythonx.compose.ui.graphics.vector.ImageVector", ast.unparse(add.returns))
+        self.assertIn("import pythonx.compose.ui.graphics.vector", _imports(self.stubs[ICONS]))
+
+    def test_a_nested_container_keeps_its_icons_with_the_kotlin_spelling(self):
+        mirrored = _nested(_nested(_classes(self.stubs[ICONS])["Icons"])["AutoMirrored"])["Filled"]
+        self.assertEqual({"ArrowBack"}, set(_members(mirrored)))
+        self.assertEqual("_t.ClassVar[Icons.Filled]", ast.unparse(_members(_classes(self.stubs[ICONS])["Icons"])["Default"].annotation))
+
+
+class TheConstructorShapedFunction(unittest.TestCase):
+    """A class and an explicit overload set of its name (`DpRect__Dp_Dp_Dp_Dp`) in one stub."""
+
+    SOURCE = (
+        "import typing as _t\n\n"
+        "class Rect:\n"
+        "    def __init__(self, left: float, top: float) -> None: ...\n\n"
+        "def Rect__Dp_Dp(left: float, top: float) -> Rect: ...\n"
+        "def Spot__Dp(left: float) -> float: ...\n"
+    )
+
+    def test_the_class_keeps_its_name_and_the_function_gets_no_base_name(self):
+        text = gen_stubs.Converter(gen_stubs.KotlinStubs(KOTLIN_STUBS_V4)).convert(self.SOURCE, "a.b")
+        self.assertEqual(["Rect"], list(_classes(text)))
+        self.assertEqual(["Rect__Dp_Dp", "Spot__Dp", "Spot"], list(_functions(text)))
+        ast.parse(text)
 
 
 class TheCommittedStubs(unittest.TestCase):

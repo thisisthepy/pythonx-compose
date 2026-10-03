@@ -11,6 +11,8 @@ Kotlin package it maps to and writes the Pythonic one next to the module's `__in
   function the runtime resolves names with, so an editor completes what the interpreter answers;
 - a parameter is renamed with `snake_case`, except the positional-only `receiver` and anonymous
   `__aN` slots, which a caller never writes by name; keyword-only markers stay;
+- a function whose explicit overload set is named like a class of the same stub (a constructor-shaped
+  `DpRect__Dp_Dp_Dp_Dp` beside `class DpRect`) gets no base name: the class and its `__init__` are that name;
 - the binder's own `@overload` sets are kept in its order (with its `# type: ignore` comments). An
   input with explicit overloads only (`padding__Dp`, the first upstream format) also gets
   `@overload`s of the base name, fewest parameters first because a type checker takes the first
@@ -29,7 +31,7 @@ Kotlin package it maps to and writes the Pythonic one next to the module's `__in
 - a property keeps its decorators in step with its name (`@layout_direction.setter`); an object's
   nested Kotlin types (`class Horizontal` in `Alignment`'s stub, `End: Horizontal`) become classes of
   its class, referenced as `Alignment.Horizontal` (from another module `pythonx.compose.ui.Alignment.Horizontal`),
-  except a type derived from another nested type, which is `Any` (see `_Qualify`); an object's
+  except a type derived from exactly one other nested type, which is `Any` (see `_Qualify`); an object's
   explicit overload set (`spacedBy__Dp`) also gets its base name, as a static method;
 - an object's constants are also grouped by the type nested in it that their docstring declares
   them as (`Alignment.End(): Alignment.Horizontal`), as a class nested in the object's class
@@ -282,10 +284,11 @@ class _Qualify(ast.NodeTransformer):
     """A Kotlin type nested in an object, named bare in its stub (`End: Horizontal`), as `Alignment.Horizontal`.
 
     Once the object is a class of its parent stub the bare name resolves to nothing, and the object's
-    own class holds the nested type under it. A nested type that the stub derives from another nested
-    type (`HorizontalOrVertical(Horizontal)`) is [untrusted]: Kotlin's `HorizontalOrVertical` is both
-    an `Arrangement.Horizontal` and an `Arrangement.Vertical`, which one base cannot say, so an
-    annotation naming it is `Any` rather than a type that rejects half of its uses.
+    own class holds the nested type under it. A nested type that the stub derives from exactly one
+    other nested type (`HorizontalOrVertical(Horizontal)`) is [untrusted]: Kotlin's is both an
+    `Arrangement.Horizontal` and an `Arrangement.Vertical`, which the first upstream format could not
+    say with one base, so an annotation naming it is `Any` rather than a type that rejects half of its
+    uses. An input that lists every base (`HorizontalOrVertical(Horizontal, Vertical)`) is typed.
     """
 
     def __init__(self, owner: str, nested: set[str], untrusted: frozenset[str] = frozenset()):
@@ -429,9 +432,14 @@ class Converter:
             body.append(node)
 
         defined = {node.name for node in body if isinstance(node, ast.FunctionDef)}
+        classes = {node.name for node in body if isinstance(node, ast.ClassDef)}
         for base, variants in explicit.items():
             if base in defined:
                 continue  # the binder's own overload set (current format) stands as it is
+            if base in classes:
+                # A constructor-shaped function (`DpRect__Dp_Dp_Dp_Dp`) beside the class it builds:
+                # the class stub already carries `__init__`, and one name cannot be both in a stub.
+                continue
             body.extend(_base_overloads(variants, base))
 
         for name in self.stubs.objects(kotlin_package) if kotlin_package else ():
@@ -502,9 +510,12 @@ class Converter:
             self.notes.append(f"{kotlin_package}.{name}: constant {constant!r} is a Python keyword; left out")
         imported.update(self._packages(tree))
         nested = {node.name for node in tree.body if isinstance(node, ast.ClassDef)}
+        # A nested type that lists exactly one other nested type as its base is what the first
+        # upstream format wrote for a type that is several (`HorizontalOrVertical(Horizontal)`);
+        # one that lists two or more says all it is (python-multiplatform #71) and is trusted.
         derived = frozenset(
             node.name for node in tree.body if isinstance(node, ast.ClassDef)
-            and any(isinstance(b, ast.Name) and b.id in nested for b in node.bases)
+            and sum(isinstance(b, ast.Name) and b.id in nested for b in node.bases) == 1
         )
         bases = _Qualify(name, nested)
         qualify = _Qualify(name, nested, derived)

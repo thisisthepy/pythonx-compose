@@ -31,6 +31,8 @@
 "pythonx.compose.ui.unit"     = "androidx.compose.ui.unit"
 "pythonx.compose.ui.text"     = "androidx.compose.ui.text"
 "pythonx.compose.ui.graphics" = "androidx.compose.ui.graphics"
+# `ImageVector`, what an icon is (`Icons.Default.Add`): without this row its stub types it `Any`.
+"pythonx.compose.ui.graphics.vector" = "androidx.compose.ui.graphics.vector"
 
 # The long spelling, kept beside the short one because both are real: the generated stubs use
 # `pythonx.compose.layout`, and the render fixtures in `python-multiplatform` were written against

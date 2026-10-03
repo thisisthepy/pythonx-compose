@@ -166,8 +166,8 @@ class TheStubsTypeCheck(unittest.TestCase):
         """)
 
     def test_default_icons_imports_from_material3(self):
-        """INTENT 5.7: the alias is `Icons.Default`, which the stub types as `Icons.Filled`.
-        `Icons.Filled.Add` is typed `Any` until python-multiplatform #68 stubs it properly."""
+        """INTENT 5.7: the alias is `Icons.Default`, which the stub types as `Icons.Filled`;
+        `Icons.Filled.Add` is an `ImageVector` (python-multiplatform #68)."""
         self.assertPasses("""
             from pythonx.compose.material3 import DefaultIcons, Icon
             from pythonx.compose.material.icons import Icons
@@ -177,12 +177,53 @@ class TheStubsTypeCheck(unittest.TestCase):
             Icon(Icons.Default.Add, content_description=None)
         """)
 
+    def test_a_default_icon_is_an_image_vector(self):
+        """`DefaultIcons.Add` is typed, not `Any`: an `ImageVector` is no `int`."""
+        self.assertPasses("""
+            from pythonx.compose.material3 import DefaultIcons
+            from pythonx.compose.ui.graphics.vector import ImageVector
+
+            v: ImageVector = DefaultIcons.Add
+        """)
+        self.assertFails("""
+            from pythonx.compose.material3 import DefaultIcons
+
+            n: int = DefaultIcons.Add
+        """, "[assignment]")
+
+    def test_a_vertical_arrangement_constant_types_a_column_and_a_row(self):
+        """python-multiplatform #71: `SpaceBetween` is a `HorizontalOrVertical`, both a
+        `Horizontal` and a `Vertical`; `Start` is a `Horizontal` only."""
+        self.assertPasses("""
+            from pythonx.compose.layout import Arrangement, Column, Row
+
+            Column(vertical_arrangement=Arrangement.SpaceBetween, content=lambda scope: None)
+            Row(horizontal_arrangement=Arrangement.SpaceBetween, content=lambda scope: None)
+            Row(horizontal_arrangement=Arrangement.Start, content=lambda scope: None)
+            h: Arrangement.HorizontalOrVertical = Arrangement.SpaceBetween
+        """)
+        self.assertFails("""
+            from pythonx.compose.layout import Arrangement, Column
+
+            Column(vertical_arrangement=Arrangement.Start, content=lambda scope: None)
+        """, "[arg-type]")
+        self.assertFails("""
+            from pythonx.compose.layout import Arrangement
+
+            n: int = Arrangement.SpaceBetween
+        """, "HorizontalOrVertical", "[assignment]")
+
     def test_an_unknown_default_icon_fails(self):
         self.assertFails("""
             from pythonx.compose.material3 import DefaultIcons
 
             DefaultIcons.NoSuchIcon
         """, "NoSuchIcon", "[attr-defined]")
+        self.assertFails("""
+            from pythonx.compose.material3 import DefaultIcons
+
+            DefaultIcons.NotAnIcon
+        """, "NotAnIcon", "[attr-defined]")
 
     def test_a_kotlin_spelled_module_function_fails(self):
         self.assertFails("""
