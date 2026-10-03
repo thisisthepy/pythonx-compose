@@ -261,6 +261,7 @@ class TheBinderPath(unittest.TestCase):
     def test_an_int_state_is_refused_by_the_binder_not_papered_over(self):
         # `PythonxAdapter._coerce`: an int in an `Any?` slot would cross as an object handle, so the
         # binder refuses it. `state(1)` is therefore an error today; `pythonx` does not box it.
+        # python-multiplatform #69 boxes scalars in `Any` slots: when it lands, this becomes a round trip.
         with self.assertRaises(TypeError) as raised:
             self.runtime.state(1)
         self.assertIn("int", str(raised.exception))

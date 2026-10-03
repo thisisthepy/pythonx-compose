@@ -217,7 +217,8 @@ Evidence: python-multiplatform #38 (`31c092f0`) binds generic functions and prop
 setters, and an `Any?` slot carries a Python object as itself, so `mutableStateOf(x)` is callable and
 the returned `MutableState`'s `.value` reads and writes. One consequence: the binder refuses an
 `int` in an `Any?` slot (it would cross as an object handle), so `state(1)` raises `TypeError` today
-and `pythonx` does not box it. Tests: `tests/test_app_root.py::TheLogic` (11) and `::TheStateFactory`
+and `pythonx` does not box it. python-multiplatform #69 makes the binder box scalars in an `Any`
+slot (bool, int, float, str) and unbox them on read; when it lands this refusal and its test flip. Tests: `tests/test_app_root.py::TheLogic` (11) and `::TheStateFactory`
 (4) run against a test-only fake state patched in for `_new_state`; `::TheBinderPath` (5) uses the
 real `_new_state` through the binder's Python layer and `tests/fake_host.py`, whose `mutableStateOf`
 and `MutableState.value` rows are shaped after #38 (`KotlinSurface.kt`, `PythonxAdapter.kt`), not
@@ -366,7 +367,7 @@ the binder lists no member that would win over these groups.
 
 | Name | Notebook use | Note |
 |---|---|---|
-| `remember_saveable` | imported from `pythonx.compose.runtime`; state read/written with `getValue()` / `setValue()` | INTENT §5.1: `state(initial)` read and written through `.value` (S5.4, `partial`, #11; an `int` initial value is refused by the binder, #38); keeping a value across recreation is not provided |
+| `remember_saveable` | imported from `pythonx.compose.runtime`; state read/written with `getValue()` / `setValue()` | INTENT §5.1: `state(initial)` read and written through `.value` (S5.4, `partial`, #11; an `int` initial value is refused by the binder until python-multiplatform #69); keeping a value across recreation is not provided |
 | `DefaultCoroutineScope`, `MainCoroutineScope` | imported from `pythonx.compose.runtime` | INTENT §4.1, open |
 | `DefaultIcons` | `DefaultIcons.Add()` | INTENT §5.7: `Icons.Default` by alias, once python-multiplatform #37 binds `material-icons-core` |
 | `modifier` | lower-case instance from `pythonx.compose.ui` | INTENT §5.4: not provided; written `Modifier` |
