@@ -23,7 +23,7 @@ mkdir -p "$R" && cd "$R" || exit 1
 git init -q -b develop .
 git config user.name t; git config user.email t@example.com
 mkdir -p docs/guide docs/sub sub/deeper
-for f in README.md CLAUDE.md AGENTS.md ROADMAP.md docs/a.md docs/b.md \
+for f in README.md PROJECT.md AGENTS.md ROADMAP.md docs/a.md docs/b.md \
          docs/sub/c.md docs/guide/index.html docs/x.png sub/README.md \
          sub/deeper/notes.md build.gradle.kts LICENSE; do
   echo "$f" > "$f"
@@ -58,7 +58,7 @@ for p in README.md docs/sub/c.md docs/guide/index.html docs/x.png sub/README.md 
          sub/deeper/notes.md build.gradle.kts LICENSE; do
   check "kept: $p" in_rel "$p"
 done
-for p in CLAUDE.md AGENTS.md ROADMAP.md docs/a.md docs/b.md; do
+for p in PROJECT.md AGENTS.md ROADMAP.md docs/a.md docs/b.md; do
   check "dropped: $p" bash -c "! git cat-file -e release:$p"
 done
 check "release README is the committed one" test "$(git show release:README.md)" = "README.md"

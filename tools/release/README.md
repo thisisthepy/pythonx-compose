@@ -25,7 +25,7 @@ ignored and overwritten.
 
 ## What is dropped on release
 
-- every `*.md` at the repository root except `README.md` (including `CLAUDE.md`, `AGENTS.md`)
+- every `*.md` at the repository root except `README.md` (including `AGENTS.md`, `PROJECT.md`)
 - every `*.md` directly inside `docs/`
 
 Kept: everything else, including Markdown in `docs/<subfolder>/` and nested `README.md` files.
