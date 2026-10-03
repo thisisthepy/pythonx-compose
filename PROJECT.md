@@ -110,8 +110,8 @@ python3 .github/scripts/check_guide.py           # 가이드: HTML 파싱, 링�
 2. **`pythonx-map.toml` 의 이중 표기** — `pythonx.compose.layout` 과
    `pythonx.compose.foundation.layout` 를 둘 다 유지할지.
 3. **릴리스·Pages 활성화** — `.github/scripts/release/` 와 `.github/workflows/`(release-sync, pages)는
-   들어와 있다. main 보호는 저장소 설정만으로 한다(PR 필수, 승인 0, 직접 push·force-push·삭제
-   금지, 머지는 관리자만; #64). 설정 적용과 release→main PR 머지는 메인테이너가 한다.
+   들어와 있다. main 보호는 메인테이너가 저장소 설정에서 직접 관리하며 main 은 잠겨 있다. 스크립트나
+   에이전트는 보호 설정을 만들거나 바꾸지 않는다. release→main PR 머지는 메인테이너가 한다.
 
 ### 결정됨 (2026-10-03, #60)
 
