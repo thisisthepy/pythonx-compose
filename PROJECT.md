@@ -21,13 +21,13 @@ Compose(`androidx.compose.*`)를 파이썬에서 쓰기 위한 pip 패키지 **`
 노트북의 함수 시그니처는 **이름 예시**다. 실제 규칙은 "Kotlin 원래 매개변수를 `snake_case` 로
 노출한다" 이다 (`onclick` 이 아니라 `on_click`).
 
-## 3. 현황 (2026-10-03)
+## 3. 현황 (2026-10-04)
 
 `docs/SPEC.md` 기준. 구현 = 이 저장소의 코드 + 읽고 통과를 확인한 테스트가 있는 것.
 
 | 상태 | 항목 |
 |---|---|
-| 구현 | 매핑 매니페스트 `pythonx-map.toml`, `@Composable` 항등 데코레이터, 실제 디스크 패키지 `pythonx` 와 모듈 수준 규칙 기반 재노출(snake_case 이름·키워드·시그니처, 오버로드 디스패치, 값 클래스 허용 목록), 실제 Compose 1.11.1 에서 생성한 `.pyi` 스텁과 `py.typed`(wheel 포함, mypy 로 검사), `Alignment`/`Arrangement` 상수(평면 `Alignment.End` 와 묶음 `Alignment.Horizontal.End` 모두, #9), proxy 메서드의 snake_case 이름과 키워드 인자(`m.padding(padding_values=...)`; python-multiplatform #131 이 바인더 쪽에서 제공하므로 #131 이상 필요; Kotlin 이름도 실행 시 그대로 통하고 스텁은 snake_case 만) |
+| 구현 | 매핑 매니페스트 `pythonx-map.toml`, `@Composable` 항등 데코레이터, 실제 디스크 패키지 `pythonx` 와 모듈 수준 규칙 기반 재노출(snake_case 이름·키워드·시그니처, 오버로드 디스패치, 값 클래스 허용 목록), 실제 Compose 1.11.1 에서 생성한 `.pyi` 스텁과 `py.typed`(wheel 포함, mypy 로 검사), `Alignment`/`Arrangement` 상수(평면 `Alignment.End` 와 묶음 `Alignment.Horizontal.End` 모두, #9), proxy 메서드의 snake_case 이름과 키워드 인자(`m.padding(padding_values=...)`; python-multiplatform #131 이 바인더 쪽에서 제공하므로 #131 이상 필요; Kotlin 이름도 실행 시 그대로 통하고 스텁은 snake_case 만), 함수이기도 한 Kotlin object 의 호출(`Color(0xFFFFFFFF)` 과 `Color.Red` 둘 다; #88, 설치한 wheel 에서도 테스트됨. Int/Long 오버로드 선택은 python-multiplatform #146) |
 | 부분 | 선언형 앱 루트 `@app`·`state`·`app_root`(#11; 로직은 테스트됨, 바인더 경로는 #38 모양의 가짜 호스트로 테스트됨, 실제 Compose 증거는 E2E 모듈 #19; 숫자·문자열 상태는 python-multiplatform #69 부터 왕복됨), 배포 설정, Material 3 위젯(렌더 증거는 python-multiplatform 에만), `Icon`(import 만 됨)·`DefaultIcons`(`Icons.Default` alias, 가짜 호스트로만 테스트됨, 스텁에서는 `DefaultIcons.Add` 가 `ImageVector`; `DefaultIcons.Add` 로 쓴다; 노트북의 `DefaultIcons.Add()` 가 아님), `TextField(state=...)`·`TextFieldState`(#10; `pythonx.compose.foundation.text.input`, 가짜 호스트로 테스트됨, 노트북의 `text_state=`/`padding=` 는 `state=`/`modifier=Modifier.padding(8)`; IME 조합 증거는 python-multiplatform E2E #26) |
 | 계획 | `remember_saveable`·색 스킴·코루틴 스코프 |
 
@@ -115,6 +115,8 @@ uv run python .github/scripts/check_guide.py    # 가이드: HTML 파싱, 링크
 3. **릴리스·Pages 활성화**: `.github/scripts/release/` 와 `.github/workflows/`(release-sync, pages)는
    들어와 있다. main 보호는 메인테이너가 저장소 설정에서 직접 관리하며 main 은 잠겨 있다. 스크립트나
    에이전트는 보호 설정을 만들거나 바꾸지 않는다. release→main PR 머지는 메인테이너가 한다.
+   **현황(2026-10-04):** release→main PR #70 이 메인테이너 리뷰를 기다린다. Pages 는 PR #1 머지 때
+   (2026-10-03) 배포된 문서를 보여 주며, #70 이 머지되어야 그 뒤의 가이드가 반영된다.
 
 ### 결정됨 (2026-10-03, #60)
 
