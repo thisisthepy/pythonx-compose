@@ -23,16 +23,15 @@ Run from a worktree with `uv run --with pytest --with mypy pytest tests -q -rs` 
 |---|---|
 | No `PythonMultiplatform` checkout found | **140 passed, 112 skipped**, 167 subtests passed |
 | python-multiplatform `develop` at `31c092f0` or later (property rows, #38; `describe_member`, #54; besides `add_member_resolver` and `describe(module, name)`) | **251 passed, 1 skipped**, 198 subtests passed |
-| an older checkout, without `describe_member` (python-multiplatform #54) | the same, with 7 more skipped |
+| an older checkout, before python-multiplatform #131 (no binder-side snake_case names) | the same, with the snake_case method tests skipped |
 | an older one, without `describe(module, name)` (python-multiplatform #36) | with 13 more skipped again |
 | an older one still, without `add_member_resolver` | with 5 more skipped again |
 
 Measured in a worktree, which has `.tmp/kotlin-stubs.zip` but no `UI.ipynb`. Without a checkout, the
 110 tests that install the binder's layers through `tests/adapter.py` skip, plus the notebook test.
 Against a binder without `describe(module, name)`, the 13 that check grouped constants (§7, S7.1)
-skip. Against a binder without `describe_member`, the 7 that check a method's keywords (S4.1) skip; the 2
-that check the fallback (Kotlin keywords, names resolved) run. Against a binder older than `ba4c6f49`, the 5 that call a snake_case method on a proxy the
-binder returned skip as well, because that needs its member resolver (python-multiplatform #17). The skip against a current checkout is `UI.ipynb`'s (§2). A binder older than #38 skips the 5
+skip. Against a binder before python-multiplatform #131, the tests that call a snake_case method or
+pass a snake_case keyword on a proxy the binder returned skip, because those names are the binder's. The skip against a current checkout is `UI.ipynb`'s (§2). A binder older than #38 skips the 5
 `TheBinderPath` tests (S5.4). A binder without the `@Composable` binding (`push_composer`) skips the 13 text-field tests (S5.5). `tests/test_typing.py` skips where mypy is not installed. A skip is not a
 pass.
 
@@ -221,18 +220,14 @@ Evidence: `tests/test_runtime_module.py::TheModuleIsTheFileOnDisk`,
 real Python and the fake host. Disabling the name rule fails 15 tests, the keyword mapping 1, the
 allowlist priming 12.
 
-Methods on a proxy the binder returned (`m.fill_max_width()`) are attributes of the binder's own
-class. The same rule reaches them as the binder's member resolver (`member_name`, registered through
-`python_multiplatform.binding.add_member_resolver`, python-multiplatform `ba4c6f49`); the binder
-caches the alias in its own registry, so its class keeps Kotlin names in `dir()` (issue #20).
-Keyword arguments to such a method are snake_case too (`m.padding(padding_values=...)`): the resolver
-answers `(kotlin_name, {python_keyword: kotlinParameter})`, built from every overload's parameter
-names read with `python_multiplatform.describe_member(type, member)` (python-multiplatform #54;
-receiver slot skipped, cached per type and member because it is metadata, nothing invoked). The
-Kotlin spelling still works at run time -- the binder passes a keyword the map does not name
-through -- so `m.padding(paddingValues=...)` is accepted; the stubs are Pythonic-only (§1, S1.2),
-so a type checker flags it. On a binder without `describe_member` the resolver answers the name
-only, and a method's keywords are Kotlin's.
+Methods on a proxy the binder returned (`m.fill_max_width()`) and their keyword arguments
+(`m.padding(padding_values=...)`) are the binder's own since python-multiplatform #131 (develop
+452cc807): it serves snake_case names and keywords by this package's rule, keeps the Kotlin spelling
+working, and lists Kotlin names only in `dir()`. This package no longer registers a member resolver
+(issue #79). `tests/test_chain.py::TheBindersNamingRuleIsThisPackages` pins that the binder's
+`python_multiplatform.python_name` and this package's agree, so the stubs and the runtime spell names
+the same. The stubs are Pythonic-only (§1, S1.2), so a type checker flags a Kotlin keyword the
+runtime accepts.
 
 ## 4. Naming
 
@@ -246,8 +241,8 @@ name.
 
 Implemented for module-level names and keywords and for method names on a binder proxy
 (`tests/test_chain.py::Names`, 8 tests; `TheChain`) and for a method's keywords on a binder proxy
-(`tests/test_chain.py::MethodKeywords`, 7 tests, and `MethodKeywordsNeedTheBindersDescription`, 2; needs
-python-multiplatform's `describe_member`, #54). Disabling the keyword map fails 4 tests.
+(`tests/test_chain.py::MethodKeywords`, 5 tests; served by the binder since python-multiplatform
+#131, so they skip on an older one).
 
 ### S4.2 The notebook's spellings are examples, not the contract: `implemented` as a rule
 
