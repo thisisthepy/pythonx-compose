@@ -53,7 +53,9 @@ def Greeting():
   수도 있습니다: `Alignment.Horizontal.End` 는 `Alignment.End` 입니다.
 - **`@Composable` 은 그대로.** 화면은 데코레이터가 붙은 파이썬 함수입니다.
 - **실제 패키지.** `pythonx/` 는 `androidx.compose.*` 를 import 해 재구성하는 평범한 파이썬
-  소스입니다. 바인더는 아무 이름도 바꾸지 않습니다. 이름을 바꾸는 것은 이 패키지의 일입니다.
+  소스입니다. 바인더는 네임스페이스 이름을 바꾸지 않습니다. python-multiplatform #131 부터는
+  `snake_case` 이름과 키워드를 이 패키지의 규칙대로 바인더가 직접 제공하며, 이 패키지는 모듈 묶음과
+  `snake_case` 만 나열하는 표면을 맡습니다.
 - **하나의 매니페스트.** [`pythonx-map.toml`](https://github.com/thisisthepy/pythonx-compose/blob/main/pythonx/compose/pythonx-map.toml) 이 어떤 `pythonx.compose.*`
   모듈이 어떤 Kotlin 패키지에 대응하는지 적습니다. 이 파일은 패키지 안에 있으며 wheel 에 함께
   담깁니다. 런타임과 `.pyi` 생성기가 같은 파일을 읽으므로, 편집기가 자동완성하는 이름과 인터프리터가

@@ -40,7 +40,7 @@ r.lang=l;if(t==='dark'||t==='light'){r.setAttribute('data-theme',t);}})();</scri
 <pre><code class="language-python">from pythonx.compose.ui import Modifier
 
 m = Modifier.padding(16).size(24).fill_max_width()</code></pre>
-<p data-lang="en">Each link returns a new receiver; nothing is mutated. Method names are snake_case (<code>fill_max_width</code> reaches <code>fillMaxWidth</code>): the naming rule is registered as the binder's member resolver, while the binder's proxy class itself keeps Kotlin names in <code>dir()</code>. A name that is not bound raises <code>AttributeError</code> naming the type it looked on.</p><p data-lang="ko">각 단계는 새 수신 객체를 돌려주며, 아무것도 변경하지 않습니다. 메서드 이름은 snake_case 입니다(<code>fill_max_width</code> 가 <code>fillMaxWidth</code> 에 닿음): 이름 규칙이 바인더의 멤버 리졸버로 등록되어 있고, 바인더의 프록시 클래스 자체는 <code>dir()</code> 에 Kotlin 이름을 유지합니다. 바인딩되지 않은 이름은 어느 타입에서 찾았는지 밝히는 <code>AttributeError</code> 를 냅니다.</p>
+<p data-lang="en">Each link returns a new receiver; nothing is mutated. Method names are snake_case (<code>fill_max_width</code> reaches <code>fillMaxWidth</code>): the binder serves the snake_case spelling on its proxies since python-multiplatform #131, while its proxy class keeps Kotlin names in <code>dir()</code>. A name that is not bound raises <code>AttributeError</code> naming the type it looked on.</p><p data-lang="ko">각 단계는 새 수신 객체를 돌려주며, 아무것도 변경하지 않습니다. 메서드 이름은 snake_case 입니다(<code>fill_max_width</code> 가 <code>fillMaxWidth</code> 에 닿음): python-multiplatform #131 부터 바인더가 프록시에서 snake_case 표기를 제공하고, 바인더의 프록시 클래스 자체는 <code>dir()</code> 에 Kotlin 이름을 유지합니다. 바인딩되지 않은 이름은 어느 타입에서 찾았는지 밝히는 <code>AttributeError</code> 를 냅니다.</p>
 </section>
 
 <section>
@@ -54,7 +54,7 @@ m.padding__Dp(16)                      # explicit overload: no dispatch</code></
 
 <section>
 <h2><span data-lang="en">Keywords: method or module function</span><span data-lang="ko">키워드: 메서드와 모듈 함수</span></h2>
-<p data-lang="en">The member resolver maps keywords as well as names, so a method takes <code>snake_case</code> keywords exactly as the same extension does when called as a module function; <code>inspect.signature</code> shows them. Kotlin's own spelling still works at run time, the type stubs offer only the Pythonic one, and the mapping needs python-multiplatform's <code>describe_member</code> (on an older binder a method's keywords are Kotlin's):</p><p data-lang="ko">멤버 리졸버는 이름뿐 아니라 키워드도 대응시키므로, 메서드는 같은 확장 함수를 모듈 함수로 부를 때와 똑같이 <code>snake_case</code> 키워드를 받고, <code>inspect.signature</code> 도 그 이름을 보여 줍니다. Kotlin 이름도 실행 시에는 그대로 통하고 타입 스텁은 Pythonic 이름만 제시하며, 이 대응에는 python-multiplatform 의 <code>describe_member</code> 가 필요합니다(오래된 바인더에서는 메서드의 키워드가 Kotlin 이름입니다):</p>
+<p data-lang="en">The binder maps keywords as well as names (python-multiplatform #131), so a method takes <code>snake_case</code> keywords exactly as the same extension does when called as a module function; <code>inspect.signature</code> shows them. Kotlin's own spelling still works at run time, the type stubs offer only the Pythonic one, and the mapping needs python-multiplatform #131 or later (on an older binder a method's keywords are Kotlin's):</p><p data-lang="ko">바인더(python-multiplatform #131)는 이름뿐 아니라 키워드도 대응시키므로, 메서드는 같은 확장 함수를 모듈 함수로 부를 때와 똑같이 <code>snake_case</code> 키워드를 받고, <code>inspect.signature</code> 도 그 이름을 보여 줍니다. Kotlin 이름도 실행 시에는 그대로 통하고 타입 스텁은 Pythonic 이름만 제시하며, 이 대응에는 python-multiplatform #131 이상이 필요합니다(오래된 바인더에서는 메서드의 키워드가 Kotlin 이름입니다):</p>
 <pre><code class="language-python">import inspect
 import pythonx.compose.layout as layout
 

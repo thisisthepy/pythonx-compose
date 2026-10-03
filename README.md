@@ -55,7 +55,9 @@ proofs are still pending. See [Status](#-status).</sub>
   `Alignment.Horizontal.End` is `Alignment.End`.
 - **`@Composable` stays.** Screens are decorated Python functions.
 - **A real package.** `pythonx/` is ordinary Python source that imports `androidx.compose.*` and
-  reshapes it. The binder never renames anything. Renaming is this package's job.
+  reshapes it. The binder never renames a namespace. Since python-multiplatform #131 it serves
+  `snake_case` names and keywords itself, by this package's rule; this package keeps the module
+  grouping and the `snake_case`-only surface.
 - **One manifest.** [`pythonx-map.toml`](https://github.com/thisisthepy/pythonx-compose/blob/main/pythonx/compose/pythonx-map.toml) says which `pythonx.compose.*` module
   stands for which Kotlin package. It lives inside the package and ships in the wheel. The runtime
   and the `.pyi` generator read the same file, so what your editor completes is what the interpreter

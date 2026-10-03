@@ -17,12 +17,17 @@ Kotlin package it maps to and writes the Pythonic one next to the module's `__in
   input with explicit overloads only (`padding__Dp`, the first upstream format) also gets
   `@overload`s of the base name, fewest parameters first because a type checker takes the first
   match;
-- a stub class keeps its name. Its members are renamed with `python_name`, which is the binder's
-  member-resolver rule, and the parameters of a member's callable protocol are snake_case like a
-  module function's, because the resolver also translates a method's keywords (the receiver and
+- a stub class keeps its name. Its members are renamed with `python_name`, the binder's own
+  rule since #131, and the parameters of a member's callable protocol are snake_case like a
+  module function's, because the binder also translates a method's keywords (the receiver and
   anonymous slots keep their names). The stubs are Pythonic-only: a method's Kotlin keyword still
   works at run time and is a type error here. A static method (a function of a Kotlin object) is
   reached through `KotlinObject`, so its parameters are snake_case too;
+- the binder's own alias names (python-multiplatform #131: `fill_max_width = fillMaxWidth` in a module
+  stub, an alias `ClassVar` or property per proxy member) are not carried over. Renaming the
+  Kotlin-named declaration by the rule above gives the same name, so each name is declared once and
+  no Kotlin second name or self-referential line remains. A name the binder declares as a callable
+  module (`PaddingValues: _PaddingValues_callable_module`) gets no base-name overloads beside it;
 - a Kotlin object served as a sub-package (`Alignment`) becomes a class in its parent module's stub,
   whether the input has it as `<Object>/__init__.pyi` or already as a class in the parent stub
   (python-multiplatform #44). A sub-package directory holding only `__init__.pyi` would be a
@@ -186,6 +191,39 @@ def _is_overload(function: ast.FunctionDef) -> bool:
 
 def _is_static(function: ast.FunctionDef) -> bool:
     return any(ast.unparse(d) == "staticmethod" for d in function.decorator_list)
+
+
+def _is_alias_line(node: ast.stmt) -> bool:
+    """`fill_max_width = fillMaxWidth`, the binder's own snake_case name (python-multiplatform #131).
+
+    The generator names every declaration by the same rule, so the line adds nothing: dropped.
+    """
+    return isinstance(node, ast.Assign) and isinstance(node.value, ast.Name) and all(
+        isinstance(target, ast.Name) for target in node.targets
+    )
+
+
+def _without_repeats(body: list[ast.stmt]) -> list[ast.stmt]:
+    """[body] without a member that repeats the one before it under the same name.
+
+    The binder's alias member (`fill_max_width` beside `fillMaxWidth`, python-multiplatform #131)
+    is, once both are renamed, the same declaration twice. A member keeps its docstring statement.
+    """
+    seen: set[str] = set()
+    kept: list[ast.stmt] = []
+    skipping = False
+    for node in body:
+        if isinstance(node, ast.Expr) and kept and (skipping or isinstance(kept[-1], ast.AnnAssign)):
+            if not skipping:
+                kept.append(node)
+            continue
+        key = ast.dump(node)
+        skipping = key in seen and not isinstance(node, ast.ClassDef)
+        if skipping:
+            continue
+        seen.add(key)
+        kept.append(node)
+    return kept
 
 
 def _is_protocol(cls: ast.ClassDef) -> bool:
@@ -416,7 +454,7 @@ class Converter:
         body: list[ast.stmt] = []
         explicit: dict[str, list[ast.FunctionDef]] = {}
         for node in tree.body:
-            if isinstance(node, (ast.Import, ast.ImportFrom)):
+            if isinstance(node, (ast.Import, ast.ImportFrom)) or _is_alias_line(node):
                 continue
             if isinstance(node, ast.FunctionDef):
                 node.name = python_name(node.name)
@@ -431,7 +469,12 @@ class Converter:
                 self._convert_class(node)
             body.append(node)
 
-        defined = {node.name for node in body if isinstance(node, ast.FunctionDef)}
+        # A name the binder declares as a callable module (`PaddingValues: _PaddingValues_callable_module`)
+        # is that declaration; its explicit overloads are the protocol's `__call__`, not a second name.
+        defined = {node.name for node in body if isinstance(node, ast.FunctionDef)} | {
+            node.target.id for node in body
+            if isinstance(node, ast.AnnAssign) and isinstance(node.target, ast.Name)
+        }
         classes = {node.name for node in body if isinstance(node, ast.ClassDef)}
         for base, variants in explicit.items():
             if base in defined:
@@ -492,6 +535,7 @@ class Converter:
                     _rename_arguments(member.args)
             elif isinstance(member, ast.ClassDef):
                 self._convert_class(member)
+        cls.body = _without_repeats(cls.body)
 
     def _add_object(self, body: list[ast.stmt], kotlin_package: str, name: str, imported: set[str]) -> None:
         """Fold the object stub `<package>/<name>/__init__.pyi` into a class of the parent."""

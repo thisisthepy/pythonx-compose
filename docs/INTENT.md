@@ -57,12 +57,17 @@ package `pythonx.compose`.
 modules** and **restructures them** so they can be used Pythonically. It is not a namespace that
 something else synthesises at run time.
 
-### 2.3 The binder never renames; renaming is this package's job
+### 2.3 The binder never renames a namespace; this package groups the namespaces
 
 `python-multiplatform` (the binder) exposes Kotlin declarations to Python **under their Kotlin
-names**: `androidx.compose.material3` in Kotlin is `androidx.compose.material3` in Python. The
-binder must never turn `androidx` into `pythonx` or rename any other Kotlin namespace. Mapping
-`androidx.compose.*` to `pythonx.compose.*` is done **here, in real Python code**.
+namespaces**: `androidx.compose.material3` in Kotlin is `androidx.compose.material3` in Python. The
+binder must never turn `androidx` into `pythonx` or rename any other Kotlin namespace. Grouping
+`androidx.compose.*` into `pythonx.compose.*` is done **here, in real Python code**.
+
+Pythonic spellings *inside* a namespace (snake_case names and keyword arguments) are the binder's own
+feature. The maintainer confirmed it (2026-10-03, relayed by the ecosystem lead): "파이썬 형태로
+인자랑 바꿔주는건 원래 python-multiplatform 자체에서 지원하는 기능". python-multiplatform #131
+restored it, by this package's rule, after a narrower reading of this section had removed it.
 
 `pythonx-map.toml` in this repository is the mapping manifest: which `pythonx.compose.*` module
 stands for which Kotlin package, and which value classes may be written as raw numbers.
@@ -101,8 +106,8 @@ types) even though the runtime resolves bindings on demand.
 
 - **Not the binder.** Embedding CPython, the FFI, upcalls and the artefact walker belong to
   `python-multiplatform`. This package depends on that surface; it does not reimplement it.
-- **Not a renamer inside the binder.** Nothing that maps `androidx` to `pythonx` may live in
-  `python-multiplatform` (§2.3).
+- **Not a namespace renamer inside the binder.** Nothing that maps `androidx` to `pythonx` may live in
+  `python-multiplatform` (§2.3). Snake_case names and keywords within a namespace are the binder's.
 - **Not a reimplementation of Compose.** Widgets are Compose's own; this package changes how they
   are named and reached from Python, not what they do.
 - **Not an invented API.** Parameters that do not exist in Kotlin (for example the notebook's
