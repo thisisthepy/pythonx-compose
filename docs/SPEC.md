@@ -297,10 +297,11 @@ python-multiplatform #26 diagnosis). `pythonx.compose.runtime` provides:
   is imported; afterwards it is an ordinary module attribute, the same object every time.
 - `@app`: `app(fn)` sets `app_root.value = fn` and returns `fn` unchanged. Declaring the root again
   replaces the value, so the screen follows. There is no update or refresh function (INTENT §5.1).
-- `state(initial)`: `mutableStateOf(initial)`, read and written through `.value`; no `getValue` or
-  `setValue`.
+- `state(initial)` is **removed** (INTENT §5.11, issue #101; `planned` until that lands): Kotlin's
+  `mutable_state_of` does the same job. A screen keeps state with `remember_saveable` inside `App`
+  (S5.6) or with `mutable_state_of`. `_new_state` stays as the internal function behind `app_root`.
 
-Both states come from one internal function, `_new_state`. When the binder cannot supply
+Until #101 lands, both states come from one internal function, `_new_state`. When the binder cannot supply
 `mutableStateOf` it raises `RuntimeError` naming python-multiplatform #38. No pure-Python state is a
 fallback: it would not make Compose recompose. Names other than `app_root` still resolve through the
 re-export rule, and the module's own names win.
@@ -401,6 +402,57 @@ keeps its composing range in Compose, no Python function starts while it types, 
 reads the committed text. Not exercised there: the AWT layer that decodes an `InputMethodEvent`,
 which needs a window. Not modelled here: a function-typed slot (`label`, `on_value_change`), which needs
 the binder's `NewFunction` rows.
+
+### S5.6 `remember_saveable`, and the notebook's state spelling: `planned`
+
+INTENT §5.9 (2026-10-04). The 2024 demo the notebook ran against (PyREPL `abc6952`) wrote
+`cls.messages = messages = remember_saveable("")` in its root, and `UI.ipynb` cells 9 to 13 read
+`main.App.messages`, `main.App.messages.getValue()` and `main.App.messages.setValue(...)`.
+
+- `remember_saveable(initial)`, from `pythonx.compose.runtime`, calls the host's `@Composable`
+  `rememberSaveableWrapper(init, type)` (python-multiplatform's `python-multiplatform-compose`,
+  package `python.multiplatform.compose`, exposed through the binder; python-multiplatform #174;
+  this repository's #102). It follows pycomposeui's `rememberSaveableWrapper`: `type` is
+  chosen in Python from the initial value, and Kotlin wraps the matching state in
+  `rememberSaveable { ... }`:
+
+  | Python value | `type` | Kotlin state |
+  |---|---|---|
+  | `bool` | `"bool"` | `mutableStateOf(Boolean)` |
+  | `int` within 32 bits | `"int"` | `mutableIntStateOf` |
+  | `int` beyond 32 bits, within 64 | `"long"` | `mutableLongStateOf` |
+  | `float` | `"float"` | `mutableDoubleStateOf` |
+  | `str` | `"str"` | `mutableStateOf(String)` |
+
+  `bool` is tested before `int`, because a Python `bool` is an `int`. (pycomposeui sent `"bool"`
+  from Python but matched `"boolean"` in Kotlin, so its booleans fell through to the generic
+  branch.) Any other value is a `TypeError` here until a saver for it is specified, and an `int`
+  beyond 64 bits is a `TypeError` too.
+- It returns a thin wrapper over the Kotlin `MutableState`, with `getValue()`, `setValue(value)` and
+  `.value` (read and write). Every read goes through `MutableState.value`, so Compose records the
+  snapshot read and recomposes on a write; the wrapper holds nothing of its own.
+- It works only inside a composition, as in Kotlin: called outside one, it raises `RuntimeError`.
+- How `main.App.messages` exists: the app attaches it, as the 2024 demo did. Inside
+  `def App():` it writes `App.messages = messages = remember_saveable("")`. `@app` returns the
+  function unchanged, so `main.App` is that function and `main.App.messages` is the state from its
+  latest composition. There is no framework lookup by variable name. Before the first composition,
+  `main.App.messages` does not exist yet.
+- Surviving rotation and process restart is Compose's `SaveableStateRegistry`. The host places
+  `PythonAppView` under it, and the save-and-restore proof is python-multiplatform's (the same
+  issue).
+
+Tests here (planned): the type rule, the wrapper's three spellings over one state, the error outside
+a composition, and an app that attaches `App.messages` as above. They run against fake host rows
+shaped after the agreed `rememberSaveableWrapper`.
+
+### S5.7 `DefaultCoroutineScope`, `MainCoroutineScope`: `planned` (after pythonx-concurrent)
+
+INTENT §5.10. In 2024 `DefaultCoroutineScope()` was Kotlin's `CoroutineScope(Dispatchers.Default)`
+and `MainCoroutineScope()` was `CoroutineScope(Dispatchers.Main)`, each with `.launch(block)`
+running a Python callable (PyREPL `abc6952`, `Runtime.kt`). Here they are names in
+`pythonx.compose.runtime` on top of `pythonx.concurrent`: a `pythonx.concurrent` scope on
+`Dispatchers.Default` and one on `Dispatchers.Main`, with `launch`. Nothing is implemented before
+pythonx-concurrent provides scopes and dispatchers.
 
 ## 6. Modifiers: extension functions as methods
 
@@ -534,8 +586,8 @@ the binder lists no member that would win over these groups.
 
 | Name | Notebook use | Note |
 |---|---|---|
-| `remember_saveable` | imported from `pythonx.compose.runtime`; state read/written with `getValue()` / `setValue()` | INTENT §5.1: `state(initial)` read and written through `.value` (S5.4, `partial`, #11; scalars round-trip since python-multiplatform #69); keeping a value across recreation is not provided |
-| `DefaultCoroutineScope`, `MainCoroutineScope` | imported from `pythonx.compose.runtime` | INTENT §4.1, open |
+| `remember_saveable` | imported from `pythonx.compose.runtime`; `main.App.messages` read/written with `getValue()` / `setValue()` (cells 9 to 13) | INTENT §5.9: supported as written, `.value` as the alias; S5.6, `planned` |
+| `DefaultCoroutineScope`, `MainCoroutineScope` | imported from `pythonx.compose.runtime` | INTENT §5.10: built on pythonx-concurrent; S5.7, `planned` |
 | `DefaultIcons` | `DefaultIcons.Add()` | INTENT §5.7, `implemented` as `DefaultIcons.Add`. The notebook's `Add()` is the spelling of its time; the current spelling is `Add`, a property read without parentheses, as for every constant (decided with the ecosystem lead; S5.3, `tests/test_chain.py::DefaultIconsAlias`, fake host) |
 | `modifier` | lower-case instance from `pythonx.compose.ui` | INTENT §5.4: not provided; written `Modifier` |
 | `color=0xFFFF0000` | ARGB integer for a colour | INTENT §5.5: not accepted; written `Color(0xFFFF0000)` |
