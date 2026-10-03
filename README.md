@@ -4,7 +4,7 @@ English | [한국어](https://github.com/thisisthepy/pythonx-compose/blob/main/d
 
 # pythonx-compose
 
-**Write Compose user interfaces in Python — with Compose's own widgets, spelled the Python way.**
+**Write Compose user interfaces in Python, with Compose's own widgets, spelled the Python way.**
 
 [![License: Apache-2.0](https://img.shields.io/badge/license-Apache--2.0-7c4dff.svg)](https://github.com/thisisthepy/pythonx-compose/blob/main/LICENSE)
 [![Python](https://img.shields.io/badge/python-3.11%2B-7c4dff.svg)](https://github.com/thisisthepy/pythonx-compose/blob/main/pyproject.toml)
@@ -19,7 +19,7 @@ English | [한국어](https://github.com/thisisthepy/pythonx-compose/blob/main/d
 
 ## Why
 
-Jetpack Compose and Compose Multiplatform are a superb way to build UI — if you write Kotlin.
+Jetpack Compose and Compose Multiplatform are a superb way to build UI, if you write Kotlin.
 `pythonx-compose` is for people who write Python. It does not reimplement Compose and it does not
 invent a new widget set: it takes the real `androidx.compose.*` API, which
 [python-multiplatform](https://github.com/thisisthepy/python-multiplatform) exposes to Python under
@@ -55,7 +55,7 @@ proofs are still pending. See [Status](#-status).</sub>
   `Alignment.Horizontal.End` is `Alignment.End`.
 - **`@Composable` stays.** Screens are decorated Python functions.
 - **A real package.** `pythonx/` is ordinary Python source that imports `androidx.compose.*` and
-  reshapes it. The binder never renames anything — renaming is this package's job.
+  reshapes it. The binder never renames anything. Renaming is this package's job.
 - **One manifest.** [`pythonx-map.toml`](https://github.com/thisisthepy/pythonx-compose/blob/main/pythonx/compose/pythonx-map.toml) says which `pythonx.compose.*` module
   stands for which Kotlin package. It lives inside the package and ships in the wheel. The runtime
   and the `.pyi` generator read the same file, so what your editor completes is what the interpreter
@@ -87,15 +87,22 @@ Each module is a real file whose `__init__.py` calls one re-export rule; names r
 
 > [!NOTE]
 > `pythonx-compose` is an **alpha**. `0.1.0a1` is on [PyPI](https://pypi.org/project/pythonx-compose/);
-> as a pre-release it installs with `pip install --pre pythonx-compose`.
+> as a pre-release it installs with uv (or ppp, or tcl):
+
+```bash
+uv add --prerelease allow pythonx-compose
+# or, with pypackpack, into a package of a ppp workspace:
+ppp core add "pythonx-compose==0.1.0a1"
+# or, with toolchain-lite:
+tcl install pythonx-compose
+```
 
 From a clone, to run the tests:
 
 ```bash
 git clone https://github.com/thisisthepy/pythonx-compose
 cd pythonx-compose
-python3 -m pip install pytest      # inside a virtual environment
-python3 -m pytest tests -q
+uv run --with pytest --with mypy pytest tests -q
 ```
 
 What runs today, from the repository root:
@@ -155,15 +162,15 @@ standalone desktop toolkit.
 | `pythonx` as a real on-disk package re-exporting `androidx.compose.*` by one rule | ✅ implemented and tested |
 | `Modifier` chains with snake_case methods, overload dispatch, `Dp` as a number | ✅ implemented and tested against the binder's layer |
 | `Column`, `Row`, `Spacer` from `material3` as well as `layout` | ✅ implemented and tested |
-| Method keyword arguments in `snake_case` | ✅ implemented and tested — module functions and methods (methods need python-multiplatform's `describe_member`) |
-| The empty `Modifier` | 🟡 partial — `Modifier.padding(16)` from the class needs an app-supplied factory against real Compose |
-| `Alignment` / `Arrangement` | ✅ implemented and tested — `Alignment.Center`, `Arrangement.spaced_by(8)`, and grouped `Alignment.Horizontal.End` beside `Alignment.End` |
-| Material 3 widgets (`Text`, `Button`, `Card`, `TextField`, …) | 🟡 partial — re-exported by rule; render proofs per widget pending (#9) |
+| Method keyword arguments in `snake_case` | ✅ implemented and tested: module functions and methods (methods need python-multiplatform's `describe_member`) |
+| The empty `Modifier` | 🟡 partial: `Modifier.padding(16)` from the class needs an app-supplied factory against real Compose |
+| `Alignment` / `Arrangement` | ✅ implemented and tested: `Alignment.Center`, `Arrangement.spaced_by(8)`, and grouped `Alignment.Horizontal.End` beside `Alignment.End` |
+| Material 3 widgets (`Text`, `Button`, `Card`, `TextField`, …) | 🟡 partial: re-exported by rule; render proofs per widget pending (#9) |
 | Type stubs (`.pyi`) from real Compose 1.11.1, `py.typed` | ✅ implemented and checked with mypy; many types are still `Any` (#12) |
-| Distribution (`pythonx-compose`) | 🟡 partial — the wheel carries the manifest, the re-export rule, the stubs and `py.typed` |
-| Declared app root (`@app`) and Pythonic state (`state`), no update call | 🟡 partial — binder path tested against a fake host shaped after python-multiplatform #38; real Compose is the E2E module (#11, #19); numbers and strings round-trip through `state` |
-| `TextField(state=...)` with `TextFieldState` (`pythonx.compose.foundation.text.input`) | 🟡 partial — tested against a fake host shaped after python-multiplatform #73; the input-method (IME) composing proof is python-multiplatform E2E #26 (#10) |
-| `DefaultIcons` (`Icons.Default`), written `DefaultIcons.Add` | 🟡 partial — tested against a fake host shaped after python-multiplatform #37/#38; `Icon(DefaultIcons.Add, …)` is drawn in python-multiplatform's render test |
+| Distribution (`pythonx-compose`) | 🟡 partial: the wheel carries the manifest, the re-export rule, the stubs and `py.typed` |
+| Declared app root (`@app`) and Pythonic state (`state`), no update call | 🟡 partial: binder path tested against a fake host shaped after python-multiplatform #38; real Compose is the E2E module (#11, #19); numbers and strings round-trip through `state` |
+| `TextField(state=...)` with `TextFieldState` (`pythonx.compose.foundation.text.input`) | 🟡 partial: tested against a fake host shaped after python-multiplatform #73; the input-method (IME) composing proof is python-multiplatform E2E #26 (#10) |
+| `DefaultIcons` (`Icons.Default`), written `DefaultIcons.Add` | 🟡 partial: tested against a fake host shaped after python-multiplatform #37/#38; `Icon(DefaultIcons.Add, …)` is drawn in python-multiplatform's render test |
 | Colour schemes | ⏳ planned |
 | `remember_saveable`, coroutine scopes | ⏳ planned |
 
@@ -171,15 +178,15 @@ The full list is on the guide's [Status page](https://thisisthepy.github.io/pyth
 
 ## 📖 Documentation
 
-- **Guide** — [`docs/guide/`](https://thisisthepy.github.io/pythonx-compose/), bilingual (English / 한국어)
-- **Korean README** — [`docs/locale/README_ko.md`](https://github.com/thisisthepy/pythonx-compose/blob/main/docs/locale/README_ko.md)
+- **Guide**: [`docs/guide/`](https://thisisthepy.github.io/pythonx-compose/), bilingual (English / 한국어)
+- **Korean README**: [`docs/locale/README_ko.md`](https://github.com/thisisthepy/pythonx-compose/blob/main/docs/locale/README_ko.md)
 
 ## 🔌 Ecosystem
 
 | Repository | Role |
 |---|---|
 | [python-multiplatform](https://github.com/thisisthepy/python-multiplatform) | The binder: CPython embedded in Kotlin Multiplatform, exposing Kotlin to Python under Kotlin names |
-| **pythonx-compose** | Compose, restructured for Python — this repository |
+| **pythonx-compose** | Compose, restructured for Python (this repository) |
 | [toolchain](https://github.com/thisisthepy/toolchain) | Gradle build plugin for Python Multiplatform apps |
 | [pypackpack](https://github.com/thisisthepy/pypackpack) | Distributing Python projects across platforms |
 | [torchnative](https://github.com/thisisthepy/torchnative) | Run the real PyTorch ecosystem on device |

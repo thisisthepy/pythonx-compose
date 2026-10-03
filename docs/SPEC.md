@@ -1,8 +1,8 @@
 # Specification
 
-What `pythonx-compose` does — the behavioural contract. Every item stays inside `docs/INTENT.md`;
+What `pythonx-compose` does: the behavioural contract. Every item stays inside `docs/INTENT.md`;
 anything found in the repository that INTENT does not cover is listed at the end under
-**Outside intent — needs a decision** rather than written into the contract.
+**Outside intent: needs a decision** rather than written into the contract.
 
 Each item carries a status:
 
@@ -16,7 +16,7 @@ A behaviour change starts here, then becomes a failing test, then code (`AGENTS.
 
 ## 0. Test baseline (2026-10-03, after the a5028618 stubs)
 
-Run from a worktree with `python -m pytest tests -q -rs` (pytest 8, mypy 2.4, CPython 3.13), where
+Run from a worktree with `uv run --with pytest --with mypy pytest tests -q -rs` (pytest 8, mypy 2.4, CPython 3.13), where
 `UI.ipynb` is absent and its one test skips:
 
 | Environment | Result |
@@ -44,7 +44,7 @@ in §9 and are not counted as features.
 
 ## 1. Distribution
 
-### S1.1 Installed as `pythonx-compose`, importing `pythonx.compose` — `implemented`
+### S1.1 Installed as `pythonx-compose`, importing `pythonx.compose`: `implemented`
 
 `pyproject.toml` declares `name = "pythonx-compose"`, version `0.1.0a1`, setuptools build,
 `requires-python >= 3.11` (the runtime reads the manifest with `tomllib`), and
@@ -58,7 +58,7 @@ in §9 and are not counted as features.
   `LICENSE` names them (no emails), keywords, classifiers (Alpha, Python 3.11-3.13, Typed) and
   project URLs. `build-system.requires` is `setuptools>=77`, which understands that license form.
 - **0.1.0a1 is on PyPI** (2026-10-03: pre-release `v0.1.0a1` on develop `134a641`, publish-pypi run
-  37120641414; a fresh-venv `pip install pythonx-compose==0.1.0a1` imports cleanly).
+  37120641414; a fresh install of 0.1.0a1 from PyPI imports cleanly).
 - Released by publishing a GitHub Release tagged `v<version>` (`.github/workflows/publish-pypi.yml`,
   trigger `release: published`; a bare tag push publishes nothing): the workflow checks the
   Release's tag equals `v` + the `pyproject.toml` version (`.github/scripts/check_release_version.py`,
@@ -67,7 +67,7 @@ in §9 and are not counted as features.
   token). Nothing is uploaded by hand.
 - Typed: the wheel carries `py.typed` and the generated `.pyi` stubs (S1.2, issue #12).
 
-### S1.2 Type stubs ship in the wheel — `implemented`
+### S1.2 Type stubs ship in the wheel: `implemented`
 
 Stubs carry the Pythonic names and signatures the runtime resolves, so the name an editor completes
 and the name the interpreter resolves cannot drift.
@@ -77,7 +77,7 @@ and the name the interpreter resolves cannot drift.
   regenerating them from the same input produces no diff.
 - **From what.** python-multiplatform's CI artefact `kotlin-stubs` (workflow run 37103737430,
   commit `a5028618`): Kotlin-named stubs for Compose 1.11.1, one `androidx/compose/.../__init__.pyi`
-  per Kotlin package. `python3 scripts/gen_stubs.py <kotlin-stubs.zip or directory>` converts them;
+  per Kotlin package. `uv run python scripts/gen_stubs.py <kotlin-stubs.zip or directory>` converts them;
   the first line of every generated stub records the artefact, run and commit it came from.
 - **The rule is the runtime's** (`_reexport.py`), applied by `scripts/gen_stubs.py`:
   - a module function or constant is renamed with `python_name` (upper-case names kept, others
@@ -159,7 +159,7 @@ and the name the interpreter resolves cannot drift.
     attribute, and are left out.
   - Regenerating needs the artefact downloaded by hand into `.tmp/`; CI does not fetch it.
 
-## 2. The mapping manifest (`pythonx-map.toml`) — `implemented`
+## 2. The mapping manifest (`pythonx-map.toml`): `implemented`
 
 The manifest is this package's statement of which Kotlin package each `pythonx.compose.*` module
 stands for, so the binder does not have to know Compose exists (INTENT §2.3).
@@ -201,7 +201,7 @@ notebook is git-ignored, so in a worktree or CI checkout it is absent, the expec
 and **the test passes without checking anything.** It is only meaningful in the maintainer's main
 checkout.
 
-## 3. `pythonx` is a real package — `implemented` (module level)
+## 3. `pythonx` is a real package: `implemented` (module level)
 
 Required by INTENT §2.2: `import pythonx.compose.material3` (and every other mapped module) loads
 **this repository's files on disk**, and those files import the binder-exposed
@@ -236,7 +236,7 @@ only, and a method's keywords are Kotlin's.
 
 ## 4. Naming
 
-### S4.1 Kotlin parameters, `snake_case` — `implemented`
+### S4.1 Kotlin parameters, `snake_case`: `implemented`
 
 `onClick` → `on_click`, `fillMaxWidth` → `fill_max_width`, `zIndex` → `z_index`,
 `toURLString` → `to_url_string`; type names (`Modifier`) unchanged; an explicit overload keeps its
@@ -249,14 +249,14 @@ Implemented for module-level names and keywords and for method names on a binder
 (`tests/test_chain.py::MethodKeywords`, 7 tests, and `MethodKeywordsNeedTheBindersDescription`, 2; needs
 python-multiplatform's `describe_member`, #54). Disabling the keyword map fails 4 tests.
 
-### S4.2 The notebook's spellings are examples, not the contract — `implemented` as a rule
+### S4.2 The notebook's spellings are examples, not the contract: `implemented` as a rule
 
 Where `UI.ipynb` writes `onclick`, the surface is `on_click`
 (`tests/test_chain.py::Names::test_on_click_not_onclick` records the decision).
 
 ## 5. Composables
 
-### S5.1 `@Composable` decorator — `implemented`
+### S5.1 `@Composable` decorator: `implemented`
 
 `pythonx.compose.runtime.Composable` is an identity decorator: it returns the exact function it was
 given, which still runs and keeps its name and docstring. Composer threading is not the caller's
@@ -265,18 +265,18 @@ job.
 Tests: `tests/test_runtime_module.py::TheRuntimeSeam` (4 tests) and `::TheChaquopyMechanismIsGone`
 (3 tests), importing `pythonx.compose.runtime` the ordinary way.
 
-### S5.4 The app root, `app` and `state` — `partial` (the binder path is tested against a fake host shaped after python-multiplatform #38; real Compose is the E2E module, issue #19)
+### S5.4 The app root, `app` and `state`: `partial` (the binder path is tested against a fake host shaped after python-multiplatform #38; real Compose is the E2E module, issue #19)
 
 The host draws with `PythonContent("pythonx.compose.runtime", "app_root")` (python-multiplatform #18,
 issue #11). `pythonx.compose.runtime` provides:
 
-- `app_root` — a Compose `MutableState` whose `.value` is a zero-argument callable, or `None` (the
+- `app_root`: a Compose `MutableState` whose `.value` is a zero-argument callable, or `None` (the
   host draws nothing). It is created on first read, by the binder's
   `androidx.compose.runtime.mutableStateOf(None)`, because the binder may be installed after `pythonx`
   is imported; afterwards it is an ordinary module attribute, the same object every time.
-- `@app` — `app(fn)` sets `app_root.value = fn` and returns `fn` unchanged. Declaring the root again
+- `@app`: `app(fn)` sets `app_root.value = fn` and returns `fn` unchanged. Declaring the root again
   replaces the value, so the screen follows. There is no update or refresh function (INTENT §5.1).
-- `state(initial)` — `mutableStateOf(initial)`, read and written through `.value`; no `getValue` or
+- `state(initial)`: `mutableStateOf(initial)`, read and written through `.value`; no `getValue` or
   `setValue`.
 
 Both states come from one internal function, `_new_state`. When the binder cannot supply
@@ -297,7 +297,7 @@ walked from a jar. It skips against a binder older than #38. That Compose observ
 recomposes is not shown here; it is the E2E module (python-multiplatform #26, issue #19). The stub carries `app`,
 `state` and `app_root` (`tests/test_stubs.py`).
 
-### S5.2 Material 3 composables reach Python without per-widget wrappers — `partial`
+### S5.2 Material 3 composables reach Python without per-widget wrappers: `partial`
 
 `Text`, `Button`, `Card`, `ListItem`, `Badge`, `BadgedBox`, `MaterialTheme`, `IconButton` and its
 toggle family, `TextField`, `Checkbox` and `Switch` are meant to be reached through the generated
@@ -313,7 +313,7 @@ toggle family, `TextField`, `Checkbox` and `Switch` are meant to be reached thro
   host binds no material3 declaration, so no test here exercises one; the render proof per widget
   is issue #9.
 
-### S5.3 `DefaultIcons`, `Icon` and colour schemes — `partial`
+### S5.3 `DefaultIcons`, `Icon` and colour schemes: `partial`
 
 `DefaultIcons` is `implemented` against the fake host: `pythonx.compose.material.icons`
 (`androidx.compose.material.icons`) serves `Icons`; `Icons.Default` resolves to `Icons.Filled`
@@ -334,7 +334,7 @@ Still `planned`: the two colour-scheme factories take 36 `Color` parameters agai
 the binding's omission cap (python-multiplatform `a6742a1c`). The hand-written `icon.py` /
 `color_scheme.py` that recorded this were dead code and are deleted (#31).
 
-### S5.5 `TextField(state=...)` and `TextFieldState` — `partial`
+### S5.5 `TextField(state=...)` and `TextFieldState`: `partial`
 
 INTENT §5.8. `TextField` uses Compose 1.11's state-based overload, so Compose owns the text buffer
 and the IME composing region and no Python callback runs per keystroke. There is no per-widget
@@ -373,9 +373,9 @@ and the field's text asserted afterwards, is python-multiplatform's E2E test (#2
 four frames; it is not run here. Not modelled: a function-typed slot (`label`, `on_value_change`), which needs
 the binder's `NewFunction` rows.
 
-## 6. Modifiers — extension functions as methods
+## 6. Modifiers: extension functions as methods
 
-### S6.1 `Modifier` extensions are methods on the receiver proxy — `implemented`
+### S6.1 `Modifier` extensions are methods on the receiver proxy: `implemented`
 
 `Modifier.padding(16).size(24)` chains; each link returns a new receiver; an unbound name raises
 `AttributeError` naming where it looked; the class-object spelling without a registered empty
@@ -386,7 +386,7 @@ Evidence: `tests/test_chain.py::TheChain` (8 tests) and
 `tests/test_modifier_module.py::TheModifierSeam` (5 tests), against python-multiplatform `ba4c6f49`.
 A snake_case method resolved through the member rule leaves the binder's class Kotlin-named.
 
-### S6.2 The empty-`Modifier` seam — `partial`
+### S6.2 The empty-`Modifier` seam: `partial`
 
 `pythonx/compose/ui/modifier.py` provides `install(empty_factory)` to register which Kotlin function
 returns an empty `Modifier`, and resolves `Modifier` lazily. **No such function exists in Compose**:
@@ -396,14 +396,14 @@ one-line Kotlin factory. The instance spelling (`m.padding(16)` on a `Modifier` 
 does not need it. `tests/test_modifier_module.py::TheShellIsGone` (3 tests, passing) checks the old
 hand-written shell is gone.
 
-### S6.3 Overload dispatch — `implemented`
+### S6.3 Overload dispatch: `implemented`
 
 Among Kotlin overloads of one name, a call is dispatched by keyword name, argument count, then
 declared type; a non-match names the candidates; an explicit overload spelling (`padding__Dp`)
 bypasses dispatch; the module function takes snake_case keywords. Evidence:
 `tests/test_chain.py::OverloadDispatch` (7 tests). Status: `implemented`.
 
-### S6.4 Value classes — `implemented`
+### S6.4 Value classes: `implemented`
 
 A raw number is accepted for a `Dp` parameter; a `Dp` value is accepted too; a plain `Float`
 parameter is not treated as a value class; a packed value class (`TextUnit`) refuses a raw number and
@@ -411,14 +411,14 @@ says why; the allow-list can be extended at run time. The allow-list itself is t
 (S2, implemented) and reaches the binder when a `pythonx.compose` module first resolves a name.
 Runtime evidence: `tests/test_chain.py::ValueClasses` (6 tests).
 
-### S6.5 Lazy resolution and handle lifetime — `implemented`
+### S6.5 Lazy resolution and handle lifetime: `implemented`
 
 A mapped module is a file on disk and imports without a binder; one with no file is not importable;
 a name is adapted once and then lives in the module dict; `dir()` reports the Pythonic names only;
 without the binding layer a name read says the host never installed it; dropping a proxy releases
 its Kotlin handle. Evidence: `tests/test_chain.py::Laziness` (5 tests), `::Handles` (1 test).
 
-## 7. Layout constants — `Alignment` and `Arrangement` — `implemented`
+## 7. Layout constants, `Alignment` and `Arrangement`: `implemented`
 
 The bound constant names are documented in `pythonx/compose/ui/alignment.py` (15 `Alignment`
 names) and `pythonx/compose/layout/arrangement.py` (8 `Arrangement` names), checked by
@@ -436,7 +436,7 @@ every access; a function inside the object is snake_case (`Arrangement.spaced_by
 `tests/test_chain.py::ObjectNamespaces` (6 tests); without the sub-package step 6 fail. The binder
 now lists these objects itself (python-multiplatform #35), and either way reaches them.
 
-### S7.1 Grouped constants — `Alignment.Horizontal.End` — `implemented`
+### S7.1 Grouped constants, `Alignment.Horizontal.End`: `implemented`
 
 INTENT §5.3: the notebook groups constants by type, `Alignment.Horizontal.End`, and Kotlin writes
 them flat, `Alignment.End` (which *is* an `Alignment.Horizontal`). Both spellings are served, by one
@@ -492,7 +492,7 @@ with the group lookup disabled 11 fail, and the one that stays green checks the 
 Compose surface is an extension receiver named `Alignment.Horizontal` or `Arrangement.Horizontal`, so
 the binder lists no member that would win over these groups.
 
-## 8. The notebook surface not yet covered — `planned`
+## 8. The notebook surface not yet covered: `planned`
 
 `UI.ipynb` imports or uses these, and nothing in this repository provides them:
 
@@ -522,7 +522,7 @@ These tests pass and assert that retired 2024 mechanisms are gone. They are not 
 
 ---
 
-## Outside intent — needs a decision
+## Outside intent: needs a decision
 
 Found in the repository; not covered by `docs/INTENT.md`, or in conflict with it.
 
