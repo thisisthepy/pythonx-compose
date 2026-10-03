@@ -715,6 +715,30 @@ class SubmodulesWithoutABinder(unittest.TestCase):
             ui.Modifier  # noqa: B018
 
 
+class CallableKotlinObjects(AdapterCase):
+    """A Kotlin object that is also a function (`Color`) is callable through pythonx (issue #88)."""
+
+    def label_of(self, proxy):
+        return self.host._object(proxy._pm_handle).label
+
+    def test_calling_the_object_calls_the_function(self):
+        import pythonx.compose.ui.graphics as graphics
+
+        self.assertEqual("Color(0xffffffff)", self.label_of(graphics.Color(0xFFFFFFFF)))
+
+    def test_its_constants_are_still_a_namespace(self):
+        import pythonx.compose.ui.graphics as graphics
+
+        self.assertEqual("Red", self.label_of(graphics.Color.Red))
+
+    def test_an_object_that_is_no_function_stays_uncallable(self):
+        import pythonx.compose.ui as ui
+
+        self.assertFalse(callable(ui.Alignment))
+        with self.assertRaises(TypeError):
+            ui.Alignment()
+
+
 class Handles(AdapterCase):
     """The binder's proxy owns a handle; dropping it gives the handle back."""
 

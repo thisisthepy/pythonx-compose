@@ -62,6 +62,7 @@ ARRANGEMENT_HORIZONTAL = ARRANGEMENT + ".Horizontal"
 ARRANGEMENT_VERTICAL = ARRANGEMENT + ".Vertical"
 ARRANGEMENT_BOTH = ARRANGEMENT + ".HorizontalOrVertical"
 ALIGNMENT = "androidx.compose.ui.Alignment"
+COLOR = "androidx.compose.ui.graphics.Color"
 ALIGNMENT_HORIZONTAL = ALIGNMENT + ".Horizontal"
 ALIGNMENT_VERTICAL = ALIGNMENT + ".Vertical"
 
@@ -303,6 +304,7 @@ class FakeHost:
     def _build(self):
         self._scalar_boxes()
         self._build_text_field()
+        self._build_color()
         self._add(
             EMPTY_MODIFIER, 0, (), (), (), "OBJECT", MODIFIER, False, None, (),
             lambda args: StubModifier(),
@@ -541,6 +543,19 @@ class FakeHost:
             return None
         self.release(args[0])
         return held
+
+    def _build_color(self):
+        """`Color`: a Kotlin object whose name is also a function in its package (python-multiplatform #78).
+
+        The binder makes such a module callable (`_make_callable`): `Color(0xFFFFFFFF)` calls the
+        function, `Color.Red` reads a constant of the object. One overload is modelled; the real
+        `Color(Int)` / `Color(Long)` pair and its ambiguity are python-multiplatform #146.
+        """
+        self._add(
+            COLOR, 1, ("color",), ("INT",), ("kotlin.Long",), "OBJECT", COLOR, False, None,
+            (False,), lambda args: StubConstant(f"Color({args[0]:#x})"),
+        )
+        self._constant(f"{COLOR}.Red", COLOR)
 
     def _constant(self, name, declared):
         self._add(name, 0, (), (), (), "OBJECT", declared, False, None, (),

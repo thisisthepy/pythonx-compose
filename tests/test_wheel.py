@@ -11,6 +11,7 @@ and a skip is not a pass.
 from __future__ import annotations
 
 import importlib.util
+import os
 import shutil
 import subprocess
 import sys
@@ -41,6 +42,24 @@ def _build_wheel(out: Path) -> Path:
     return wheel
 
 
+_SCENARIO = """
+import sys
+from pathlib import Path
+sys.path.insert(0, {tests!r})
+import adapter, fake_host
+adapter._REPO = Path({tests!r})          # do not put the source checkout on sys.path
+binding = adapter.install()
+host = fake_host.FakeHost(); host.bind(); host.register(binding)
+import pythonx.compose.ui.graphics as graphics
+assert "site-packages" in graphics.__file__, graphics.__file__
+white = graphics.Color(0xFFFFFFFF)       # held: dropping a proxy releases its handle
+red = graphics.Color.Red
+assert host._object(white._pm_handle).label == "Color(0xffffffff)"
+assert host._object(red._pm_handle).label == "Red"
+print("installed wheel ok")
+"""
+
+
 class TheWheel(unittest.TestCase):
 
     @classmethod
@@ -51,6 +70,7 @@ class TheWheel(unittest.TestCase):
         SCRATCH.mkdir(exist_ok=True)
         cls._dir = tempfile.TemporaryDirectory(dir=SCRATCH)
         wheel = _build_wheel(Path(cls._dir.name))
+        cls.wheel = wheel
         with zipfile.ZipFile(wheel) as archive:
             cls.names = set(archive.namelist())
 
@@ -85,6 +105,28 @@ class TheWheel(unittest.TestCase):
         for stub in ("pythonx/compose/ui/__init__.pyi", "pythonx/compose/layout/__init__.pyi"):
             with self.subTest(stub=stub):
                 self.assertIn(stub, self.names)
+
+    def test_color_is_callable_from_the_installed_wheel(self):
+        """Issue #88: the installed package, not the source tree, calls `Color(0xFFFFFFFF)` through the binder."""
+        sys.path.insert(0, str(REPO / "tests"))
+        try:
+            import adapter
+            home = adapter.python_multiplatform_home()
+        finally:
+            sys.path.pop(0)
+        if not (home / adapter._ADAPTER_KT).is_file():
+            self.skipTest("no python-multiplatform checkout to install the binder from")
+        venv = Path(self._dir.name) / "venv"
+        subprocess.run([sys.executable, "-m", "venv", str(venv)], check=True)
+        python = venv / "bin" / "python"
+        subprocess.run([str(python), "-m", "pip", "install", "-q", "--no-deps", "--no-index", str(self.wheel)],
+                       check=True, capture_output=True, text=True)
+        script = _SCENARIO.format(tests=str(REPO / "tests"))
+        env = dict(os.environ, PYTHONMULTIPLATFORM_HOME=str(home))
+        result = subprocess.run([str(python), "-c", script], capture_output=True, text=True, env=env,
+                                cwd=str(venv))
+        self.assertEqual(0, result.returncode, result.stderr)
+        self.assertIn("installed wheel ok", result.stdout)
 
 
 if __name__ == "__main__":

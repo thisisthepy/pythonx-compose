@@ -21,14 +21,15 @@ Run from a worktree with `uv run --with pytest --with mypy pytest tests -q -rs` 
 
 | Environment | Result |
 |---|---|
-| No `PythonMultiplatform` checkout found | **148 passed, 109 skipped**, 167 subtests passed |
-| python-multiplatform `develop` at `31c092f0` or later (property rows, #38; `describe_member`, #54; besides `add_member_resolver` and `describe(module, name)`) | **256 passed, 1 skipped**, 198 subtests passed |
+| No `PythonMultiplatform` checkout found | **148 passed, 113 skipped**, 167 subtests passed |
+| python-multiplatform `develop` at `31c092f0` or later (property rows, #38; `describe_member`, #54; besides `add_member_resolver` and `describe(module, name)`) | **260 passed, 1 skipped**, 198 subtests passed |
 | an older checkout, before python-multiplatform #131 (no binder-side snake_case names) | the same, with the snake_case method tests skipped |
 | an older one, without `describe(module, name)` (python-multiplatform #36) | with 13 more skipped again |
 | an older one still, without `add_member_resolver` | with 5 more skipped again |
 
 Measured in a worktree, which has `.tmp/kotlin-stubs.zip` but no `UI.ipynb`. Without a checkout, the
-108 tests that install the binder's layers through `tests/adapter.py` skip, plus the notebook test.
+112 tests that install the binder's layers through `tests/adapter.py` skip (one of them against the
+installed wheel, #88), plus the notebook test.
 Against a binder without `describe(module, name)`, the 13 that check grouped constants (§7, S7.1)
 skip. Against a binder before python-multiplatform #131, the tests that call a snake_case method or
 pass a snake_case keyword on a proxy the binder returned skip, because those names are the binder's. The skip against a current checkout is `UI.ipynb`'s (§2). A binder older than #38 skips the 5
@@ -453,6 +454,13 @@ the Kotlin module does not list is tried as a Kotlin object sub-package and serv
 every access; a function inside the object is snake_case (`Arrangement.spaced_by`). Evidence:
 `tests/test_chain.py::ObjectNamespaces` (6 tests); without the sub-package step 6 fail. The binder
 now lists these objects itself (python-multiplatform #35), and either way reaches them.
+
+A Kotlin object whose name is also a function in its package is **callable**: `Color` is the object
+holding `Color.Red` and the function `Color(0xFFFFFFFF)`. The binder makes such a module callable
+(python-multiplatform #78), and the namespace serves the same call, so both `Color(0xFFFFFFFF)` and
+`Color.Red` work; an object that is no function (`Alignment`) stays uncallable. Evidence:
+`tests/test_chain.py::CallableKotlinObjects` (3 tests) and, from the installed wheel rather than the
+source tree, `tests/test_wheel.py::TheWheel::test_color_is_callable_from_the_installed_wheel` (#88).
 
 ### S7.1 Grouped constants, `Alignment.Horizontal.End`: `implemented`
 
