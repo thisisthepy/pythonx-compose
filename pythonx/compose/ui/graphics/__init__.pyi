@@ -739,7 +739,7 @@ class PathOperation:
             """Kotlin property: androidx.compose.ui.graphics.intersect (androidx.compose.ui.graphics.PathOperation.Companion.intersect: androidx.compose.ui.graphics.PathOperation)"""
             ...
         @property
-        def reverseDifference(self) -> _t.Any:
+        def reverse_difference(self) -> _t.Any:
             """Kotlin property: androidx.compose.ui.graphics.reverseDifference (androidx.compose.ui.graphics.PathOperation.Companion.reverseDifference: androidx.compose.ui.graphics.PathOperation)"""
             ...
         @property
@@ -749,10 +749,6 @@ class PathOperation:
         @property
         def xor(self) -> _t.Any:
             """Kotlin property: androidx.compose.ui.graphics.xor (androidx.compose.ui.graphics.PathOperation.Companion.xor: androidx.compose.ui.graphics.PathOperation)"""
-            ...
-        @property
-        def reverse_difference(self) -> _t.Any:
-            """Kotlin property: androidx.compose.ui.graphics.reverseDifference (androidx.compose.ui.graphics.PathOperation.Companion.reverseDifference: androidx.compose.ui.graphics.PathOperation)"""
             ...
     Difference: _t.ClassVar[_t.Any]
     """Kotlin: androidx.compose.ui.graphics.PathOperation.Difference(): androidx.compose.ui.graphics.PathOperation"""

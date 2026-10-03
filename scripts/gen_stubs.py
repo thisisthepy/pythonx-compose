@@ -569,6 +569,7 @@ class Converter:
             if isinstance(node, ast.ClassDef):
                 # A Kotlin type the object nests (`Alignment.Horizontal`): a class of the folded object.
                 node.bases = [bases.visit(base) for base in node.bases]
+                self._convert_class(node)  # its members follow the same rule, at any depth
                 groups.append([node])
             elif isinstance(node, ast.AnnAssign) and isinstance(node.target, ast.Name):
                 node.target.id = python_name(node.target.id)

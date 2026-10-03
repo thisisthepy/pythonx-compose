@@ -412,6 +412,52 @@ class TheConstantGroups(unittest.TestCase):
                 self.assertEqual({}, _nested(cls))
 
 
+class TheNestedCompanion(unittest.TestCase):
+    """Issue #86: a member of a class nested in an object's class is renamed like any other member."""
+
+    OBJECT = (
+        "import typing as _t\n\n"
+        "class Companion:\n"
+        "    \"\"\"Kotlin: a.b.Op.Companion\"\"\"\n"
+        "    @property\n"
+        "    def reverseDifference(self) -> _t.Any:\n"
+        "        \"\"\"Kotlin property: a.b.Op.Companion.reverseDifference\"\"\"\n"
+        "        ...\n"
+        "    @property\n"
+        "    def reverse_difference(self) -> _t.Any:\n"
+        "        \"\"\"Kotlin property: a.b.Op.Companion.reverseDifference\"\"\"\n"
+        "        ...\n"
+        "    @property\n"
+        "    def xor(self) -> _t.Any:\n"
+        "        \"\"\"Kotlin property: a.b.Op.Companion.xor\"\"\"\n"
+        "        ...\n"
+        "    @property\n"
+        "    def Upper(self) -> _t.Any:\n"
+        "        \"\"\"Kotlin property: a.b.Op.Companion.Upper\"\"\"\n"
+        "        ...\n"
+        "    def doIt(self, value: int) -> _t.Any: ...\n"
+        "\n"
+        "class Inner:\n"
+        "    \"\"\"Kotlin: a.b.Op.Inner\"\"\"\n"
+        "    class Deeper:\n"
+        "        \"\"\"Kotlin: a.b.Op.Inner.Deeper\"\"\"\n"
+        "        def deepName(self) -> _t.Any: ...\n"
+    )
+
+    def convert(self) -> ast.ClassDef:
+        stubs = gen_stubs.KotlinStubs(KOTLIN_STUBS_V2)
+        stubs.files["a/b/Op/__init__.pyi"] = self.OBJECT
+        return _classes(gen_stubs.Converter(stubs).convert("import typing as _t\n", "a.b"))["Op"]
+
+    def test_a_nested_classs_members_are_renamed_at_any_depth(self):
+        op = self.convert()
+        companion = _nested(op)["Companion"]
+        names = [n.name for n in companion.body if isinstance(n, ast.FunctionDef)]
+        self.assertEqual(["reverse_difference", "xor", "Upper", "do_it"], names)
+        deeper = _nested(_nested(op)["Inner"])["Deeper"]
+        self.assertEqual(["deep_name"], [n.name for n in deeper.body if isinstance(n, ast.FunctionDef)])
+
+
 class TheBindersOwnAliases(unittest.TestCase):
     """The format of python-multiplatform #131: the binder writes its snake_case aliases itself.
 
