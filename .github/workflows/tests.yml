@@ -7,7 +7,7 @@ on:
   pull_request:
     branches: [develop]
   push:
-    branches: ['work/**']
+    branches: ['feat/**']
   workflow_dispatch:
   # Daily against python-multiplatform develop as it is that day: the binder's contract moves under
   # this package without a pull request here, and #41 found out only at the next PR.
