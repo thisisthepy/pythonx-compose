@@ -24,6 +24,10 @@ concurrency:
 jobs:
   no-binder:
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python: ['3.13', '3.15']
     env:
       # A path that does not exist, so the binder tests skip.
       PYTHONMULTIPLATFORM_HOME: /nonexistent
@@ -33,7 +37,7 @@ jobs:
           fetch-depth: 1
       - uses: actions/setup-python@v5
         with:
-          python-version: '3.13'
+          python-version: ${{ matrix.python }}
       - run: pip install pytest mypy setuptools wheel
       - name: Run the suite
         run: python -m pytest tests -q -rs
@@ -60,7 +64,7 @@ jobs:
           fetch-depth: 1
       - uses: actions/setup-python@v5
         with:
-          python-version: '3.13'
+          python-version: '3.15'
       - run: pip install pytest mypy setuptools wheel
       - name: Run the suite
         run: python -m pytest tests -q -rs
