@@ -60,6 +60,11 @@ in §9 and are not counted as features.
   project URLs. `build-system.requires` is `setuptools>=77`, which understands that license form.
 - **0.1.0a1 is on PyPI** (2026-10-03: pre-release `v0.1.0a1` on develop `134a641`, publish-pypi run
   37120641414; a fresh install of 0.1.0a1 from PyPI imports cleanly).
+- **0.1.0a2 is on PyPI** (pre-release `v0.1.0a2` on develop `f6dd3e2`, publish-pypi run 37138576477).
+  Checked on 2026-10-17 in a clean venv: `uv pip install --prerelease allow pythonx-compose==0.1.0a2`
+  imports `pythonx.compose.runtime`, leaves `pythonx` a namespace package, and `Color(0xFFFFFFFF)`
+  without a host raises the binder's "not installed" error, as it should. With a host, the same
+  wheel passed python-multiplatform's notebook E2E (S5.4, S5.6).
 - Released by publishing a GitHub Release tagged `v<version>` (`.github/workflows/publish-pypi.yml`,
   trigger `release: published`; a bare tag push publishes nothing): the workflow checks the
   Release's tag equals `v` + the `pyproject.toml` version (`.github/scripts/check_release_version.py`,
