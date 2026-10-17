@@ -222,8 +222,10 @@ worktree so a test can see it. Read it in place.
   `docs/SPEC.md` §0). Report both numbers and say which environment you ran in. A skip is not
   a pass.
 - The suite runs on GitHub Actions (`.github/workflows/test.yml`) in both environments, without and
-  with a python-multiplatform checkout, for every pull request into `develop`. Local runs are for
-  quick checks of the part you changed; leave the full two-environment run to CI.
+  with a python-multiplatform checkout, on every push to `develop` (the user's decision,
+  2026-10-17; #115). A pull request merges without waiting for CI; if `develop` turns red, fix it
+  forward with its own pull request. Local runs are for quick checks of the part you changed; leave
+  the full two-environment run to CI.
   It also runs daily against python-multiplatform `develop` as it is that day; a failed daily run
   opens (or comments on) one tracking issue.
 - `PythonMultiplatform` is read-only from this repository. Never write to it from here.
