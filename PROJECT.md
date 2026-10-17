@@ -135,7 +135,9 @@ uv run python .github/scripts/check_guide.py    # 가이드: HTML 파싱, 링크
   `twine check`·새 venv 스모크를 거쳐 트러스티드 퍼블리싱으로 올린다. 태그만 푸시해서는 아무것도
   올라가지 않는다(같은 버전은 PyPI 에 다시 올릴 수 없으므로 의도적인 단계로 둠). **현황: 0.1.0a1 배포됨**(2026-10-03, develop `134a641` 에서 pre-release
   `v0.1.0a1`, publish-pypi run 37120641414; https://pypi.org/project/pythonx-compose/). PyPI 에서 새로
-  설치한 0.1.0a1 이 import 스모크를 통과했다.
+  설치한 0.1.0a1 이 import 스모크를 통과했다. **0.1.0a2 배포됨**(develop `f6dd3e2` 에서 pre-release `v0.1.0a2`,
+  publish-pypi run 37138576477). 2026-10-17 에 깨끗한 venv 에 uv 로 설치해 import, namespace 패키지 유지,
+  호스트 없는 `Color(...)` 의 바인더 오류를 확인했다.
 
 ### 결정됨 (2026-10-03, `docs/INTENT.md` §5)
 
