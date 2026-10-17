@@ -14,22 +14,23 @@ Each item carries a status:
 
 A behaviour change starts here, then becomes a failing test, then code (`AGENTS.md` §5).
 
-## 0. Test baseline (2026-10-03, after the a5028618 stubs)
+## 0. Test baseline (2026-10-17, develop `7e83cc8`, after #119)
 
-Run from a worktree with `uv run --with pytest --with mypy pytest tests -q -rs` (pytest 8, mypy 2.4, CPython 3.13), where
-`UI.ipynb` is absent and its one test skips:
+The GitHub Actions run on `develop` (`.github/workflows/test.yml`, run 39017245145; `python -m pytest
+tests -q -rs`, with pytest, mypy and, in the `with-binder` job, `pyrefly==1.3.2`). CI has neither
+`UI.ipynb` nor `.tmp/kotlin-stubs.zip`, so the notebook test and the committed-stubs check skip:
 
 | Environment | Result |
 |---|---|
-| No `PythonMultiplatform` checkout found | **152 passed, 123 skipped**, 186 subtests passed |
-| python-multiplatform `develop` at `31c092f0` or later (property rows, #38; `describe_member`, #54; besides `add_member_resolver` and `describe(module, name)`) | **274 passed, 1 skipped**, 232 subtests passed |
+| No `PythonMultiplatform` checkout found (`no-binder`, CPython 3.13 and 3.15) | **155 passed, 129 skipped**, 269 subtests passed |
+| python-multiplatform `develop` at `31c092f0` or later (property rows, #38; `describe_member`, #54; besides `add_member_resolver` and `describe(module, name)`) (`with-binder`, CPython 3.15) | **282 passed, 2 skipped**, 326 subtests passed |
 | an older checkout, before python-multiplatform #131 (no binder-side snake_case names) | the same, with the snake_case method tests skipped |
 | an older one, without `describe(module, name)` (python-multiplatform #36) | with 13 more skipped again |
 | an older one still, without `add_member_resolver` | with 5 more skipped again |
 
-Measured in a worktree, which has `.tmp/kotlin-stubs.zip` but no `UI.ipynb`. Without a checkout, the
-122 tests that install the binder's layers through `tests/adapter.py` skip (one of them against the
-installed wheel, #88), plus the notebook test.
+Without a checkout, the 122 tests that install the binder's layers through `tests/adapter.py` skip
+(one of them against the installed wheel, #88), and so do the 5 TypedPython gate tests (S1.3), the
+notebook test and the committed-stubs check.
 Against a binder without `describe(module, name)`, the 13 that check grouped constants (§7, S7.1)
 skip. Against a binder before python-multiplatform #131, the tests that call a snake_case method or
 pass a snake_case keyword on a proxy the binder returned skip, because those names are the binder's. The skip against a current checkout is `UI.ipynb`'s (§2). A binder older than #38 skips the 5
