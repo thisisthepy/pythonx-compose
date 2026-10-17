@@ -263,6 +263,20 @@ class TheStubsTypeCheck(unittest.TestCase):
             remember_saveable("").get_value()
         """, "get_value")
 
+    def test_a_member_function_of_a_kotlin_class_is_typed(self):
+        """Issue #125: member functions reach the stubs (python-multiplatform #215), so a checker knows
+        `TextFieldState.edit(block)` and its argument."""
+        self.assertPasses("""
+            from pythonx.compose.foundation.text.input import TextFieldState
+
+            TextFieldState("hi").edit(lambda buffer: None)
+        """)
+        self.assertFails("""
+            from pythonx.compose.foundation.text.input import TextFieldState
+
+            TextFieldState("hi").edit()
+        """, "[call-arg]")
+
     def test_a_text_field_state_types_the_state_overload(self):
         """Issue #10: `TextField(state=...)`, the state made by `pythonx.compose.foundation.text.input`."""
         self.assertPasses("""

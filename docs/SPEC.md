@@ -81,9 +81,13 @@ and the name the interpreter resolves cannot drift.
 - **What is generated.** `pythonx/compose/**/__init__.pyi` for every module in `pythonx-map.toml`,
   beside its `__init__.py`, and an empty `pythonx/compose/py.typed`. The stubs are committed;
   regenerating them from the same input produces no diff.
-- **From what.** python-multiplatform's CI artefact `kotlin-stubs` (workflow run 37131041879,
-  commit `452cc807`, python-multiplatform #131): Kotlin-named stubs for Compose 1.11.1, one `androidx/compose/.../__init__.pyi`
-  per Kotlin package. `uv run python scripts/gen_stubs.py <kotlin-stubs.zip or directory>` converts them;
+- **From what.** python-multiplatform's CI artefact `kotlin-stubs` (workflow run 39026110988,
+  commit `8acb3475`, regenerated in #125): Kotlin-named stubs for Compose 1.11.1, one `androidx/compose/.../__init__.pyi`
+  per Kotlin package. Since that commit they carry member functions of classes and interfaces as
+  methods (python-multiplatform #215), a type whose name a same-named factory function takes as the
+  stub-private class `_Name` instead of `Any` (#217; `PaddingValues(...)` returns a `_PaddingValues`),
+  and functional-interface parameters as `Callable` (#216); the converted stubs keep all three, with
+  member names in snake_case (`TextFieldState.edit`). `uv run python scripts/gen_stubs.py <kotlin-stubs.zip or directory>` converts them;
   the first line of every generated stub records the artefact, run and commit it came from.
 - **The rule is the runtime's** (`_reexport.py`), applied by `scripts/gen_stubs.py`:
   - a module function or constant is renamed with `python_name` (upper-case names kept, others
