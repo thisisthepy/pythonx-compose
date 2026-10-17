@@ -237,12 +237,45 @@ class TheStubsTypeCheck(unittest.TestCase):
             current = messages.value
         """)
 
+    def test_what_remember_saveable_holds_is_a_saveable_scalar(self):
+        """Issue #118: only an int, float, bool or str is saved, as Kotlin's type rule says."""
+        self.assertFails("""
+            from pythonx.compose.runtime import remember_saveable
+
+            remember_saveable("").setValue([1])
+        """, "[arg-type]")
+
+    def test_composable_keeps_the_screens_signature(self):
+        """Issue #118: `@Composable` returns the function it is given, not `Any`."""
+        self.assertFails("""
+            from pythonx.compose.runtime import Composable
+
+            @Composable
+            def Screen() -> None: ...
+
+            Screen(1)
+        """, "Too many arguments")
+
     def test_what_remember_saveable_returns_has_no_other_spelling(self):
         self.assertFails("""
             from pythonx.compose.runtime import remember_saveable
 
             remember_saveable("").get_value()
         """, "get_value")
+
+    def test_a_member_function_of_a_kotlin_class_is_typed(self):
+        """Issue #125: member functions reach the stubs (python-multiplatform #215), so a checker knows
+        `TextFieldState.edit(block)` and its argument."""
+        self.assertPasses("""
+            from pythonx.compose.foundation.text.input import TextFieldState
+
+            TextFieldState("hi").edit(lambda buffer: None)
+        """)
+        self.assertFails("""
+            from pythonx.compose.foundation.text.input import TextFieldState
+
+            TextFieldState("hi").edit()
+        """, "[call-arg]")
 
     def test_a_text_field_state_types_the_state_overload(self):
         """Issue #10: `TextField(state=...)`, the state made by `pythonx.compose.foundation.text.input`."""

@@ -139,14 +139,31 @@ class TheConversion(unittest.TestCase):
 
     def test_names_the_package_defines_itself_are_carried_over(self):
         runtime = self.stubs[COMPOSE / "runtime" / "__init__.pyi"]
-        self.assertIn("def Composable(target)", runtime)
+        self.assertIn("def Composable(target: _T) -> _T", runtime)
+
+    def test_a_type_variable_the_package_defines_is_carried_over(self):
+        # `Composable` and `app` return what they are given (issue #118); the stub needs the
+        # TypeVar their annotations name, defined before them.
+        runtime = self.stubs[COMPOSE / "runtime" / "__init__.pyi"]
+        self.assertIn("import typing as _t\n", runtime)
+        defined = runtime.find("_T = _t.TypeVar('_T')")
+        self.assertGreater(defined, -1)
+        self.assertLess(defined, runtime.find("def Composable("))
+
+    def test_what_only_the_checker_reads_stays_out_of_the_stub(self):
+        # `State` is Kotlin's class in the stub; the protocol the module checks against is private.
+        runtime = self.stubs[COMPOSE / "runtime" / "__init__.pyi"]
+        self.assertNotIn("_KotlinState", runtime)
+        self.assertNotIn("TYPE_CHECKING", runtime)
 
     def test_a_class_the_package_defines_keeps_its_public_members(self):
         # `remember_saveable` returns `SaveableState` (issue #102); an editor must see its three
         # spellings, so a class is carried over with its public methods, not as an empty body.
         runtime = self.stubs[COMPOSE / "runtime" / "__init__.pyi"]
         self.assertIn("class SaveableState:", runtime)
-        for member in ("def getValue(self)", "def setValue(self, value)", "def value(self)"):
+        for member in ("def getValue(self) -> bool | int | float | str",
+                       "def setValue(self, value: bool | int | float | str) -> None",
+                       "def value(self) -> bool | int | float | str"):
             with self.subTest(member=member):
                 self.assertIn(member, runtime)
         self.assertIn("def remember_saveable(initial", runtime)
@@ -158,7 +175,7 @@ class TheConversion(unittest.TestCase):
         # only annotates it; the stub must still say it exists.
         runtime = self.stubs[COMPOSE / "runtime" / "__init__.pyi"]
         self.assertIn("app_root: State", runtime)
-        self.assertIn("def app(root)", runtime)
+        self.assertIn("def app(root: _T) -> _T", runtime)
         self.assertNotIn("def state(", runtime, "state() is removed (INTENT 5.11)")
 
     def test_every_stub_is_valid_python(self):
