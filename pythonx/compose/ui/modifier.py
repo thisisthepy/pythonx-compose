@@ -53,6 +53,7 @@ from __future__ import annotations
 
 import importlib
 import sys
+from typing import Protocol, cast
 
 BINDING_MODULE = "python_multiplatform.binding"
 
@@ -65,7 +66,13 @@ PLACEHOLDER_EMPTY_FACTORY = "androidx.compose.ui.emptyModifier"
 """A name that is **not** bound by Compose. See the module docstring; supply your own to [install]."""
 
 
-def adapter():
+class BindingLayer(Protocol):
+    """What this module asks of `python_multiplatform.binding`."""
+
+    def register_empty(self, kotlin_type: str, empty_factory: str, /) -> None: ...
+
+
+def adapter() -> BindingLayer:
     """The binder's installed binding layer, or a `RuntimeError` that says what did not happen.
 
     The Kotlin host installs it (`PythonxAdapter.install()`), not an import, so its absence means
@@ -77,18 +84,18 @@ def adapter():
             "the python-multiplatform binding layer is not installed: the Kotlin host must run "
             "PythonxAdapter.install() before anything here can resolve a Modifier"
         )
-    return module
+    return cast(BindingLayer, module)
 
 
-def modifier_type(layer=None):
+def modifier_type(layer: BindingLayer | None = None) -> type:
     """The `Modifier` proxy class -- the same object `pythonx.compose.ui.Modifier` is."""
     if layer is None:
         adapter()
     # Through this package's own module, so the manifest's value-class allowlist is in force.
-    return importlib.import_module("pythonx.compose.ui").Modifier
+    return cast(type, importlib.import_module("pythonx.compose.ui").Modifier)
 
 
-def install(empty_factory=PLACEHOLDER_EMPTY_FACTORY, layer=None):
+def install(empty_factory: str = PLACEHOLDER_EMPTY_FACTORY, layer: BindingLayer | None = None) -> type:
     """Register where an empty `Modifier` comes from, and return the proxy class.
 
     :param empty_factory: the fully-qualified Kotlin name of a zero-argument function returning
@@ -101,7 +108,7 @@ def install(empty_factory=PLACEHOLDER_EMPTY_FACTORY, layer=None):
     return modifier_type(layer)
 
 
-def __getattr__(name):
+def __getattr__(name: str) -> type:
     # `Modifier` is resolved rather than defined, so that this module cannot hold a stale class
     # across a table reinstall -- `_register_table` invalidates every proxy, and a module-level
     # binding made at import time would outlive that.

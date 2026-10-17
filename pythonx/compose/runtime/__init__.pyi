@@ -168,28 +168,30 @@ def snapshot_flow(block: _t.Callable[[], _t.Any | None]) -> _t.Any: ...
 @_t.overload
 def snapshot_flow(manager: SnapshotFlowManager, block: _t.Callable[[], _t.Any | None]) -> _t.Any: ...  # type: ignore[overload-cannot-match]
 
-def Composable(target):
+_T = _t.TypeVar('_T')
+
+def Composable(target: _T) -> _T:
     ...
 
 app_root: State
 
-def app(root):
+def app(root: _T) -> _T:
     ...
 
 class SaveableState:
 
-    def getValue(self):
+    def getValue(self) -> bool | int | float | str:
         ...
 
-    def setValue(self, value):
+    def setValue(self, value: bool | int | float | str) -> None:
         ...
 
     @property
-    def value(self):
+    def value(self) -> bool | int | float | str:
         ...
 
     @value.setter
-    def value(self, value):
+    def value(self, value: bool | int | float | str) -> None:
         ...
 
 def remember_saveable(initial: bool | int | float | str) -> SaveableState:

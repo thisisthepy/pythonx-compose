@@ -237,6 +237,25 @@ class TheStubsTypeCheck(unittest.TestCase):
             current = messages.value
         """)
 
+    def test_what_remember_saveable_holds_is_a_saveable_scalar(self):
+        """Issue #118: only an int, float, bool or str is saved, as Kotlin's type rule says."""
+        self.assertFails("""
+            from pythonx.compose.runtime import remember_saveable
+
+            remember_saveable("").setValue([1])
+        """, "[arg-type]")
+
+    def test_composable_keeps_the_screens_signature(self):
+        """Issue #118: `@Composable` returns the function it is given, not `Any`."""
+        self.assertFails("""
+            from pythonx.compose.runtime import Composable
+
+            @Composable
+            def Screen() -> None: ...
+
+            Screen(1)
+        """, "Too many arguments")
+
     def test_what_remember_saveable_returns_has_no_other_spelling(self):
         self.assertFails("""
             from pythonx.compose.runtime import remember_saveable

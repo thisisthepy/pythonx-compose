@@ -84,9 +84,25 @@ from __future__ import annotations
 
 import importlib
 import sys
+from collections.abc import Callable
+from typing import TYPE_CHECKING, Protocol, TypeVar, cast
+
+_T = TypeVar("_T")
 
 
-def Composable(target):
+class _KotlinState(Protocol):
+    """What this module reads of a Compose `MutableState` the binder serves: one `value`."""
+
+    value: object
+
+
+if TYPE_CHECKING:
+    # For the checker only: at run time `State` is Kotlin's class, read through `__getattr__`, and
+    # the stub names that class.
+    State = _KotlinState
+
+
+def Composable(target: _T) -> _T:
     """Identity. `UI.ipynb` writes `@Composable def Screen(): ...`; nothing needs to happen to
     `Screen` for that to work, because the composer every nested `pythonx.compose.*` call needs is
     threaded by `PythonComposition`/`python_multiplatform.binding._bind_composable` from the *callee's* declared slot
@@ -103,15 +119,16 @@ app_root: State
 only, created on first read by `__getattr__` below."""
 
 
-def _new_state(initial):
+def _new_state(initial: object) -> _KotlinState:
     """A Compose `MutableState` holding `initial`, from the binder's `mutableStateOf`.
 
     Never a Python stand-in: only a state Compose created is observed by composition.
     """
     try:
-        import androidx.compose.runtime as kotlin_runtime
-
-        make = kotlin_runtime.mutableStateOf
+        make = cast(
+            "Callable[[object], _KotlinState]",
+            importlib.import_module("androidx.compose.runtime").mutableStateOf,
+        )
     except (ImportError, AttributeError) as missing:
         raise RuntimeError(
             "androidx.compose.runtime.mutableStateOf is not available from the binder: "
@@ -120,12 +137,13 @@ def _new_state(initial):
     return make(initial)
 
 
-def app(root):
+def app(root: _T) -> _T:
     """Declare `root`, a zero-argument function, as the screen the host draws; returns it unchanged.
 
     Declaring again replaces the screen; there is no update call.
     """
-    sys.modules[__name__].app_root.value = root
+    # Through the module, so its `__getattr__` creates the state on first use.
+    cast(_KotlinState, sys.modules[__name__].app_root).value = root
     return root
 
 
@@ -138,33 +156,39 @@ class SaveableState:
 
     __slots__ = ("_state",)
 
-    def __init__(self, state):
+    _state: _KotlinState
+
+    def __init__(self, state: _KotlinState) -> None:
         self._state = state
 
-    def getValue(self):
+    # What Kotlin holds is one of the four scalars `rememberSaveableWrapper` accepts.
+    def getValue(self) -> bool | int | float | str:
         """The current value, read from the Kotlin state (a snapshot read Compose records)."""
-        return self._state.value
+        return cast("bool | int | float | str", self._state.value)
 
-    def setValue(self, value):
+    def setValue(self, value: bool | int | float | str) -> None:
         """Write the Kotlin state; a composable that read it recomposes."""
         self._state.value = value
 
     @property
-    def value(self):
-        return self._state.value
+    def value(self) -> bool | int | float | str:
+        return cast("bool | int | float | str", self._state.value)
 
     @value.setter
-    def value(self, value):
+    def value(self, value: bool | int | float | str) -> None:
         self._state.value = value
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"SaveableState({self._state.value!r})"
 
 
 def remember_saveable(initial: bool | int | float | str) -> SaveableState:
     """Compose's `rememberSaveable` for an int, float, bool or str; call it inside a composition."""
     try:
-        wrapper = importlib.import_module(_SAVEABLE_HOST).rememberSaveableWrapper
+        wrapper = cast(
+            "Callable[[bool | int | float | str], _KotlinState]",
+            importlib.import_module(_SAVEABLE_HOST).rememberSaveableWrapper,
+        )
     except (ImportError, AttributeError) as missing:
         raise RuntimeError(
             f"{_SAVEABLE_HOST}.rememberSaveableWrapper is not bound: it needs python-multiplatform #174, "
@@ -179,7 +203,7 @@ from pythonx.compose._reexport import reexport
 _reexported_getattr, _reexported_dir = reexport(__name__)
 
 
-def __getattr__(name):
+def __getattr__(name: str) -> object:
     if name == "app_root":
         created = _new_state(None)
         globals()["app_root"] = created
@@ -187,5 +211,5 @@ def __getattr__(name):
     return _reexported_getattr(name)
 
 
-def __dir__():
+def __dir__() -> list[str]:
     return sorted(set(_reexported_dir()) | {"app_root"})
