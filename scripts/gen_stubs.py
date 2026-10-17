@@ -720,7 +720,24 @@ def own_definitions(init_py: Path) -> list[str]:
             stubs.append(ast.unparse(node) + "\n")
         elif isinstance(node, ast.ClassDef) and not node.name.startswith("_"):
             stubs.append(_own_class(node))
+        elif _is_type_variable(node):
+            # Named by the annotations carried over (`Composable(target: _T) -> _T`), so it is
+            # carried too, private or not, spelled through the stub's own `typing` import.
+            assert isinstance(node, ast.Assign) and isinstance(node.value, ast.Call)
+            node.value.func = ast.Attribute(ast.Name("_t"), "TypeVar")
+            stubs.append(ast.unparse(node) + "\n")
     return stubs
+
+
+def _is_type_variable(node: ast.stmt) -> bool:
+    """`_T = TypeVar("_T")` (or `typing.TypeVar`) at module level."""
+    if not (isinstance(node, ast.Assign) and len(node.targets) == 1
+            and isinstance(node.targets[0], ast.Name) and isinstance(node.value, ast.Call)):
+        return False
+    func = node.value.func
+    return (isinstance(func, ast.Name) and func.id == "TypeVar") or (
+        isinstance(func, ast.Attribute) and func.attr == "TypeVar"
+    )
 
 
 def _own_class(node: ast.ClassDef) -> str:
@@ -764,6 +781,8 @@ def generate(kotlin_stubs: Path, package_root: Path, notes: list[str] | None = N
             text = header(stubs.provenance)
         own = own_definitions(module_dir / "__init__.py")
         if own:
+            if "import typing as _t\n" not in text:
+                text += "import typing as _t\n"
             text += "\n" + "\n".join(own)
         out[module_dir / STUB_NAME] = text
     if notes is not None:

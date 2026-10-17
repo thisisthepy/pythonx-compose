@@ -170,6 +170,38 @@ and the name the interpreter resolves cannot drift.
     attribute, and are left out.
   - Regenerating needs the artefact downloaded by hand into `.tmp/`; CI does not fetch it.
 
+### S1.3 The package's own Python passes TypedPython's gate: `implemented`
+
+Source: issue #118. toolchain's `typedpythonCheck` runs python-multiplatform's `typedpython check`
+(Pyrefly 1.3.2) in the build, so `pythonx/` passes it the way a user's code must:
+
+- **No error.** Every function is annotated, Pyrefly reports nothing, and no expression has type
+  `Any` outside a `cast()` (`any-flow`). The gate's search path is the repository root; no Kotlin stub
+  is needed, because what this package reads from the binder is typed as what it is to this
+  package: an opaque `object`, a module, or a small protocol for the one call made on it
+  (`allow_raw_primitive`, `register_empty`, a state's `value`). A value the binder hands back is
+  `cast()` where it enters. Before #118: 253 errors and 7 warnings, of which adding the
+  `kotlin-stubs` artefact to the search path removed 4.
+- **What stays: five `forbidden/dynamic-attr` warnings, in `_reexport.py`.** They are the
+  re-export layer itself: a name read at run time is forwarded to the binder's module (`_resolve`),
+  an alias's attribute path from `pythonx-map.toml` is walked (`_borrow`), and a resolved value is
+  kept on the module that answered for it (`_borrow`, `reexport`). They are warnings in `checked`
+  mode, the default, and errors in `compiled` mode, which this package is not built in.
+- **The stubs carry the annotations.** A function or class the package defines is carried into its
+  stub with its annotations (S1.2), and so is a `TypeVar` they name: `Composable(target: _T) -> _T`
+  and `app(root: _T) -> _T` return what they are given, and `SaveableState` reads and writes
+  `bool | int | float | str`, the scalars `rememberSaveableWrapper` accepts (S5.6). `runtime.State`
+  stays Kotlin's class: the protocol the module is checked against is private and is not in the
+  stub.
+
+Tests: `tests/test_typedpython.py` (runs the gate on `pythonx/`; skips without a
+python-multiplatform checkout or without `pyrefly` importable), `tests/test_stubs.py`
+(`test_a_type_variable_the_package_defines_is_carried_over`,
+`test_what_only_the_checker_reads_stays_out_of_the_stub`), `tests/test_typing.py`
+(`test_composable_keeps_the_screens_signature`,
+`test_what_remember_saveable_holds_is_a_saveable_scalar`). CI's `with-binder` job installs
+`pyrefly==1.3.2`, so the gate runs there against python-multiplatform `develop`.
+
 ## 2. The mapping manifest (`pythonx-map.toml`): `implemented`
 
 The manifest is this package's statement of which Kotlin package each `pythonx.compose.*` module
