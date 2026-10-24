@@ -312,6 +312,24 @@ class TheStubsTypeCheck(unittest.TestCase):
             from pythonx.compose.layout import fillMaxWidth
         """, "fillMaxWidth", "[attr-defined]")
 
+    def test_compose_extended_1_11_1_ext_1_surface_type_checks(self):
+        """Issue #127: stubs generated from `org.thisisthepy.compose.*:1.11.1-ext.1` carry the fork's
+        Material 3 1.11.0-alpha07 declarations (`ButtonGroup`, `MaterialTheme(motion_scheme=...)`) and
+        type `BoxWithConstraintsScope.constraints` as `_Constraints`."""
+        self.assertPasses("""
+            from pythonx.compose.layout import BoxWithConstraintsScope
+            from pythonx.compose.material3 import ButtonGroup, MaterialTheme, MotionScheme
+            from pythonx.compose.runtime import CompositionLocal
+            from pythonx.compose.ui.unit import Constraints
+
+            def check(scope: BoxWithConstraintsScope, motion: MotionScheme) -> int:
+                c = Constraints(min_width=0, max_width=100)
+                loc: CompositionLocal = MaterialTheme.LocalMotionScheme
+                MaterialTheme(motion_scheme=motion, content=lambda: None)
+                ButtonGroup(content=lambda group_scope: None)
+                return scope.constraints.max_width + c.max_width
+        """)
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -22,8 +22,8 @@ tests -q -rs`, with pytest, mypy and, in the `with-binder` job, `pyrefly==1.3.2`
 
 | Environment | Result |
 |---|---|
-| No `PythonMultiplatform` checkout found (`no-binder`, CPython 3.13 and 3.15) | **155 passed, 129 skipped**, 269 subtests passed |
-| python-multiplatform `develop` at `31c092f0` or later (property rows, #38; `describe_member`, #54; besides `add_member_resolver` and `describe(module, name)`) (`with-binder`, CPython 3.15) | **282 passed, 2 skipped**, 326 subtests passed |
+| No `PythonMultiplatform` checkout found (`no-binder`, CPython 3.13 and 3.15) | **156 passed, 129 skipped**, 269 subtests passed |
+| python-multiplatform `develop` at `31c092f0` or later (property rows, #38; `describe_member`, #54; besides `add_member_resolver` and `describe(module, name)`) (`with-binder`, CPython 3.15) | **283 passed, 2 skipped**, 326 subtests passed |
 | an older checkout, before python-multiplatform #131 (no binder-side snake_case names) | the same, with the snake_case method tests skipped |
 | an older one, without `describe(module, name)` (python-multiplatform #36) | with 13 more skipped again |
 | an older one still, without `add_member_resolver` | with 5 more skipped again |
@@ -81,9 +81,11 @@ and the name the interpreter resolves cannot drift.
 - **What is generated.** `pythonx/compose/**/__init__.pyi` for every module in `pythonx-map.toml`,
   beside its `__init__.py`, and an empty `pythonx/compose/py.typed`. The stubs are committed;
   regenerating them from the same input produces no diff.
-- **From what.** python-multiplatform's CI artefact `kotlin-stubs` (workflow run 39026110988,
-  commit `8acb3475`, regenerated in #125): Kotlin-named stubs for Compose 1.11.1, one `androidx/compose/.../__init__.pyi`
-  per Kotlin package. Since that commit they carry member functions of classes and interfaces as
+- **From what.** python-multiplatform's CI artefact `kotlin-stubs` (workflow run 40097118139,
+  commit `ec698488`, regenerated in #127): Kotlin-named stubs for Compose 1.11.1-ext.1
+  (`org.thisisthepy.compose.*:1.11.1-ext.1` from Maven Central, with
+  `org.jetbrains.compose.material:material-icons-core:1.7.3` kept upstream), one `androidx/compose/.../__init__.pyi`
+  per Kotlin package. Since `8acb3475` (#125) they carry member functions of classes and interfaces as
   methods (python-multiplatform #215), a type whose name a same-named factory function takes as the
   stub-private class `_Name` instead of `Any` (#217; `PaddingValues(...)` returns a `_PaddingValues`),
   and functional-interface parameters as `Callable` (#216); the converted stubs keep all three, with
