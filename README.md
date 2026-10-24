@@ -151,7 +151,7 @@ from a sibling [python-multiplatform](https://github.com/thisisthepy/python-mult
 
 Distributed as the pip package **`pythonx-compose`** (Python 3.11 or later), providing the import
 package `pythonx.compose`, with the manifest inside the wheel, and typed: `.pyi` stubs generated from
-real Compose 1.11.1 and `py.typed` ship with it. It runs inside an app that embeds CPython
+real Compose 1.11.1-ext.1 and `py.typed` ship with it. It runs inside an app that embeds CPython
 through [python-multiplatform](https://github.com/thisisthepy/python-multiplatform); it is not a
 standalone desktop toolkit.
 
@@ -168,7 +168,7 @@ standalone desktop toolkit.
 | The empty `Modifier` | 🟡 partial: `Modifier.padding(16)` from the class needs an app-supplied factory against real Compose |
 | `Alignment` / `Arrangement` | ✅ implemented and tested: `Alignment.Center`, `Arrangement.spaced_by(8)`, and grouped `Alignment.Horizontal.End` beside `Alignment.End` |
 | Material 3 widgets (`Text`, `Button`, `Card`, `TextField`, …) | 🟡 partial: re-exported by rule; render proofs per widget pending (#9) |
-| Type stubs (`.pyi`) from real Compose 1.11.1, `py.typed` | ✅ implemented and checked with mypy; many types are still `Any` (#12) |
+| Type stubs (`.pyi`) from real Compose 1.11.1-ext.1, `py.typed` | ✅ implemented and checked with mypy; many types are still `Any` (#12) |
 | Distribution (`pythonx-compose`) | 🟡 partial: the wheel carries the manifest, the re-export rule, the stubs and `py.typed` |
 | Declared app root (`@app`), no update call; state through Kotlin's `mutable_state_of` | 🟡 partial: binder path tested against a fake host shaped after python-multiplatform #38; against real Compose, python-multiplatform's notebook E2E passes (#11, #19); numbers and strings round-trip |
 | `TextField(state=...)` with `TextFieldState` (`pythonx.compose.foundation.text.input`) | 🟡 partial: tested against a fake host shaped after python-multiplatform #73; the input-method (IME) composing proof is python-multiplatform E2E #26 (#10) |
