@@ -71,6 +71,15 @@ cached here. The app attaches the state to its root itself, as the 2024 demo did
 A host app binds the wrapper by listing `python.multiplatform.compose.RememberSaveableKt` in its
 `artifactIncludePackages`.
 
+## `DefaultCoroutineScope` and `MainCoroutineScope`
+
+`UI.ipynb` cell 5 imports `DefaultCoroutineScope` and `MainCoroutineScope` from
+`pythonx.compose.runtime` (`docs/INTENT.md` section 5.10, `docs/SPEC.md` S5.7, issue #94). They are
+built on `pythonx.concurrent`: `DefaultCoroutineScope()` returns
+`pythonx.concurrent.CoroutineScope(Dispatchers.Default)` and `MainCoroutineScope()` returns
+`pythonx.concurrent.CoroutineScope(Dispatchers.Main)`. `pythonx.concurrent` is imported when either
+factory is called, and if it is not installed a `RuntimeError` names `pythonx-concurrent`.
+
 ## How it is reached
 
 By its own dotted name: `import pythonx.compose.runtime` loads this file. The binder used to put a
@@ -196,6 +205,62 @@ def remember_saveable(initial: bool | int | float | str) -> SaveableState:
             "artifactIncludePackages"
         ) from missing
     return SaveableState(wrapper(initial))
+
+
+_CONCURRENT_PACKAGE = "pythonx.concurrent"
+
+
+class _ConcurrentScope(Protocol):
+    """What `DefaultCoroutineScope()` and `MainCoroutineScope()` return (`pythonx.concurrent.CoroutineScope`)."""
+
+    dispatcher: object
+
+    def launch(self, fn: Callable[..., object], /, *args: object, name: str | None = None) -> object: ...
+    def defer(self, fn: Callable[..., object], /, *args: object, name: str | None = None) -> object: ...
+    def cancel(self) -> None: ...
+
+
+class _ConcurrentDispatchers(Protocol):
+    Default: object
+    Main: object
+
+
+class _ConcurrentModule(Protocol):
+    Dispatchers: _ConcurrentDispatchers
+
+    def CoroutineScope(self, dispatcher: object, /) -> _ConcurrentScope: ...
+
+
+def _concurrent_scope(dispatcher: object) -> _ConcurrentScope:
+    try:
+        mod = cast(_ConcurrentModule, importlib.import_module(_CONCURRENT_PACKAGE))
+    except ImportError as missing:
+        raise RuntimeError(
+            f"{_CONCURRENT_PACKAGE} is required for DefaultCoroutineScope and MainCoroutineScope: "
+            "install pythonx-concurrent (Python 3.15+)"
+        ) from missing
+    return mod.CoroutineScope(dispatcher)
+
+
+def _concurrent_dispatchers() -> _ConcurrentDispatchers:
+    try:
+        mod = cast(_ConcurrentModule, importlib.import_module(_CONCURRENT_PACKAGE))
+        return mod.Dispatchers
+    except (ImportError, AttributeError) as missing:
+        raise RuntimeError(
+            f"{_CONCURRENT_PACKAGE} is required for DefaultCoroutineScope and MainCoroutineScope: "
+            "install pythonx-concurrent (Python 3.15+)"
+        ) from missing
+
+
+def DefaultCoroutineScope() -> object:
+    """Create an app-level `CoroutineScope(Dispatchers.Default)` backed by `pythonx.concurrent` (SPEC S5.7)."""
+    return _concurrent_scope(_concurrent_dispatchers().Default)
+
+
+def MainCoroutineScope() -> object:
+    """Create an app-level `CoroutineScope(Dispatchers.Main)` backed by `pythonx.concurrent` (SPEC S5.7)."""
+    return _concurrent_scope(_concurrent_dispatchers().Main)
 
 
 from pythonx.compose._reexport import reexport

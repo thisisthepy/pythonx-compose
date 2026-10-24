@@ -175,7 +175,7 @@ standalone desktop toolkit.
 | `DefaultIcons` (`Icons.Default`), written `DefaultIcons.Add` | 🟡 partial: tested against a fake host shaped after python-multiplatform #37/#38; `Icon(DefaultIcons.Add, …)` is drawn in python-multiplatform's render test |
 | Colour schemes | ⏳ planned |
 | `remember_saveable` with the notebook's `getValue()` / `setValue()` | 🟡 partial: tested against a fake host; save and restore is python-multiplatform's test (#174) |
-| Coroutine scopes (`DefaultCoroutineScope`, `MainCoroutineScope`) | ⏳ planned, after pythonx-concurrent |
+| Coroutine scopes (`DefaultCoroutineScope`, `MainCoroutineScope`) | ✅ implemented and tested on top of `pythonx.concurrent` (#94) |
 
 The full list is on the guide's [Status page](https://thisisthepy.github.io/pythonx-compose/status.html).
 
