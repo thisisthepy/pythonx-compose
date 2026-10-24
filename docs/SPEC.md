@@ -502,14 +502,23 @@ Stubs: `tests/test_stubs.py::TheConversion::test_a_class_the_package_defines_kee
 Typing: `tests/test_typing.py::test_remember_saveable_types_the_notebook_spelling` and
 `test_what_remember_saveable_returns_has_no_other_spelling`.
 
-### S5.7 `DefaultCoroutineScope`, `MainCoroutineScope`: `planned` (after pythonx-concurrent)
+### S5.7 `DefaultCoroutineScope`, `MainCoroutineScope`: `implemented`
 
-INTENT §5.10. In 2024 `DefaultCoroutineScope()` was Kotlin's `CoroutineScope(Dispatchers.Default)`
-and `MainCoroutineScope()` was `CoroutineScope(Dispatchers.Main)`, each with `.launch(block)`
-running a Python callable (PyREPL `abc6952`, `Runtime.kt`). Here they are names in
-`pythonx.compose.runtime` on top of `pythonx.concurrent`: a `pythonx.concurrent` scope on
-`Dispatchers.Default` and one on `Dispatchers.Main`, with `launch`. Nothing is implemented before
-pythonx-concurrent provides scopes and dispatchers.
+INTENT §5.10 (issue #94). In 2024 `DefaultCoroutineScope()` was Kotlin's
+`CoroutineScope(Dispatchers.Default)` and `MainCoroutineScope()` was
+`CoroutineScope(Dispatchers.Main)`, each with `.launch(block)` running a Python callable (PyREPL
+`abc6952`, `Runtime.kt`). Here they are functions in `pythonx.compose.runtime` built on
+`pythonx.concurrent` (Milestone 1, `thisisthepy/pythonx-concurrent#21`):
+
+- `DefaultCoroutineScope()` imports `pythonx.concurrent` and returns
+  `CoroutineScope(Dispatchers.Default)`.
+- `MainCoroutineScope()` imports `pythonx.concurrent` and returns
+  `CoroutineScope(Dispatchers.Main)`.
+- When `pythonx.concurrent` is not installed, calling either function raises `RuntimeError` naming
+  `pythonx-concurrent`.
+
+Tests: `tests/test_coroutine_scopes.py` (`CoroutineScopesSurface`, `CoroutineScopesWithConcurrent`)
+and `tests/test_typing.py::test_default_and_main_coroutine_scopes_type_check`.
 
 ## 6. Modifiers: extension functions as methods
 

@@ -330,6 +330,20 @@ class TheStubsTypeCheck(unittest.TestCase):
                 return scope.constraints.max_width + c.max_width
         """)
 
+    def test_default_and_main_coroutine_scopes_type_check(self):
+        """Issue #94: `DefaultCoroutineScope` and `MainCoroutineScope` import from `pythonx.compose.runtime`."""
+        self.assertPasses("""
+            from pythonx.compose.runtime import DefaultCoroutineScope, MainCoroutineScope
+
+            s1: object = DefaultCoroutineScope()
+            s2: object = MainCoroutineScope()
+        """)
+        self.assertFails("""
+            from pythonx.compose.runtime import DefaultCoroutineScope
+
+            DefaultCoroutineScope(1)
+        """, "Too many arguments")
+
 
 if __name__ == "__main__":
     unittest.main()

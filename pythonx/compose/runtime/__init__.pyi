@@ -199,3 +199,9 @@ class SaveableState:
 
 def remember_saveable(initial: bool | int | float | str) -> SaveableState:
     ...
+
+def DefaultCoroutineScope() -> object:
+    ...
+
+def MainCoroutineScope() -> object:
+    ...
