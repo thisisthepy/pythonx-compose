@@ -312,8 +312,8 @@ class TheStubsTypeCheck(unittest.TestCase):
             from pythonx.compose.layout import fillMaxWidth
         """, "fillMaxWidth", "[attr-defined]")
 
-    def test_compose_extended_1_11_1_ext_1_surface_type_checks(self):
-        """Issue #127: stubs generated from `org.thisisthepy.compose.*:1.11.1-ext.1` carry the fork's
+    def test_compose_extended_1_11_1_ext_2_surface_type_checks(self):
+        """Issues #127, #130: stubs generated from `org.thisisthepy.compose.*:1.11.1-ext.2` carry the fork's
         Material 3 1.11.0-alpha07 declarations (`ButtonGroup`, `MaterialTheme(motion_scheme=...)`) and
         type `BoxWithConstraintsScope.constraints` as `_Constraints`."""
         self.assertPasses("""

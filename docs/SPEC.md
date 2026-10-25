@@ -81,9 +81,10 @@ and the name the interpreter resolves cannot drift.
 - **What is generated.** `pythonx/compose/**/__init__.pyi` for every module in `pythonx-map.toml`,
   beside its `__init__.py`, and an empty `pythonx/compose/py.typed`. The stubs are committed;
   regenerating them from the same input produces no diff.
-- **From what.** python-multiplatform's CI artefact `kotlin-stubs` (workflow run 40097118139,
-  commit `ec698488`, regenerated in #127): Kotlin-named stubs for Compose 1.11.1-ext.1
-  (`org.thisisthepy.compose.*:1.11.1-ext.1` from Maven Central, with
+- **From what.** python-multiplatform's CI artefact `kotlin-stubs` (workflow run 40147624743,
+  commit `24883b92`, regenerated in #130): Kotlin-named stubs for Compose 1.11.1-ext.2
+  (`org.thisisthepy.compose.*:1.11.1-ext.2` from Maven Central, alongside
+  `org.thisisthepy.compose.androidx.*:1.11.1-ext.2` for apps using lifecycle or navigation, with
   `org.jetbrains.compose.material:material-icons-core:1.7.3` kept upstream), one `androidx/compose/.../__init__.pyi`
   per Kotlin package. Since `8acb3475` (#125) they carry member functions of classes and interfaces as
   methods (python-multiplatform #215), a type whose name a same-named factory function takes as the
