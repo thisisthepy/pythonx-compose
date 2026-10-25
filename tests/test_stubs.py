@@ -259,7 +259,14 @@ class TheCurrentFormat(unittest.TestCase):
         text = self.stubs[LAYOUT]
         self.assertIn("import pythonx.compose.ui", _imports(text))
         column = _functions(text)["Column"][0]
-        self.assertEqual("pythonx.compose.ui.Modifier", ast.unparse(column.args.args[0].annotation))
+        self.assertEqual(
+            "pythonx.compose.ui.Modifier | type[pythonx.compose.ui.Modifier]",
+            ast.unparse(column.args.args[0].annotation),
+        )
+        self.assertEqual(
+            "pythonx.compose.ui.Modifier",
+            ast.unparse(_functions(text)["fill_max_width"][0].returns),
+        )
         self.assertFalse({name for name in _code_names(text) if name.startswith("androidx")})
 
     def test_the_first_manifest_module_for_a_package_is_the_one_referenced(self):

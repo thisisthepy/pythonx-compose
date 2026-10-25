@@ -164,6 +164,52 @@ class TheChain(AdapterCase):
         self.assertIn("register_empty", str(raised.exception))
 
 
+class ProxyClassAsArgument(AdapterCase):
+    """SPEC S6.1, S6.2 (python-multiplatform #308, #134): `Card(modifier=Modifier)` is `Modifier.empty()`."""
+
+    def test_modifier_class_passed_as_an_argument_is_its_empty_value(self):
+        import pythonx.compose.layout as layout
+
+        Modifier = self.register_empty()
+        self.assertEqual("<empty>", self.describe(Modifier))
+        self.assertEqual(self.describe(Modifier.empty()), self.describe(Modifier))
+        self.assertEqual("padding(16.0)", self.describe(layout.padding(Modifier, 16)))
+
+    def test_card_and_spacer_accept_modifier_class_in_composition(self):
+        import pythonx.compose.material3 as material3
+
+        Modifier = self.register_empty()
+        self.binding.push_composer(self.host.composer())
+        self.addCleanup(self.binding.pop_composer)
+        material3.Card(modifier=Modifier)
+        self.assertEqual("<empty>", self.host.last_card_modifier)
+        material3.Spacer(modifier=Modifier)
+        self.assertEqual("<empty>", self.host.last_spacer_modifier)
+
+    def test_modifier_class_without_a_registered_factory_names_register_empty(self):
+        import pythonx.compose.material3 as material3
+
+        Modifier = self.modifier_type()
+        with self.assertRaises(TypeError) as raised:
+            self.describe(Modifier)
+        self.assertIn("register_empty", str(raised.exception))
+        self.binding.push_composer(self.host.composer())
+        self.addCleanup(self.binding.pop_composer)
+        with self.assertRaises(TypeError) as card_raised:
+            material3.Card(modifier=Modifier)
+        self.assertIn("register_empty", str(card_raised.exception))
+
+    def test_an_unrelated_proxy_class_is_refused(self):
+        import pythonx.compose.layout as layout
+
+        self.register_empty()
+        pv_class = type(layout.padding_values_of(8))
+        with self.assertRaises(TypeError) as raised:
+            self.describe(pv_class)
+        self.assertNotIn("register_empty", str(raised.exception))
+        self.assertIn("Modifier", str(raised.exception))
+
+
 class OverloadDispatch(AdapterCase):
     """`docs/kotlin-extensions-in-python.md` §3.1: the walker distinguishes, Python decides."""
 

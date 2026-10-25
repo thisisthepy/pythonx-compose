@@ -15,7 +15,7 @@ class _PaddingValues_callable_module(_t.Protocol):
     Zero: _t.Any
 
 class _RowScope_NavigationBarItem(_t.Protocol):
-    def __call__(self, selected: bool, on_click: _t.Callable[[], None], icon: _t.Callable[[], None], modifier: pythonx.compose.ui.Modifier = ..., enabled: bool = ..., label: _t.Callable[[], None] | None = ..., always_show_label: bool = ..., colors: pythonx.compose.material3.NavigationBarItemColors = ..., interaction_source: _t.Any | None = ...) -> None: ...
+    def __call__(self, selected: bool, on_click: _t.Callable[[], None], icon: _t.Callable[[], None], modifier: pythonx.compose.ui.Modifier | type[pythonx.compose.ui.Modifier] = ..., enabled: bool = ..., label: _t.Callable[[], None] | None = ..., always_show_label: bool = ..., colors: pythonx.compose.material3.NavigationBarItemColors = ..., interaction_source: _t.Any | None = ...) -> None: ...
 
 class _WindowInsets_add(_t.Protocol):
     def __call__(self, insets: _WindowInsets) -> _WindowInsets: ...
@@ -380,47 +380,47 @@ class _WindowInsets:
         """Kotlin member: androidx.compose.foundation.layout.WindowInsets.getTop"""
         ...
 
-def BoxWithConstraints(modifier: pythonx.compose.ui.Modifier = ..., content_alignment: _t.Any = ..., propagate_min_constraints: bool = ..., *, content: _t.Callable[[BoxWithConstraintsScope], None]) -> None:
+def BoxWithConstraints(modifier: pythonx.compose.ui.Modifier | type[pythonx.compose.ui.Modifier] = ..., content_alignment: _t.Any = ..., propagate_min_constraints: bool = ..., *, content: _t.Callable[[BoxWithConstraintsScope], None]) -> None:
     """Kotlin: androidx.compose.foundation.layout.BoxWithConstraints(modifier: androidx.compose.ui.Modifier, contentAlignment: androidx.compose.ui.Alignment, propagateMinConstraints: kotlin.Boolean, content: kotlin.Function1): kotlin.Unit"""
     ...
 
-def Box__Modifier(modifier: pythonx.compose.ui.Modifier) -> None:
+def Box__Modifier(modifier: pythonx.compose.ui.Modifier | type[pythonx.compose.ui.Modifier]) -> None:
     """Kotlin: androidx.compose.foundation.layout.Box(modifier: androidx.compose.ui.Modifier): kotlin.Unit"""
     ...
 
-def Box__Modifier_Alignment_Boolean_Unit(modifier: pythonx.compose.ui.Modifier = ..., content_alignment: _t.Any = ..., propagate_min_constraints: bool = ..., *, content: _t.Callable[[BoxScope], None]) -> None:
+def Box__Modifier_Alignment_Boolean_Unit(modifier: pythonx.compose.ui.Modifier | type[pythonx.compose.ui.Modifier] = ..., content_alignment: _t.Any = ..., propagate_min_constraints: bool = ..., *, content: _t.Callable[[BoxScope], None]) -> None:
     """Kotlin: androidx.compose.foundation.layout.Box(modifier: androidx.compose.ui.Modifier, contentAlignment: androidx.compose.ui.Alignment, propagateMinConstraints: kotlin.Boolean, content: kotlin.Function1): kotlin.Unit"""
     ...
 
-def Column(modifier: pythonx.compose.ui.Modifier = ..., vertical_arrangement: Arrangement.Vertical = ..., horizontal_alignment: pythonx.compose.ui.Alignment.Horizontal = ..., *, content: _t.Callable[[ColumnScope], None]) -> None:
+def Column(modifier: pythonx.compose.ui.Modifier | type[pythonx.compose.ui.Modifier] = ..., vertical_arrangement: Arrangement.Vertical = ..., horizontal_alignment: pythonx.compose.ui.Alignment.Horizontal = ..., *, content: _t.Callable[[ColumnScope], None]) -> None:
     """Kotlin: androidx.compose.foundation.layout.Column(modifier: androidx.compose.ui.Modifier, verticalArrangement: androidx.compose.foundation.layout.Arrangement.Vertical, horizontalAlignment: androidx.compose.ui.Alignment.Horizontal, content: kotlin.Function1): kotlin.Unit"""
     ...
 
-def ContextualFlowColumn(item_count: int, modifier: pythonx.compose.ui.Modifier = ..., vertical_arrangement: Arrangement.Vertical = ..., horizontal_arrangement: Arrangement.Horizontal = ..., item_horizontal_alignment: pythonx.compose.ui.Alignment.Horizontal = ..., max_items_in_each_column: int = ..., max_lines: int = ..., overflow: _t.Any = ..., *, content: _t.Callable[[ContextualFlowColumnScope, int], None]) -> None:
+def ContextualFlowColumn(item_count: int, modifier: pythonx.compose.ui.Modifier | type[pythonx.compose.ui.Modifier] = ..., vertical_arrangement: Arrangement.Vertical = ..., horizontal_arrangement: Arrangement.Horizontal = ..., item_horizontal_alignment: pythonx.compose.ui.Alignment.Horizontal = ..., max_items_in_each_column: int = ..., max_lines: int = ..., overflow: _t.Any = ..., *, content: _t.Callable[[ContextualFlowColumnScope, int], None]) -> None:
     """Kotlin: androidx.compose.foundation.layout.ContextualFlowColumn(itemCount: kotlin.Int, modifier: androidx.compose.ui.Modifier, verticalArrangement: androidx.compose.foundation.layout.Arrangement.Vertical, horizontalArrangement: androidx.compose.foundation.layout.Arrangement.Horizontal, itemHorizontalAlignment: androidx.compose.ui.Alignment.Horizontal, maxItemsInEachColumn: kotlin.Int, maxLines: kotlin.Int, overflow: androidx.compose.foundation.layout.ContextualFlowColumnOverflow, content: kotlin.Function2): kotlin.Unit"""
     ...
 
-def ContextualFlowRow(item_count: int, modifier: pythonx.compose.ui.Modifier = ..., horizontal_arrangement: Arrangement.Horizontal = ..., vertical_arrangement: Arrangement.Vertical = ..., item_vertical_alignment: pythonx.compose.ui.Alignment.Vertical = ..., max_items_in_each_row: int = ..., max_lines: int = ..., overflow: _t.Any = ..., *, content: _t.Callable[[ContextualFlowRowScope, int], None]) -> None:
+def ContextualFlowRow(item_count: int, modifier: pythonx.compose.ui.Modifier | type[pythonx.compose.ui.Modifier] = ..., horizontal_arrangement: Arrangement.Horizontal = ..., vertical_arrangement: Arrangement.Vertical = ..., item_vertical_alignment: pythonx.compose.ui.Alignment.Vertical = ..., max_items_in_each_row: int = ..., max_lines: int = ..., overflow: _t.Any = ..., *, content: _t.Callable[[ContextualFlowRowScope, int], None]) -> None:
     """Kotlin: androidx.compose.foundation.layout.ContextualFlowRow(itemCount: kotlin.Int, modifier: androidx.compose.ui.Modifier, horizontalArrangement: androidx.compose.foundation.layout.Arrangement.Horizontal, verticalArrangement: androidx.compose.foundation.layout.Arrangement.Vertical, itemVerticalAlignment: androidx.compose.ui.Alignment.Vertical, maxItemsInEachRow: kotlin.Int, maxLines: kotlin.Int, overflow: androidx.compose.foundation.layout.ContextualFlowRowOverflow, content: kotlin.Function2): kotlin.Unit"""
     ...
 
-def FlexBox(modifier: pythonx.compose.ui.Modifier = ..., config: FlexBoxConfig = ..., *, content: _t.Callable[[FlexBoxScope], None]) -> None:
+def FlexBox(modifier: pythonx.compose.ui.Modifier | type[pythonx.compose.ui.Modifier] = ..., config: FlexBoxConfig = ..., *, content: _t.Callable[[FlexBoxScope], None]) -> None:
     """Kotlin: androidx.compose.foundation.layout.FlexBox(modifier: androidx.compose.ui.Modifier, config: androidx.compose.foundation.layout.FlexBoxConfig, content: kotlin.Function1): kotlin.Unit"""
     ...
 
-def FlowColumn__Modifier_Vertical_Horizontal_Horizontal_Int_Int_FlowColumnOverflow_Unit(modifier: pythonx.compose.ui.Modifier = ..., vertical_arrangement: Arrangement.Vertical = ..., horizontal_arrangement: Arrangement.Horizontal = ..., item_horizontal_alignment: pythonx.compose.ui.Alignment.Horizontal = ..., max_items_in_each_column: int = ..., max_lines: int = ..., overflow: _t.Any = ..., *, content: _t.Callable[[FlowColumnScope], None]) -> None:
+def FlowColumn__Modifier_Vertical_Horizontal_Horizontal_Int_Int_FlowColumnOverflow_Unit(modifier: pythonx.compose.ui.Modifier | type[pythonx.compose.ui.Modifier] = ..., vertical_arrangement: Arrangement.Vertical = ..., horizontal_arrangement: Arrangement.Horizontal = ..., item_horizontal_alignment: pythonx.compose.ui.Alignment.Horizontal = ..., max_items_in_each_column: int = ..., max_lines: int = ..., overflow: _t.Any = ..., *, content: _t.Callable[[FlowColumnScope], None]) -> None:
     """Kotlin: androidx.compose.foundation.layout.FlowColumn(modifier: androidx.compose.ui.Modifier, verticalArrangement: androidx.compose.foundation.layout.Arrangement.Vertical, horizontalArrangement: androidx.compose.foundation.layout.Arrangement.Horizontal, itemHorizontalAlignment: androidx.compose.ui.Alignment.Horizontal, maxItemsInEachColumn: kotlin.Int, maxLines: kotlin.Int, overflow: androidx.compose.foundation.layout.FlowColumnOverflow, content: kotlin.Function1): kotlin.Unit"""
     ...
 
-def FlowColumn__Modifier_Vertical_Horizontal_Horizontal_Int_Int_Unit(modifier: pythonx.compose.ui.Modifier = ..., vertical_arrangement: Arrangement.Vertical = ..., horizontal_arrangement: Arrangement.Horizontal = ..., item_horizontal_alignment: pythonx.compose.ui.Alignment.Horizontal = ..., max_items_in_each_column: int = ..., max_lines: int = ..., *, content: _t.Callable[[FlowColumnScope], None]) -> None:
+def FlowColumn__Modifier_Vertical_Horizontal_Horizontal_Int_Int_Unit(modifier: pythonx.compose.ui.Modifier | type[pythonx.compose.ui.Modifier] = ..., vertical_arrangement: Arrangement.Vertical = ..., horizontal_arrangement: Arrangement.Horizontal = ..., item_horizontal_alignment: pythonx.compose.ui.Alignment.Horizontal = ..., max_items_in_each_column: int = ..., max_lines: int = ..., *, content: _t.Callable[[FlowColumnScope], None]) -> None:
     """Kotlin: androidx.compose.foundation.layout.FlowColumn(modifier: androidx.compose.ui.Modifier, verticalArrangement: androidx.compose.foundation.layout.Arrangement.Vertical, horizontalArrangement: androidx.compose.foundation.layout.Arrangement.Horizontal, itemHorizontalAlignment: androidx.compose.ui.Alignment.Horizontal, maxItemsInEachColumn: kotlin.Int, maxLines: kotlin.Int, content: kotlin.Function1): kotlin.Unit"""
     ...
 
-def FlowRow__Modifier_Horizontal_Vertical_Vertical_Int_Int_FlowRowOverflow_Unit(modifier: pythonx.compose.ui.Modifier = ..., horizontal_arrangement: Arrangement.Horizontal = ..., vertical_arrangement: Arrangement.Vertical = ..., item_vertical_alignment: pythonx.compose.ui.Alignment.Vertical = ..., max_items_in_each_row: int = ..., max_lines: int = ..., overflow: _t.Any = ..., *, content: _t.Callable[[FlowRowScope], None]) -> None:
+def FlowRow__Modifier_Horizontal_Vertical_Vertical_Int_Int_FlowRowOverflow_Unit(modifier: pythonx.compose.ui.Modifier | type[pythonx.compose.ui.Modifier] = ..., horizontal_arrangement: Arrangement.Horizontal = ..., vertical_arrangement: Arrangement.Vertical = ..., item_vertical_alignment: pythonx.compose.ui.Alignment.Vertical = ..., max_items_in_each_row: int = ..., max_lines: int = ..., overflow: _t.Any = ..., *, content: _t.Callable[[FlowRowScope], None]) -> None:
     """Kotlin: androidx.compose.foundation.layout.FlowRow(modifier: androidx.compose.ui.Modifier, horizontalArrangement: androidx.compose.foundation.layout.Arrangement.Horizontal, verticalArrangement: androidx.compose.foundation.layout.Arrangement.Vertical, itemVerticalAlignment: androidx.compose.ui.Alignment.Vertical, maxItemsInEachRow: kotlin.Int, maxLines: kotlin.Int, overflow: androidx.compose.foundation.layout.FlowRowOverflow, content: kotlin.Function1): kotlin.Unit"""
     ...
 
-def FlowRow__Modifier_Horizontal_Vertical_Vertical_Int_Int_Unit(modifier: pythonx.compose.ui.Modifier = ..., horizontal_arrangement: Arrangement.Horizontal = ..., vertical_arrangement: Arrangement.Vertical = ..., item_vertical_alignment: pythonx.compose.ui.Alignment.Vertical = ..., max_items_in_each_row: int = ..., max_lines: int = ..., *, content: _t.Callable[[FlowRowScope], None]) -> None:
+def FlowRow__Modifier_Horizontal_Vertical_Vertical_Int_Int_Unit(modifier: pythonx.compose.ui.Modifier | type[pythonx.compose.ui.Modifier] = ..., horizontal_arrangement: Arrangement.Horizontal = ..., vertical_arrangement: Arrangement.Vertical = ..., item_vertical_alignment: pythonx.compose.ui.Alignment.Vertical = ..., max_items_in_each_row: int = ..., max_lines: int = ..., *, content: _t.Callable[[FlowRowScope], None]) -> None:
     """Kotlin: androidx.compose.foundation.layout.FlowRow(modifier: androidx.compose.ui.Modifier, horizontalArrangement: androidx.compose.foundation.layout.Arrangement.Horizontal, verticalArrangement: androidx.compose.foundation.layout.Arrangement.Vertical, itemVerticalAlignment: androidx.compose.ui.Alignment.Vertical, maxItemsInEachRow: kotlin.Int, maxLines: kotlin.Int, content: kotlin.Function1): kotlin.Unit"""
     ...
 
@@ -428,7 +428,7 @@ def Fr(value: float) -> float:
     """Kotlin: androidx.compose.foundation.layout.Fr(value: kotlin.Float): androidx.compose.foundation.layout.Fr"""
     ...
 
-def Grid(config: _t.Callable[[GridConfigurationScope], None], modifier: pythonx.compose.ui.Modifier = ..., *, content: _t.Callable[[_t.Any], None]) -> None:
+def Grid(config: _t.Callable[[GridConfigurationScope], None], modifier: pythonx.compose.ui.Modifier | type[pythonx.compose.ui.Modifier] = ..., *, content: _t.Callable[[_t.Any], None]) -> None:
     """Kotlin: androidx.compose.foundation.layout.Grid(config: kotlin.Function1, modifier: androidx.compose.ui.Modifier, content: kotlin.Function1): kotlin.Unit"""
     ...
 
@@ -444,11 +444,11 @@ def PaddingValues__Dp_Dp_Dp_Dp(start: float = ..., top: float = ..., end: float 
     """Kotlin: androidx.compose.foundation.layout.PaddingValues(start: androidx.compose.ui.unit.Dp, top: androidx.compose.ui.unit.Dp, end: androidx.compose.ui.unit.Dp, bottom: androidx.compose.ui.unit.Dp): androidx.compose.foundation.layout.PaddingValues"""
     ...
 
-def Row(modifier: pythonx.compose.ui.Modifier = ..., horizontal_arrangement: Arrangement.Horizontal = ..., vertical_alignment: pythonx.compose.ui.Alignment.Vertical = ..., *, content: _t.Callable[[RowScope], None]) -> None:
+def Row(modifier: pythonx.compose.ui.Modifier | type[pythonx.compose.ui.Modifier] = ..., horizontal_arrangement: Arrangement.Horizontal = ..., vertical_alignment: pythonx.compose.ui.Alignment.Vertical = ..., *, content: _t.Callable[[RowScope], None]) -> None:
     """Kotlin: androidx.compose.foundation.layout.Row(modifier: androidx.compose.ui.Modifier, horizontalArrangement: androidx.compose.foundation.layout.Arrangement.Horizontal, verticalAlignment: androidx.compose.ui.Alignment.Vertical, content: kotlin.Function1): kotlin.Unit"""
     ...
 
-def Spacer(modifier: pythonx.compose.ui.Modifier) -> None:
+def Spacer(modifier: pythonx.compose.ui.Modifier | type[pythonx.compose.ui.Modifier]) -> None:
     """Kotlin: androidx.compose.foundation.layout.Spacer(modifier: androidx.compose.ui.Modifier): kotlin.Unit"""
     ...
 
@@ -464,15 +464,15 @@ def WindowInsets__Int_Int_Int_Int(left: int = ..., top: int = ..., right: int = 
     """Kotlin: androidx.compose.foundation.layout.WindowInsets(left: kotlin.Int, top: kotlin.Int, right: kotlin.Int, bottom: kotlin.Int): androidx.compose.foundation.layout.WindowInsets"""
     ...
 
-def absolute_offset__Dp_Dp(receiver: pythonx.compose.ui.Modifier, /, x: float = ..., y: float = ...) -> pythonx.compose.ui.Modifier:
+def absolute_offset__Dp_Dp(receiver: pythonx.compose.ui.Modifier | type[pythonx.compose.ui.Modifier], /, x: float = ..., y: float = ...) -> pythonx.compose.ui.Modifier:
     """Kotlin: androidx.compose.ui.Modifier.absoluteOffset(x: androidx.compose.ui.unit.Dp, y: androidx.compose.ui.unit.Dp): androidx.compose.ui.Modifier"""
     ...
 
-def absolute_offset__IntOffset(receiver: pythonx.compose.ui.Modifier, /, offset: _t.Callable[[pythonx.compose.ui.unit._Density], _t.Any]) -> pythonx.compose.ui.Modifier:
+def absolute_offset__IntOffset(receiver: pythonx.compose.ui.Modifier | type[pythonx.compose.ui.Modifier], /, offset: _t.Callable[[pythonx.compose.ui.unit._Density], _t.Any]) -> pythonx.compose.ui.Modifier:
     """Kotlin: androidx.compose.ui.Modifier.absoluteOffset(offset: kotlin.Function1): androidx.compose.ui.Modifier"""
     ...
 
-def absolute_padding(receiver: pythonx.compose.ui.Modifier, /, left: float = ..., top: float = ..., right: float = ..., bottom: float = ...) -> pythonx.compose.ui.Modifier:
+def absolute_padding(receiver: pythonx.compose.ui.Modifier | type[pythonx.compose.ui.Modifier], /, left: float = ..., top: float = ..., right: float = ..., bottom: float = ...) -> pythonx.compose.ui.Modifier:
     """Kotlin: androidx.compose.ui.Modifier.absolutePadding(left: androidx.compose.ui.unit.Dp, top: androidx.compose.ui.unit.Dp, right: androidx.compose.ui.unit.Dp, bottom: androidx.compose.ui.unit.Dp): androidx.compose.ui.Modifier"""
     ...
 
@@ -488,7 +488,7 @@ def as_padding_values__Density(receiver: _WindowInsets, /, density: pythonx.comp
     """Kotlin: androidx.compose.foundation.layout.WindowInsets.asPaddingValues(density: androidx.compose.ui.unit.Density): androidx.compose.foundation.layout.PaddingValues"""
     ...
 
-def aspect_ratio(receiver: pythonx.compose.ui.Modifier, /, ratio: float, match_height_constraints_first: bool = ...) -> pythonx.compose.ui.Modifier:
+def aspect_ratio(receiver: pythonx.compose.ui.Modifier | type[pythonx.compose.ui.Modifier], /, ratio: float, match_height_constraints_first: bool = ...) -> pythonx.compose.ui.Modifier:
     """Kotlin: androidx.compose.ui.Modifier.aspectRatio(ratio: kotlin.Float, matchHeightConstraintsFirst: kotlin.Boolean): androidx.compose.ui.Modifier"""
     ...
 
@@ -500,23 +500,23 @@ def calculate_start_padding(receiver: _t.Any, /, layout_direction: pythonx.compo
     """Kotlin: androidx.compose.foundation.layout.PaddingValues.calculateStartPadding(layoutDirection: androidx.compose.ui.unit.LayoutDirection): androidx.compose.ui.unit.Dp"""
     ...
 
-def caption_bar_padding(receiver: pythonx.compose.ui.Modifier, /) -> pythonx.compose.ui.Modifier:
+def caption_bar_padding(receiver: pythonx.compose.ui.Modifier | type[pythonx.compose.ui.Modifier], /) -> pythonx.compose.ui.Modifier:
     """Kotlin: androidx.compose.ui.Modifier.captionBarPadding(): androidx.compose.ui.Modifier"""
     ...
 
-def consume_window_insets__PaddingValues(receiver: pythonx.compose.ui.Modifier, /, padding_values: _t.Any) -> pythonx.compose.ui.Modifier:
+def consume_window_insets__PaddingValues(receiver: pythonx.compose.ui.Modifier | type[pythonx.compose.ui.Modifier], /, padding_values: _t.Any) -> pythonx.compose.ui.Modifier:
     """Kotlin: androidx.compose.ui.Modifier.consumeWindowInsets(paddingValues: androidx.compose.foundation.layout.PaddingValues): androidx.compose.ui.Modifier"""
     ...
 
-def consume_window_insets__WindowInsets(receiver: pythonx.compose.ui.Modifier, /, insets: _WindowInsets) -> pythonx.compose.ui.Modifier:
+def consume_window_insets__WindowInsets(receiver: pythonx.compose.ui.Modifier | type[pythonx.compose.ui.Modifier], /, insets: _WindowInsets) -> pythonx.compose.ui.Modifier:
     """Kotlin: androidx.compose.ui.Modifier.consumeWindowInsets(insets: androidx.compose.foundation.layout.WindowInsets): androidx.compose.ui.Modifier"""
     ...
 
-def default_min_size(receiver: pythonx.compose.ui.Modifier, /, min_width: float = ..., min_height: float = ...) -> pythonx.compose.ui.Modifier:
+def default_min_size(receiver: pythonx.compose.ui.Modifier | type[pythonx.compose.ui.Modifier], /, min_width: float = ..., min_height: float = ...) -> pythonx.compose.ui.Modifier:
     """Kotlin: androidx.compose.ui.Modifier.defaultMinSize(minWidth: androidx.compose.ui.unit.Dp, minHeight: androidx.compose.ui.unit.Dp): androidx.compose.ui.Modifier"""
     ...
 
-def display_cutout_padding(receiver: pythonx.compose.ui.Modifier, /) -> pythonx.compose.ui.Modifier:
+def display_cutout_padding(receiver: pythonx.compose.ui.Modifier | type[pythonx.compose.ui.Modifier], /) -> pythonx.compose.ui.Modifier:
     """Kotlin: androidx.compose.ui.Modifier.displayCutoutPadding(): androidx.compose.ui.Modifier"""
     ...
 
@@ -524,43 +524,43 @@ def exclude(receiver: _WindowInsets, /, insets: _WindowInsets) -> _WindowInsets:
     """Kotlin: androidx.compose.foundation.layout.WindowInsets.exclude(insets: androidx.compose.foundation.layout.WindowInsets): androidx.compose.foundation.layout.WindowInsets"""
     ...
 
-def fill_max_height(receiver: pythonx.compose.ui.Modifier, /, fraction: float = ...) -> pythonx.compose.ui.Modifier:
+def fill_max_height(receiver: pythonx.compose.ui.Modifier | type[pythonx.compose.ui.Modifier], /, fraction: float = ...) -> pythonx.compose.ui.Modifier:
     """Kotlin: androidx.compose.ui.Modifier.fillMaxHeight(fraction: kotlin.Float): androidx.compose.ui.Modifier"""
     ...
 
-def fill_max_size(receiver: pythonx.compose.ui.Modifier, /, fraction: float = ...) -> pythonx.compose.ui.Modifier:
+def fill_max_size(receiver: pythonx.compose.ui.Modifier | type[pythonx.compose.ui.Modifier], /, fraction: float = ...) -> pythonx.compose.ui.Modifier:
     """Kotlin: androidx.compose.ui.Modifier.fillMaxSize(fraction: kotlin.Float): androidx.compose.ui.Modifier"""
     ...
 
-def fill_max_width(receiver: pythonx.compose.ui.Modifier, /, fraction: float = ...) -> pythonx.compose.ui.Modifier:
+def fill_max_width(receiver: pythonx.compose.ui.Modifier | type[pythonx.compose.ui.Modifier], /, fraction: float = ...) -> pythonx.compose.ui.Modifier:
     """Kotlin: androidx.compose.ui.Modifier.fillMaxWidth(fraction: kotlin.Float): androidx.compose.ui.Modifier"""
     ...
 
-def fit_inside(receiver: pythonx.compose.ui.Modifier, /, rulers: _t.Any) -> pythonx.compose.ui.Modifier:
+def fit_inside(receiver: pythonx.compose.ui.Modifier | type[pythonx.compose.ui.Modifier], /, rulers: _t.Any) -> pythonx.compose.ui.Modifier:
     """Kotlin: androidx.compose.ui.Modifier.fitInside(rulers: androidx.compose.ui.layout.RectRulers): androidx.compose.ui.Modifier"""
     ...
 
-def fit_outside(receiver: pythonx.compose.ui.Modifier, /, rulers: _t.Any) -> pythonx.compose.ui.Modifier:
+def fit_outside(receiver: pythonx.compose.ui.Modifier | type[pythonx.compose.ui.Modifier], /, rulers: _t.Any) -> pythonx.compose.ui.Modifier:
     """Kotlin: androidx.compose.ui.Modifier.fitOutside(rulers: androidx.compose.ui.layout.RectRulers): androidx.compose.ui.Modifier"""
     ...
 
-def height_in(receiver: pythonx.compose.ui.Modifier, /, min: float = ..., max: float = ...) -> pythonx.compose.ui.Modifier:
+def height_in(receiver: pythonx.compose.ui.Modifier | type[pythonx.compose.ui.Modifier], /, min: float = ..., max: float = ...) -> pythonx.compose.ui.Modifier:
     """Kotlin: androidx.compose.ui.Modifier.heightIn(min: androidx.compose.ui.unit.Dp, max: androidx.compose.ui.unit.Dp): androidx.compose.ui.Modifier"""
     ...
 
-def height__Dp(receiver: pythonx.compose.ui.Modifier, /, height: float) -> pythonx.compose.ui.Modifier:
+def height__Dp(receiver: pythonx.compose.ui.Modifier | type[pythonx.compose.ui.Modifier], /, height: float) -> pythonx.compose.ui.Modifier:
     """Kotlin: androidx.compose.ui.Modifier.height(height: androidx.compose.ui.unit.Dp): androidx.compose.ui.Modifier"""
     ...
 
-def height__IntrinsicSize(receiver: pythonx.compose.ui.Modifier, /, intrinsic_size: IntrinsicSize) -> pythonx.compose.ui.Modifier:
+def height__IntrinsicSize(receiver: pythonx.compose.ui.Modifier | type[pythonx.compose.ui.Modifier], /, intrinsic_size: IntrinsicSize) -> pythonx.compose.ui.Modifier:
     """Kotlin: androidx.compose.ui.Modifier.height(intrinsicSize: androidx.compose.foundation.layout.IntrinsicSize): androidx.compose.ui.Modifier"""
     ...
 
-def ime_padding(receiver: pythonx.compose.ui.Modifier, /) -> pythonx.compose.ui.Modifier:
+def ime_padding(receiver: pythonx.compose.ui.Modifier | type[pythonx.compose.ui.Modifier], /) -> pythonx.compose.ui.Modifier:
     """Kotlin: androidx.compose.ui.Modifier.imePadding(): androidx.compose.ui.Modifier"""
     ...
 
-def mandatory_system_gestures_padding(receiver: pythonx.compose.ui.Modifier, /) -> pythonx.compose.ui.Modifier:
+def mandatory_system_gestures_padding(receiver: pythonx.compose.ui.Modifier | type[pythonx.compose.ui.Modifier], /) -> pythonx.compose.ui.Modifier:
     """Kotlin: androidx.compose.ui.Modifier.mandatorySystemGesturesPadding(): androidx.compose.ui.Modifier"""
     ...
 
@@ -568,19 +568,19 @@ def minus(receiver: _t.Any, /, other: _t.Any) -> _t.Any:
     """Kotlin: androidx.compose.foundation.layout.PaddingValues.minus(other: androidx.compose.foundation.layout.PaddingValues): androidx.compose.foundation.layout.PaddingValues"""
     ...
 
-def navigation_bars_padding(receiver: pythonx.compose.ui.Modifier, /) -> pythonx.compose.ui.Modifier:
+def navigation_bars_padding(receiver: pythonx.compose.ui.Modifier | type[pythonx.compose.ui.Modifier], /) -> pythonx.compose.ui.Modifier:
     """Kotlin: androidx.compose.ui.Modifier.navigationBarsPadding(): androidx.compose.ui.Modifier"""
     ...
 
-def offset__Dp_Dp(receiver: pythonx.compose.ui.Modifier, /, x: float = ..., y: float = ...) -> pythonx.compose.ui.Modifier:
+def offset__Dp_Dp(receiver: pythonx.compose.ui.Modifier | type[pythonx.compose.ui.Modifier], /, x: float = ..., y: float = ...) -> pythonx.compose.ui.Modifier:
     """Kotlin: androidx.compose.ui.Modifier.offset(x: androidx.compose.ui.unit.Dp, y: androidx.compose.ui.unit.Dp): androidx.compose.ui.Modifier"""
     ...
 
-def offset__IntOffset(receiver: pythonx.compose.ui.Modifier, /, offset: _t.Callable[[pythonx.compose.ui.unit._Density], _t.Any]) -> pythonx.compose.ui.Modifier:
+def offset__IntOffset(receiver: pythonx.compose.ui.Modifier | type[pythonx.compose.ui.Modifier], /, offset: _t.Callable[[pythonx.compose.ui.unit._Density], _t.Any]) -> pythonx.compose.ui.Modifier:
     """Kotlin: androidx.compose.ui.Modifier.offset(offset: kotlin.Function1): androidx.compose.ui.Modifier"""
     ...
 
-def on_consumed_window_insets_changed(receiver: pythonx.compose.ui.Modifier, /, block: _t.Callable[[_WindowInsets], None]) -> pythonx.compose.ui.Modifier:
+def on_consumed_window_insets_changed(receiver: pythonx.compose.ui.Modifier | type[pythonx.compose.ui.Modifier], /, block: _t.Callable[[_WindowInsets], None]) -> pythonx.compose.ui.Modifier:
     """Kotlin: androidx.compose.ui.Modifier.onConsumedWindowInsetsChanged(block: kotlin.Function1): androidx.compose.ui.Modifier"""
     ...
 
@@ -588,35 +588,35 @@ def only(receiver: _WindowInsets, /, sides: _t.Any) -> _WindowInsets:
     """Kotlin: androidx.compose.foundation.layout.WindowInsets.only(sides: androidx.compose.foundation.layout.WindowInsetsSides): androidx.compose.foundation.layout.WindowInsets"""
     ...
 
-def padding_from_baseline__Dp_Dp(receiver: pythonx.compose.ui.Modifier, /, top: float = ..., bottom: float = ...) -> pythonx.compose.ui.Modifier:
+def padding_from_baseline__Dp_Dp(receiver: pythonx.compose.ui.Modifier | type[pythonx.compose.ui.Modifier], /, top: float = ..., bottom: float = ...) -> pythonx.compose.ui.Modifier:
     """Kotlin: androidx.compose.ui.Modifier.paddingFromBaseline(top: androidx.compose.ui.unit.Dp, bottom: androidx.compose.ui.unit.Dp): androidx.compose.ui.Modifier"""
     ...
 
-def padding_from_baseline__TextUnit_TextUnit(receiver: pythonx.compose.ui.Modifier, /, top: _t.Any = ..., bottom: _t.Any = ...) -> pythonx.compose.ui.Modifier:
+def padding_from_baseline__TextUnit_TextUnit(receiver: pythonx.compose.ui.Modifier | type[pythonx.compose.ui.Modifier], /, top: _t.Any = ..., bottom: _t.Any = ...) -> pythonx.compose.ui.Modifier:
     """Kotlin: androidx.compose.ui.Modifier.paddingFromBaseline(top: androidx.compose.ui.unit.TextUnit, bottom: androidx.compose.ui.unit.TextUnit): androidx.compose.ui.Modifier"""
     ...
 
-def padding_from__AlignmentLine_Dp_Dp(receiver: pythonx.compose.ui.Modifier, /, alignment_line: _t.Any, before: float = ..., after: float = ...) -> pythonx.compose.ui.Modifier:
+def padding_from__AlignmentLine_Dp_Dp(receiver: pythonx.compose.ui.Modifier | type[pythonx.compose.ui.Modifier], /, alignment_line: _t.Any, before: float = ..., after: float = ...) -> pythonx.compose.ui.Modifier:
     """Kotlin: androidx.compose.ui.Modifier.paddingFrom(alignmentLine: androidx.compose.ui.layout.AlignmentLine, before: androidx.compose.ui.unit.Dp, after: androidx.compose.ui.unit.Dp): androidx.compose.ui.Modifier"""
     ...
 
-def padding_from__AlignmentLine_TextUnit_TextUnit(receiver: pythonx.compose.ui.Modifier, /, alignment_line: _t.Any, before: _t.Any = ..., after: _t.Any = ...) -> pythonx.compose.ui.Modifier:
+def padding_from__AlignmentLine_TextUnit_TextUnit(receiver: pythonx.compose.ui.Modifier | type[pythonx.compose.ui.Modifier], /, alignment_line: _t.Any, before: _t.Any = ..., after: _t.Any = ...) -> pythonx.compose.ui.Modifier:
     """Kotlin: androidx.compose.ui.Modifier.paddingFrom(alignmentLine: androidx.compose.ui.layout.AlignmentLine, before: androidx.compose.ui.unit.TextUnit, after: androidx.compose.ui.unit.TextUnit): androidx.compose.ui.Modifier"""
     ...
 
-def padding__Dp(receiver: pythonx.compose.ui.Modifier, /, all: float) -> pythonx.compose.ui.Modifier:
+def padding__Dp(receiver: pythonx.compose.ui.Modifier | type[pythonx.compose.ui.Modifier], /, all: float) -> pythonx.compose.ui.Modifier:
     """Kotlin: androidx.compose.ui.Modifier.padding(all: androidx.compose.ui.unit.Dp): androidx.compose.ui.Modifier"""
     ...
 
-def padding__Dp_Dp(receiver: pythonx.compose.ui.Modifier, /, horizontal: float = ..., vertical: float = ...) -> pythonx.compose.ui.Modifier:
+def padding__Dp_Dp(receiver: pythonx.compose.ui.Modifier | type[pythonx.compose.ui.Modifier], /, horizontal: float = ..., vertical: float = ...) -> pythonx.compose.ui.Modifier:
     """Kotlin: androidx.compose.ui.Modifier.padding(horizontal: androidx.compose.ui.unit.Dp, vertical: androidx.compose.ui.unit.Dp): androidx.compose.ui.Modifier"""
     ...
 
-def padding__Dp_Dp_Dp_Dp(receiver: pythonx.compose.ui.Modifier, /, start: float = ..., top: float = ..., end: float = ..., bottom: float = ...) -> pythonx.compose.ui.Modifier:
+def padding__Dp_Dp_Dp_Dp(receiver: pythonx.compose.ui.Modifier | type[pythonx.compose.ui.Modifier], /, start: float = ..., top: float = ..., end: float = ..., bottom: float = ...) -> pythonx.compose.ui.Modifier:
     """Kotlin: androidx.compose.ui.Modifier.padding(start: androidx.compose.ui.unit.Dp, top: androidx.compose.ui.unit.Dp, end: androidx.compose.ui.unit.Dp, bottom: androidx.compose.ui.unit.Dp): androidx.compose.ui.Modifier"""
     ...
 
-def padding__PaddingValues(receiver: pythonx.compose.ui.Modifier, /, padding_values: _t.Any) -> pythonx.compose.ui.Modifier:
+def padding__PaddingValues(receiver: pythonx.compose.ui.Modifier | type[pythonx.compose.ui.Modifier], /, padding_values: _t.Any) -> pythonx.compose.ui.Modifier:
     """Kotlin: androidx.compose.ui.Modifier.padding(paddingValues: androidx.compose.foundation.layout.PaddingValues): androidx.compose.ui.Modifier"""
     ...
 
@@ -624,87 +624,87 @@ def plus(receiver: _t.Any, /, other: _t.Any) -> _t.Any:
     """Kotlin: androidx.compose.foundation.layout.PaddingValues.plus(other: androidx.compose.foundation.layout.PaddingValues): androidx.compose.foundation.layout.PaddingValues"""
     ...
 
-def recalculate_window_insets(receiver: pythonx.compose.ui.Modifier, /) -> pythonx.compose.ui.Modifier:
+def recalculate_window_insets(receiver: pythonx.compose.ui.Modifier | type[pythonx.compose.ui.Modifier], /) -> pythonx.compose.ui.Modifier:
     """Kotlin: androidx.compose.ui.Modifier.recalculateWindowInsets(): androidx.compose.ui.Modifier"""
     ...
 
-def required_height_in(receiver: pythonx.compose.ui.Modifier, /, min: float = ..., max: float = ...) -> pythonx.compose.ui.Modifier:
+def required_height_in(receiver: pythonx.compose.ui.Modifier | type[pythonx.compose.ui.Modifier], /, min: float = ..., max: float = ...) -> pythonx.compose.ui.Modifier:
     """Kotlin: androidx.compose.ui.Modifier.requiredHeightIn(min: androidx.compose.ui.unit.Dp, max: androidx.compose.ui.unit.Dp): androidx.compose.ui.Modifier"""
     ...
 
-def required_height__Dp(receiver: pythonx.compose.ui.Modifier, /, height: float) -> pythonx.compose.ui.Modifier:
+def required_height__Dp(receiver: pythonx.compose.ui.Modifier | type[pythonx.compose.ui.Modifier], /, height: float) -> pythonx.compose.ui.Modifier:
     """Kotlin: androidx.compose.ui.Modifier.requiredHeight(height: androidx.compose.ui.unit.Dp): androidx.compose.ui.Modifier"""
     ...
 
-def required_height__IntrinsicSize(receiver: pythonx.compose.ui.Modifier, /, intrinsic_size: IntrinsicSize) -> pythonx.compose.ui.Modifier:
+def required_height__IntrinsicSize(receiver: pythonx.compose.ui.Modifier | type[pythonx.compose.ui.Modifier], /, intrinsic_size: IntrinsicSize) -> pythonx.compose.ui.Modifier:
     """Kotlin: androidx.compose.ui.Modifier.requiredHeight(intrinsicSize: androidx.compose.foundation.layout.IntrinsicSize): androidx.compose.ui.Modifier"""
     ...
 
-def required_size_in(receiver: pythonx.compose.ui.Modifier, /, min_width: float = ..., min_height: float = ..., max_width: float = ..., max_height: float = ...) -> pythonx.compose.ui.Modifier:
+def required_size_in(receiver: pythonx.compose.ui.Modifier | type[pythonx.compose.ui.Modifier], /, min_width: float = ..., min_height: float = ..., max_width: float = ..., max_height: float = ...) -> pythonx.compose.ui.Modifier:
     """Kotlin: androidx.compose.ui.Modifier.requiredSizeIn(minWidth: androidx.compose.ui.unit.Dp, minHeight: androidx.compose.ui.unit.Dp, maxWidth: androidx.compose.ui.unit.Dp, maxHeight: androidx.compose.ui.unit.Dp): androidx.compose.ui.Modifier"""
     ...
 
-def required_size__Dp(receiver: pythonx.compose.ui.Modifier, /, size: float) -> pythonx.compose.ui.Modifier:
+def required_size__Dp(receiver: pythonx.compose.ui.Modifier | type[pythonx.compose.ui.Modifier], /, size: float) -> pythonx.compose.ui.Modifier:
     """Kotlin: androidx.compose.ui.Modifier.requiredSize(size: androidx.compose.ui.unit.Dp): androidx.compose.ui.Modifier"""
     ...
 
-def required_size__DpSize(receiver: pythonx.compose.ui.Modifier, /, size: _t.Any) -> pythonx.compose.ui.Modifier:
+def required_size__DpSize(receiver: pythonx.compose.ui.Modifier | type[pythonx.compose.ui.Modifier], /, size: _t.Any) -> pythonx.compose.ui.Modifier:
     """Kotlin: androidx.compose.ui.Modifier.requiredSize(size: androidx.compose.ui.unit.DpSize): androidx.compose.ui.Modifier"""
     ...
 
-def required_size__Dp_Dp(receiver: pythonx.compose.ui.Modifier, /, width: float, height: float) -> pythonx.compose.ui.Modifier:
+def required_size__Dp_Dp(receiver: pythonx.compose.ui.Modifier | type[pythonx.compose.ui.Modifier], /, width: float, height: float) -> pythonx.compose.ui.Modifier:
     """Kotlin: androidx.compose.ui.Modifier.requiredSize(width: androidx.compose.ui.unit.Dp, height: androidx.compose.ui.unit.Dp): androidx.compose.ui.Modifier"""
     ...
 
-def required_width_in(receiver: pythonx.compose.ui.Modifier, /, min: float = ..., max: float = ...) -> pythonx.compose.ui.Modifier:
+def required_width_in(receiver: pythonx.compose.ui.Modifier | type[pythonx.compose.ui.Modifier], /, min: float = ..., max: float = ...) -> pythonx.compose.ui.Modifier:
     """Kotlin: androidx.compose.ui.Modifier.requiredWidthIn(min: androidx.compose.ui.unit.Dp, max: androidx.compose.ui.unit.Dp): androidx.compose.ui.Modifier"""
     ...
 
-def required_width__Dp(receiver: pythonx.compose.ui.Modifier, /, width: float) -> pythonx.compose.ui.Modifier:
+def required_width__Dp(receiver: pythonx.compose.ui.Modifier | type[pythonx.compose.ui.Modifier], /, width: float) -> pythonx.compose.ui.Modifier:
     """Kotlin: androidx.compose.ui.Modifier.requiredWidth(width: androidx.compose.ui.unit.Dp): androidx.compose.ui.Modifier"""
     ...
 
-def required_width__IntrinsicSize(receiver: pythonx.compose.ui.Modifier, /, intrinsic_size: IntrinsicSize) -> pythonx.compose.ui.Modifier:
+def required_width__IntrinsicSize(receiver: pythonx.compose.ui.Modifier | type[pythonx.compose.ui.Modifier], /, intrinsic_size: IntrinsicSize) -> pythonx.compose.ui.Modifier:
     """Kotlin: androidx.compose.ui.Modifier.requiredWidth(intrinsicSize: androidx.compose.foundation.layout.IntrinsicSize): androidx.compose.ui.Modifier"""
     ...
 
-def safe_content_padding(receiver: pythonx.compose.ui.Modifier, /) -> pythonx.compose.ui.Modifier:
+def safe_content_padding(receiver: pythonx.compose.ui.Modifier | type[pythonx.compose.ui.Modifier], /) -> pythonx.compose.ui.Modifier:
     """Kotlin: androidx.compose.ui.Modifier.safeContentPadding(): androidx.compose.ui.Modifier"""
     ...
 
-def safe_drawing_padding(receiver: pythonx.compose.ui.Modifier, /) -> pythonx.compose.ui.Modifier:
+def safe_drawing_padding(receiver: pythonx.compose.ui.Modifier | type[pythonx.compose.ui.Modifier], /) -> pythonx.compose.ui.Modifier:
     """Kotlin: androidx.compose.ui.Modifier.safeDrawingPadding(): androidx.compose.ui.Modifier"""
     ...
 
-def safe_gestures_padding(receiver: pythonx.compose.ui.Modifier, /) -> pythonx.compose.ui.Modifier:
+def safe_gestures_padding(receiver: pythonx.compose.ui.Modifier | type[pythonx.compose.ui.Modifier], /) -> pythonx.compose.ui.Modifier:
     """Kotlin: androidx.compose.ui.Modifier.safeGesturesPadding(): androidx.compose.ui.Modifier"""
     ...
 
-def size_in(receiver: pythonx.compose.ui.Modifier, /, min_width: float = ..., min_height: float = ..., max_width: float = ..., max_height: float = ...) -> pythonx.compose.ui.Modifier:
+def size_in(receiver: pythonx.compose.ui.Modifier | type[pythonx.compose.ui.Modifier], /, min_width: float = ..., min_height: float = ..., max_width: float = ..., max_height: float = ...) -> pythonx.compose.ui.Modifier:
     """Kotlin: androidx.compose.ui.Modifier.sizeIn(minWidth: androidx.compose.ui.unit.Dp, minHeight: androidx.compose.ui.unit.Dp, maxWidth: androidx.compose.ui.unit.Dp, maxHeight: androidx.compose.ui.unit.Dp): androidx.compose.ui.Modifier"""
     ...
 
-def size__Dp(receiver: pythonx.compose.ui.Modifier, /, size: float) -> pythonx.compose.ui.Modifier:
+def size__Dp(receiver: pythonx.compose.ui.Modifier | type[pythonx.compose.ui.Modifier], /, size: float) -> pythonx.compose.ui.Modifier:
     """Kotlin: androidx.compose.ui.Modifier.size(size: androidx.compose.ui.unit.Dp): androidx.compose.ui.Modifier"""
     ...
 
-def size__DpSize(receiver: pythonx.compose.ui.Modifier, /, size: _t.Any) -> pythonx.compose.ui.Modifier:
+def size__DpSize(receiver: pythonx.compose.ui.Modifier | type[pythonx.compose.ui.Modifier], /, size: _t.Any) -> pythonx.compose.ui.Modifier:
     """Kotlin: androidx.compose.ui.Modifier.size(size: androidx.compose.ui.unit.DpSize): androidx.compose.ui.Modifier"""
     ...
 
-def size__Dp_Dp(receiver: pythonx.compose.ui.Modifier, /, width: float, height: float) -> pythonx.compose.ui.Modifier:
+def size__Dp_Dp(receiver: pythonx.compose.ui.Modifier | type[pythonx.compose.ui.Modifier], /, width: float, height: float) -> pythonx.compose.ui.Modifier:
     """Kotlin: androidx.compose.ui.Modifier.size(width: androidx.compose.ui.unit.Dp, height: androidx.compose.ui.unit.Dp): androidx.compose.ui.Modifier"""
     ...
 
-def status_bars_padding(receiver: pythonx.compose.ui.Modifier, /) -> pythonx.compose.ui.Modifier:
+def status_bars_padding(receiver: pythonx.compose.ui.Modifier | type[pythonx.compose.ui.Modifier], /) -> pythonx.compose.ui.Modifier:
     """Kotlin: androidx.compose.ui.Modifier.statusBarsPadding(): androidx.compose.ui.Modifier"""
     ...
 
-def system_bars_padding(receiver: pythonx.compose.ui.Modifier, /) -> pythonx.compose.ui.Modifier:
+def system_bars_padding(receiver: pythonx.compose.ui.Modifier | type[pythonx.compose.ui.Modifier], /) -> pythonx.compose.ui.Modifier:
     """Kotlin: androidx.compose.ui.Modifier.systemBarsPadding(): androidx.compose.ui.Modifier"""
     ...
 
-def system_gestures_padding(receiver: pythonx.compose.ui.Modifier, /) -> pythonx.compose.ui.Modifier:
+def system_gestures_padding(receiver: pythonx.compose.ui.Modifier | type[pythonx.compose.ui.Modifier], /) -> pythonx.compose.ui.Modifier:
     """Kotlin: androidx.compose.ui.Modifier.systemGesturesPadding(): androidx.compose.ui.Modifier"""
     ...
 
@@ -712,74 +712,74 @@ def union(receiver: _WindowInsets, /, insets: _WindowInsets) -> _WindowInsets:
     """Kotlin: androidx.compose.foundation.layout.WindowInsets.union(insets: androidx.compose.foundation.layout.WindowInsets): androidx.compose.foundation.layout.WindowInsets"""
     ...
 
-def visible(receiver: pythonx.compose.ui.Modifier, /, visible: bool) -> pythonx.compose.ui.Modifier:
+def visible(receiver: pythonx.compose.ui.Modifier | type[pythonx.compose.ui.Modifier], /, visible: bool) -> pythonx.compose.ui.Modifier:
     """Kotlin: androidx.compose.ui.Modifier.visible(visible: kotlin.Boolean): androidx.compose.ui.Modifier"""
     ...
 
-def waterfall_padding(receiver: pythonx.compose.ui.Modifier, /) -> pythonx.compose.ui.Modifier:
+def waterfall_padding(receiver: pythonx.compose.ui.Modifier | type[pythonx.compose.ui.Modifier], /) -> pythonx.compose.ui.Modifier:
     """Kotlin: androidx.compose.ui.Modifier.waterfallPadding(): androidx.compose.ui.Modifier"""
     ...
 
-def width_in(receiver: pythonx.compose.ui.Modifier, /, min: float = ..., max: float = ...) -> pythonx.compose.ui.Modifier:
+def width_in(receiver: pythonx.compose.ui.Modifier | type[pythonx.compose.ui.Modifier], /, min: float = ..., max: float = ...) -> pythonx.compose.ui.Modifier:
     """Kotlin: androidx.compose.ui.Modifier.widthIn(min: androidx.compose.ui.unit.Dp, max: androidx.compose.ui.unit.Dp): androidx.compose.ui.Modifier"""
     ...
 
-def width__Dp(receiver: pythonx.compose.ui.Modifier, /, width: float) -> pythonx.compose.ui.Modifier:
+def width__Dp(receiver: pythonx.compose.ui.Modifier | type[pythonx.compose.ui.Modifier], /, width: float) -> pythonx.compose.ui.Modifier:
     """Kotlin: androidx.compose.ui.Modifier.width(width: androidx.compose.ui.unit.Dp): androidx.compose.ui.Modifier"""
     ...
 
-def width__IntrinsicSize(receiver: pythonx.compose.ui.Modifier, /, intrinsic_size: IntrinsicSize) -> pythonx.compose.ui.Modifier:
+def width__IntrinsicSize(receiver: pythonx.compose.ui.Modifier | type[pythonx.compose.ui.Modifier], /, intrinsic_size: IntrinsicSize) -> pythonx.compose.ui.Modifier:
     """Kotlin: androidx.compose.ui.Modifier.width(intrinsicSize: androidx.compose.foundation.layout.IntrinsicSize): androidx.compose.ui.Modifier"""
     ...
 
-def window_insets_bottom_height(receiver: pythonx.compose.ui.Modifier, /, insets: _WindowInsets) -> pythonx.compose.ui.Modifier:
+def window_insets_bottom_height(receiver: pythonx.compose.ui.Modifier | type[pythonx.compose.ui.Modifier], /, insets: _WindowInsets) -> pythonx.compose.ui.Modifier:
     """Kotlin: androidx.compose.ui.Modifier.windowInsetsBottomHeight(insets: androidx.compose.foundation.layout.WindowInsets): androidx.compose.ui.Modifier"""
     ...
 
-def window_insets_end_width(receiver: pythonx.compose.ui.Modifier, /, insets: _WindowInsets) -> pythonx.compose.ui.Modifier:
+def window_insets_end_width(receiver: pythonx.compose.ui.Modifier | type[pythonx.compose.ui.Modifier], /, insets: _WindowInsets) -> pythonx.compose.ui.Modifier:
     """Kotlin: androidx.compose.ui.Modifier.windowInsetsEndWidth(insets: androidx.compose.foundation.layout.WindowInsets): androidx.compose.ui.Modifier"""
     ...
 
-def window_insets_padding(receiver: pythonx.compose.ui.Modifier, /, insets: _WindowInsets) -> pythonx.compose.ui.Modifier:
+def window_insets_padding(receiver: pythonx.compose.ui.Modifier | type[pythonx.compose.ui.Modifier], /, insets: _WindowInsets) -> pythonx.compose.ui.Modifier:
     """Kotlin: androidx.compose.ui.Modifier.windowInsetsPadding(insets: androidx.compose.foundation.layout.WindowInsets): androidx.compose.ui.Modifier"""
     ...
 
-def window_insets_start_width(receiver: pythonx.compose.ui.Modifier, /, insets: _WindowInsets) -> pythonx.compose.ui.Modifier:
+def window_insets_start_width(receiver: pythonx.compose.ui.Modifier | type[pythonx.compose.ui.Modifier], /, insets: _WindowInsets) -> pythonx.compose.ui.Modifier:
     """Kotlin: androidx.compose.ui.Modifier.windowInsetsStartWidth(insets: androidx.compose.foundation.layout.WindowInsets): androidx.compose.ui.Modifier"""
     ...
 
-def window_insets_top_height(receiver: pythonx.compose.ui.Modifier, /, insets: _WindowInsets) -> pythonx.compose.ui.Modifier:
+def window_insets_top_height(receiver: pythonx.compose.ui.Modifier | type[pythonx.compose.ui.Modifier], /, insets: _WindowInsets) -> pythonx.compose.ui.Modifier:
     """Kotlin: androidx.compose.ui.Modifier.windowInsetsTopHeight(insets: androidx.compose.foundation.layout.WindowInsets): androidx.compose.ui.Modifier"""
     ...
 
-def wrap_content_height(receiver: pythonx.compose.ui.Modifier, /, align: pythonx.compose.ui.Alignment.Vertical = ..., unbounded: bool = ...) -> pythonx.compose.ui.Modifier:
+def wrap_content_height(receiver: pythonx.compose.ui.Modifier | type[pythonx.compose.ui.Modifier], /, align: pythonx.compose.ui.Alignment.Vertical = ..., unbounded: bool = ...) -> pythonx.compose.ui.Modifier:
     """Kotlin: androidx.compose.ui.Modifier.wrapContentHeight(align: androidx.compose.ui.Alignment.Vertical, unbounded: kotlin.Boolean): androidx.compose.ui.Modifier"""
     ...
 
-def wrap_content_size(receiver: pythonx.compose.ui.Modifier, /, align: _t.Any = ..., unbounded: bool = ...) -> pythonx.compose.ui.Modifier:
+def wrap_content_size(receiver: pythonx.compose.ui.Modifier | type[pythonx.compose.ui.Modifier], /, align: _t.Any = ..., unbounded: bool = ...) -> pythonx.compose.ui.Modifier:
     """Kotlin: androidx.compose.ui.Modifier.wrapContentSize(align: androidx.compose.ui.Alignment, unbounded: kotlin.Boolean): androidx.compose.ui.Modifier"""
     ...
 
-def wrap_content_width(receiver: pythonx.compose.ui.Modifier, /, align: pythonx.compose.ui.Alignment.Horizontal = ..., unbounded: bool = ...) -> pythonx.compose.ui.Modifier:
+def wrap_content_width(receiver: pythonx.compose.ui.Modifier | type[pythonx.compose.ui.Modifier], /, align: pythonx.compose.ui.Alignment.Horizontal = ..., unbounded: bool = ...) -> pythonx.compose.ui.Modifier:
     """Kotlin: androidx.compose.ui.Modifier.wrapContentWidth(align: androidx.compose.ui.Alignment.Horizontal, unbounded: kotlin.Boolean): androidx.compose.ui.Modifier"""
     ...
 
 PaddingValues: _PaddingValues_callable_module
 
 @_t.overload
-def Box(modifier: pythonx.compose.ui.Modifier) -> None: ...
+def Box(modifier: pythonx.compose.ui.Modifier | type[pythonx.compose.ui.Modifier]) -> None: ...
 @_t.overload
-def Box(modifier: pythonx.compose.ui.Modifier = ..., content_alignment: _t.Any = ..., propagate_min_constraints: bool = ..., *, content: _t.Callable[[BoxScope], None]) -> None: ...  # type: ignore[overload-cannot-match]
+def Box(modifier: pythonx.compose.ui.Modifier | type[pythonx.compose.ui.Modifier] = ..., content_alignment: _t.Any = ..., propagate_min_constraints: bool = ..., *, content: _t.Callable[[BoxScope], None]) -> None: ...  # type: ignore[overload-cannot-match]
 
 @_t.overload
-def FlowColumn(modifier: pythonx.compose.ui.Modifier = ..., vertical_arrangement: Arrangement.Vertical = ..., horizontal_arrangement: Arrangement.Horizontal = ..., item_horizontal_alignment: pythonx.compose.ui.Alignment.Horizontal = ..., max_items_in_each_column: int = ..., max_lines: int = ..., overflow: _t.Any = ..., *, content: _t.Callable[[FlowColumnScope], None]) -> None: ...
+def FlowColumn(modifier: pythonx.compose.ui.Modifier | type[pythonx.compose.ui.Modifier] = ..., vertical_arrangement: Arrangement.Vertical = ..., horizontal_arrangement: Arrangement.Horizontal = ..., item_horizontal_alignment: pythonx.compose.ui.Alignment.Horizontal = ..., max_items_in_each_column: int = ..., max_lines: int = ..., overflow: _t.Any = ..., *, content: _t.Callable[[FlowColumnScope], None]) -> None: ...
 @_t.overload
-def FlowColumn(modifier: pythonx.compose.ui.Modifier = ..., vertical_arrangement: Arrangement.Vertical = ..., horizontal_arrangement: Arrangement.Horizontal = ..., item_horizontal_alignment: pythonx.compose.ui.Alignment.Horizontal = ..., max_items_in_each_column: int = ..., max_lines: int = ..., *, content: _t.Callable[[FlowColumnScope], None]) -> None: ...  # type: ignore[overload-cannot-match]
+def FlowColumn(modifier: pythonx.compose.ui.Modifier | type[pythonx.compose.ui.Modifier] = ..., vertical_arrangement: Arrangement.Vertical = ..., horizontal_arrangement: Arrangement.Horizontal = ..., item_horizontal_alignment: pythonx.compose.ui.Alignment.Horizontal = ..., max_items_in_each_column: int = ..., max_lines: int = ..., *, content: _t.Callable[[FlowColumnScope], None]) -> None: ...  # type: ignore[overload-cannot-match]
 
 @_t.overload
-def FlowRow(modifier: pythonx.compose.ui.Modifier = ..., horizontal_arrangement: Arrangement.Horizontal = ..., vertical_arrangement: Arrangement.Vertical = ..., item_vertical_alignment: pythonx.compose.ui.Alignment.Vertical = ..., max_items_in_each_row: int = ..., max_lines: int = ..., overflow: _t.Any = ..., *, content: _t.Callable[[FlowRowScope], None]) -> None: ...
+def FlowRow(modifier: pythonx.compose.ui.Modifier | type[pythonx.compose.ui.Modifier] = ..., horizontal_arrangement: Arrangement.Horizontal = ..., vertical_arrangement: Arrangement.Vertical = ..., item_vertical_alignment: pythonx.compose.ui.Alignment.Vertical = ..., max_items_in_each_row: int = ..., max_lines: int = ..., overflow: _t.Any = ..., *, content: _t.Callable[[FlowRowScope], None]) -> None: ...
 @_t.overload
-def FlowRow(modifier: pythonx.compose.ui.Modifier = ..., horizontal_arrangement: Arrangement.Horizontal = ..., vertical_arrangement: Arrangement.Vertical = ..., item_vertical_alignment: pythonx.compose.ui.Alignment.Vertical = ..., max_items_in_each_row: int = ..., max_lines: int = ..., *, content: _t.Callable[[FlowRowScope], None]) -> None: ...  # type: ignore[overload-cannot-match]
+def FlowRow(modifier: pythonx.compose.ui.Modifier | type[pythonx.compose.ui.Modifier] = ..., horizontal_arrangement: Arrangement.Horizontal = ..., vertical_arrangement: Arrangement.Vertical = ..., item_vertical_alignment: pythonx.compose.ui.Alignment.Vertical = ..., max_items_in_each_row: int = ..., max_lines: int = ..., *, content: _t.Callable[[FlowRowScope], None]) -> None: ...  # type: ignore[overload-cannot-match]
 
 @_t.overload
 def WindowInsets() -> _WindowInsets: ...
@@ -789,9 +789,9 @@ def WindowInsets(left: float = ..., top: float = ..., right: float = ..., bottom
 def WindowInsets(left: int = ..., top: int = ..., right: int = ..., bottom: int = ...) -> _WindowInsets: ...  # type: ignore[overload-cannot-match]
 
 @_t.overload
-def absolute_offset(receiver: pythonx.compose.ui.Modifier, /, x: float = ..., y: float = ...) -> pythonx.compose.ui.Modifier: ...
+def absolute_offset(receiver: pythonx.compose.ui.Modifier | type[pythonx.compose.ui.Modifier], /, x: float = ..., y: float = ...) -> pythonx.compose.ui.Modifier: ...
 @_t.overload
-def absolute_offset(receiver: pythonx.compose.ui.Modifier, /, offset: _t.Callable[[pythonx.compose.ui.unit._Density], _t.Any]) -> pythonx.compose.ui.Modifier: ...  # type: ignore[overload-cannot-match]
+def absolute_offset(receiver: pythonx.compose.ui.Modifier | type[pythonx.compose.ui.Modifier], /, offset: _t.Callable[[pythonx.compose.ui.unit._Density], _t.Any]) -> pythonx.compose.ui.Modifier: ...  # type: ignore[overload-cannot-match]
 
 @_t.overload
 def as_padding_values(receiver: _WindowInsets, /) -> _t.Any: ...
@@ -799,67 +799,67 @@ def as_padding_values(receiver: _WindowInsets, /) -> _t.Any: ...
 def as_padding_values(receiver: _WindowInsets, /, density: pythonx.compose.ui.unit._Density) -> _t.Any: ...  # type: ignore[overload-cannot-match]
 
 @_t.overload
-def consume_window_insets(receiver: pythonx.compose.ui.Modifier, /, padding_values: _t.Any) -> pythonx.compose.ui.Modifier: ...
+def consume_window_insets(receiver: pythonx.compose.ui.Modifier | type[pythonx.compose.ui.Modifier], /, padding_values: _t.Any) -> pythonx.compose.ui.Modifier: ...
 @_t.overload
-def consume_window_insets(receiver: pythonx.compose.ui.Modifier, /, insets: _WindowInsets) -> pythonx.compose.ui.Modifier: ...  # type: ignore[overload-cannot-match]
+def consume_window_insets(receiver: pythonx.compose.ui.Modifier | type[pythonx.compose.ui.Modifier], /, insets: _WindowInsets) -> pythonx.compose.ui.Modifier: ...  # type: ignore[overload-cannot-match]
 
 @_t.overload
-def height(receiver: pythonx.compose.ui.Modifier, /, height: float) -> pythonx.compose.ui.Modifier: ...
+def height(receiver: pythonx.compose.ui.Modifier | type[pythonx.compose.ui.Modifier], /, height: float) -> pythonx.compose.ui.Modifier: ...
 @_t.overload
-def height(receiver: pythonx.compose.ui.Modifier, /, intrinsic_size: IntrinsicSize) -> pythonx.compose.ui.Modifier: ...  # type: ignore[overload-cannot-match]
+def height(receiver: pythonx.compose.ui.Modifier | type[pythonx.compose.ui.Modifier], /, intrinsic_size: IntrinsicSize) -> pythonx.compose.ui.Modifier: ...  # type: ignore[overload-cannot-match]
 
 @_t.overload
-def offset(receiver: pythonx.compose.ui.Modifier, /, x: float = ..., y: float = ...) -> pythonx.compose.ui.Modifier: ...
+def offset(receiver: pythonx.compose.ui.Modifier | type[pythonx.compose.ui.Modifier], /, x: float = ..., y: float = ...) -> pythonx.compose.ui.Modifier: ...
 @_t.overload
-def offset(receiver: pythonx.compose.ui.Modifier, /, offset: _t.Callable[[pythonx.compose.ui.unit._Density], _t.Any]) -> pythonx.compose.ui.Modifier: ...  # type: ignore[overload-cannot-match]
+def offset(receiver: pythonx.compose.ui.Modifier | type[pythonx.compose.ui.Modifier], /, offset: _t.Callable[[pythonx.compose.ui.unit._Density], _t.Any]) -> pythonx.compose.ui.Modifier: ...  # type: ignore[overload-cannot-match]
 
 @_t.overload
-def padding(receiver: pythonx.compose.ui.Modifier, /, all: float) -> pythonx.compose.ui.Modifier: ...
+def padding(receiver: pythonx.compose.ui.Modifier | type[pythonx.compose.ui.Modifier], /, all: float) -> pythonx.compose.ui.Modifier: ...
 @_t.overload
-def padding(receiver: pythonx.compose.ui.Modifier, /, horizontal: float = ..., vertical: float = ...) -> pythonx.compose.ui.Modifier: ...  # type: ignore[overload-cannot-match]
+def padding(receiver: pythonx.compose.ui.Modifier | type[pythonx.compose.ui.Modifier], /, horizontal: float = ..., vertical: float = ...) -> pythonx.compose.ui.Modifier: ...  # type: ignore[overload-cannot-match]
 @_t.overload
-def padding(receiver: pythonx.compose.ui.Modifier, /, start: float = ..., top: float = ..., end: float = ..., bottom: float = ...) -> pythonx.compose.ui.Modifier: ...  # type: ignore[overload-cannot-match]
+def padding(receiver: pythonx.compose.ui.Modifier | type[pythonx.compose.ui.Modifier], /, start: float = ..., top: float = ..., end: float = ..., bottom: float = ...) -> pythonx.compose.ui.Modifier: ...  # type: ignore[overload-cannot-match]
 @_t.overload
-def padding(receiver: pythonx.compose.ui.Modifier, /, padding_values: _t.Any) -> pythonx.compose.ui.Modifier: ...  # type: ignore[overload-cannot-match]
+def padding(receiver: pythonx.compose.ui.Modifier | type[pythonx.compose.ui.Modifier], /, padding_values: _t.Any) -> pythonx.compose.ui.Modifier: ...  # type: ignore[overload-cannot-match]
 
 @_t.overload
-def padding_from(receiver: pythonx.compose.ui.Modifier, /, alignment_line: _t.Any, before: float = ..., after: float = ...) -> pythonx.compose.ui.Modifier: ...
+def padding_from(receiver: pythonx.compose.ui.Modifier | type[pythonx.compose.ui.Modifier], /, alignment_line: _t.Any, before: float = ..., after: float = ...) -> pythonx.compose.ui.Modifier: ...
 @_t.overload
-def padding_from(receiver: pythonx.compose.ui.Modifier, /, alignment_line: _t.Any, before: _t.Any = ..., after: _t.Any = ...) -> pythonx.compose.ui.Modifier: ...  # type: ignore[overload-cannot-match]
+def padding_from(receiver: pythonx.compose.ui.Modifier | type[pythonx.compose.ui.Modifier], /, alignment_line: _t.Any, before: _t.Any = ..., after: _t.Any = ...) -> pythonx.compose.ui.Modifier: ...  # type: ignore[overload-cannot-match]
 
 @_t.overload
-def padding_from_baseline(receiver: pythonx.compose.ui.Modifier, /, top: float = ..., bottom: float = ...) -> pythonx.compose.ui.Modifier: ...
+def padding_from_baseline(receiver: pythonx.compose.ui.Modifier | type[pythonx.compose.ui.Modifier], /, top: float = ..., bottom: float = ...) -> pythonx.compose.ui.Modifier: ...
 @_t.overload
-def padding_from_baseline(receiver: pythonx.compose.ui.Modifier, /, top: _t.Any = ..., bottom: _t.Any = ...) -> pythonx.compose.ui.Modifier: ...  # type: ignore[overload-cannot-match]
+def padding_from_baseline(receiver: pythonx.compose.ui.Modifier | type[pythonx.compose.ui.Modifier], /, top: _t.Any = ..., bottom: _t.Any = ...) -> pythonx.compose.ui.Modifier: ...  # type: ignore[overload-cannot-match]
 
 @_t.overload
-def required_height(receiver: pythonx.compose.ui.Modifier, /, height: float) -> pythonx.compose.ui.Modifier: ...
+def required_height(receiver: pythonx.compose.ui.Modifier | type[pythonx.compose.ui.Modifier], /, height: float) -> pythonx.compose.ui.Modifier: ...
 @_t.overload
-def required_height(receiver: pythonx.compose.ui.Modifier, /, intrinsic_size: IntrinsicSize) -> pythonx.compose.ui.Modifier: ...  # type: ignore[overload-cannot-match]
+def required_height(receiver: pythonx.compose.ui.Modifier | type[pythonx.compose.ui.Modifier], /, intrinsic_size: IntrinsicSize) -> pythonx.compose.ui.Modifier: ...  # type: ignore[overload-cannot-match]
 
 @_t.overload
-def required_size(receiver: pythonx.compose.ui.Modifier, /, size: float) -> pythonx.compose.ui.Modifier: ...
+def required_size(receiver: pythonx.compose.ui.Modifier | type[pythonx.compose.ui.Modifier], /, size: float) -> pythonx.compose.ui.Modifier: ...
 @_t.overload
-def required_size(receiver: pythonx.compose.ui.Modifier, /, size: _t.Any) -> pythonx.compose.ui.Modifier: ...  # type: ignore[overload-cannot-match]
+def required_size(receiver: pythonx.compose.ui.Modifier | type[pythonx.compose.ui.Modifier], /, size: _t.Any) -> pythonx.compose.ui.Modifier: ...  # type: ignore[overload-cannot-match]
 @_t.overload
-def required_size(receiver: pythonx.compose.ui.Modifier, /, width: float, height: float) -> pythonx.compose.ui.Modifier: ...  # type: ignore[overload-cannot-match]
+def required_size(receiver: pythonx.compose.ui.Modifier | type[pythonx.compose.ui.Modifier], /, width: float, height: float) -> pythonx.compose.ui.Modifier: ...  # type: ignore[overload-cannot-match]
 
 @_t.overload
-def required_width(receiver: pythonx.compose.ui.Modifier, /, width: float) -> pythonx.compose.ui.Modifier: ...
+def required_width(receiver: pythonx.compose.ui.Modifier | type[pythonx.compose.ui.Modifier], /, width: float) -> pythonx.compose.ui.Modifier: ...
 @_t.overload
-def required_width(receiver: pythonx.compose.ui.Modifier, /, intrinsic_size: IntrinsicSize) -> pythonx.compose.ui.Modifier: ...  # type: ignore[overload-cannot-match]
+def required_width(receiver: pythonx.compose.ui.Modifier | type[pythonx.compose.ui.Modifier], /, intrinsic_size: IntrinsicSize) -> pythonx.compose.ui.Modifier: ...  # type: ignore[overload-cannot-match]
 
 @_t.overload
-def size(receiver: pythonx.compose.ui.Modifier, /, size: float) -> pythonx.compose.ui.Modifier: ...
+def size(receiver: pythonx.compose.ui.Modifier | type[pythonx.compose.ui.Modifier], /, size: float) -> pythonx.compose.ui.Modifier: ...
 @_t.overload
-def size(receiver: pythonx.compose.ui.Modifier, /, size: _t.Any) -> pythonx.compose.ui.Modifier: ...  # type: ignore[overload-cannot-match]
+def size(receiver: pythonx.compose.ui.Modifier | type[pythonx.compose.ui.Modifier], /, size: _t.Any) -> pythonx.compose.ui.Modifier: ...  # type: ignore[overload-cannot-match]
 @_t.overload
-def size(receiver: pythonx.compose.ui.Modifier, /, width: float, height: float) -> pythonx.compose.ui.Modifier: ...  # type: ignore[overload-cannot-match]
+def size(receiver: pythonx.compose.ui.Modifier | type[pythonx.compose.ui.Modifier], /, width: float, height: float) -> pythonx.compose.ui.Modifier: ...  # type: ignore[overload-cannot-match]
 
 @_t.overload
-def width(receiver: pythonx.compose.ui.Modifier, /, width: float) -> pythonx.compose.ui.Modifier: ...
+def width(receiver: pythonx.compose.ui.Modifier | type[pythonx.compose.ui.Modifier], /, width: float) -> pythonx.compose.ui.Modifier: ...
 @_t.overload
-def width(receiver: pythonx.compose.ui.Modifier, /, intrinsic_size: IntrinsicSize) -> pythonx.compose.ui.Modifier: ...  # type: ignore[overload-cannot-match]
+def width(receiver: pythonx.compose.ui.Modifier | type[pythonx.compose.ui.Modifier], /, intrinsic_size: IntrinsicSize) -> pythonx.compose.ui.Modifier: ...  # type: ignore[overload-cannot-match]
 
 class Arrangement:
     """Kotlin: androidx.compose.foundation.layout.Arrangement"""

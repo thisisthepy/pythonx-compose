@@ -579,7 +579,7 @@ class BiasAlignment:
 
 class CombinedModifier(Modifier):
     """Kotlin: androidx.compose.ui.CombinedModifier"""
-    def __init__(self, outer: Modifier, inner: Modifier) -> None:
+    def __init__(self, outer: Modifier | type[Modifier], inner: Modifier | type[Modifier]) -> None:
         """Kotlin constructor: androidx.compose.ui.CombinedModifier (androidx.compose.ui.CombinedModifier(outer: androidx.compose.ui.Modifier, inner: androidx.compose.ui.Modifier): androidx.compose.ui.CombinedModifier)"""
         ...
     def all(self, predicate: _t.Callable[[Modifier.Element], bool]) -> bool:
@@ -812,7 +812,7 @@ class Modifier:
     def fold_out(self, initial: _t.Any | None, operation: _t.Callable[[Modifier.Element, _t.Any | None], _t.Any | None]) -> _t.Any | None:
         """Kotlin member: androidx.compose.ui.Modifier.foldOut"""
         ...
-    def then(self, other: Modifier) -> Modifier:
+    def then(self, other: Modifier | type[Modifier]) -> Modifier:
         """Kotlin member: androidx.compose.ui.Modifier.then"""
         ...
     class Element:
@@ -882,11 +882,11 @@ def derived_media_query(query: _t.Callable[[UiMediaScope], bool]) -> pythonx.com
     """Kotlin: androidx.compose.ui.derivedMediaQuery(query: kotlin.Function1): androidx.compose.runtime.State"""
     ...
 
-def keep_screen_on(receiver: Modifier, /) -> Modifier:
+def keep_screen_on(receiver: Modifier | type[Modifier], /) -> Modifier:
     """Kotlin: androidx.compose.ui.Modifier.keepScreenOn(): androidx.compose.ui.Modifier"""
     ...
 
-def materialize(receiver: pythonx.compose.runtime.Composer, /, modifier: Modifier) -> Modifier:
+def materialize(receiver: pythonx.compose.runtime.Composer, /, modifier: Modifier | type[Modifier]) -> Modifier:
     """Kotlin: androidx.compose.runtime.Composer.materialize(modifier: androidx.compose.ui.Modifier): androidx.compose.ui.Modifier"""
     ...
 
@@ -902,15 +902,15 @@ def media_query__CompositionLocalConsumerModifierNode_Boolean(receiver: _t.Any, 
     """Kotlin: androidx.compose.ui.node.CompositionLocalConsumerModifierNode.mediaQuery(query: kotlin.Function1): kotlin.Boolean"""
     ...
 
-def preferred_frame_rate__Float(receiver: Modifier, /, frame_rate: float) -> Modifier:
+def preferred_frame_rate__Float(receiver: Modifier | type[Modifier], /, frame_rate: float) -> Modifier:
     """Kotlin: androidx.compose.ui.Modifier.preferredFrameRate(frameRate: kotlin.Float): androidx.compose.ui.Modifier"""
     ...
 
-def preferred_frame_rate__FrameRateCategory(receiver: Modifier, /, frame_rate_category: _t.Any) -> Modifier:
+def preferred_frame_rate__FrameRateCategory(receiver: Modifier | type[Modifier], /, frame_rate_category: _t.Any) -> Modifier:
     """Kotlin: androidx.compose.ui.Modifier.preferredFrameRate(frameRateCategory: androidx.compose.ui.FrameRateCategory): androidx.compose.ui.Modifier"""
     ...
 
-def sensitive_content(receiver: Modifier, /, is_content_sensitive: bool = ...) -> Modifier:
+def sensitive_content(receiver: Modifier | type[Modifier], /, is_content_sensitive: bool = ...) -> Modifier:
     """Kotlin: androidx.compose.ui.Modifier.sensitiveContent(isContentSensitive: kotlin.Boolean): androidx.compose.ui.Modifier"""
     ...
 
@@ -918,7 +918,7 @@ def use(receiver: ImageComposeScene, /, block: _t.Callable[[ImageComposeScene], 
     """Kotlin: androidx.compose.ui.ImageComposeScene.use(block: kotlin.Function1): kotlin.Any"""
     ...
 
-def z_index(receiver: Modifier, /, z_index: float) -> Modifier:
+def z_index(receiver: Modifier | type[Modifier], /, z_index: float) -> Modifier:
     """Kotlin: androidx.compose.ui.Modifier.zIndex(zIndex: kotlin.Float): androidx.compose.ui.Modifier"""
     ...
 
@@ -930,9 +930,9 @@ def media_query(receiver: pythonx.compose.runtime.CompositionLocalAccessorScope,
 def media_query(receiver: _t.Any, /, query: _t.Callable[[UiMediaScope], bool]) -> bool: ...  # type: ignore[overload-cannot-match]
 
 @_t.overload
-def preferred_frame_rate(receiver: Modifier, /, frame_rate: float) -> Modifier: ...
+def preferred_frame_rate(receiver: Modifier | type[Modifier], /, frame_rate: float) -> Modifier: ...
 @_t.overload
-def preferred_frame_rate(receiver: Modifier, /, frame_rate_category: _t.Any) -> Modifier: ...  # type: ignore[overload-cannot-match]
+def preferred_frame_rate(receiver: Modifier | type[Modifier], /, frame_rate_category: _t.Any) -> Modifier: ...  # type: ignore[overload-cannot-match]
 
 class AbsoluteAlignment:
     """Kotlin: androidx.compose.ui.AbsoluteAlignment"""

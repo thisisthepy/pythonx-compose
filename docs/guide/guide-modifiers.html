@@ -82,8 +82,8 @@ m.padding_from_baseline(16)    # TypeError: TextUnit would be reinterpreted</cod
 fun emptyModifier(): Modifier = Modifier</code></pre>
 <pre><code class="language-python">import pythonx.compose.ui.modifier as seam
 
-seam.install(&quot;com.example.emptyModifier&quot;)   # then Modifier.padding(16) works</code></pre>
-<p data-lang="en">Without it, <code>Modifier.padding(16)</code> raises a <code>TypeError</code> naming <code>register_empty</code>. A <code>Modifier</code> instance Kotlin hands out chains without it.</p><p data-lang="ko">이것이 없으면 <code>Modifier.padding(16)</code> 은 <code>register_empty</code> 를 밝히는 <code>TypeError</code> 를 냅니다. Kotlin 이 건네준 <code>Modifier</code> 인스턴스는 이것 없이도 체이닝됩니다.</p>
+seam.install(&quot;com.example.emptyModifier&quot;)   # then Modifier.padding(16) and Card(modifier=Modifier) work</code></pre>
+<p data-lang="en">Once installed, the class object itself is accepted anywhere a <code>Modifier</code> parameter is expected (<code>Card(modifier=Modifier)</code>, <code>Spacer(modifier=Modifier)</code>), standing for <code>Modifier.empty()</code> (python-multiplatform #308, #134). Without it, <code>Modifier.padding(16)</code> and <code>Card(modifier=Modifier)</code> raise a <code>TypeError</code> naming <code>register_empty</code>. A <code>Modifier</code> instance Kotlin hands out chains without it.</p><p data-lang="ko">설치되면 <code>Modifier</code> 매개변수가 기대되는 자리 어디에나 클래스 객체 자체를 넘길 수 있으며(<code>Card(modifier=Modifier)</code>, <code>Spacer(modifier=Modifier)</code>), <code>Modifier.empty()</code> 를 뜻합니다(python-multiplatform #308, #134). 이것이 없으면 <code>Modifier.padding(16)</code> 과 <code>Card(modifier=Modifier)</code> 는 <code>register_empty</code> 를 밝히는 <code>TypeError</code> 를 냅니다. Kotlin 이 건네준 <code>Modifier</code> 인스턴스는 이것 없이도 체이닝됩니다.</p>
 <div class="pager"><a href="guide-composables.html">← <span data-lang="en">Composables</span><span data-lang="ko">컴포저블</span></a><a href="guide-manifest.html"><span data-lang="en">Manifest</span><span data-lang="ko">매니페스트</span> →</a></div>
 </section>
 </div>

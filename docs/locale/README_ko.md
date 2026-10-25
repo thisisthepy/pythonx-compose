@@ -164,7 +164,7 @@ pip 패키지 **`pythonx-compose`**(파이썬 3.11 이상)로 배포되며, impo
 | snake_case 메서드를 쓰는 `Modifier` 체인, 오버로드 디스패치, 숫자로 쓰는 `Dp` | ✅ 구현, 바인더 계층으로 테스트됨 |
 | `layout` 뿐 아니라 `material3` 에서도 쓰는 `Column`, `Row`, `Spacer` | ✅ 구현, 테스트됨 |
 | `snake_case` 메서드 키워드 인자 | ✅ 구현, 테스트됨: 모듈 함수와 메서드(메서드는 python-multiplatform 의 `describe_member` 필요) |
-| 빈 `Modifier` | 🟡 부분: 클래스에서 시작하는 `Modifier.padding(16)` 은 실제 Compose 에서 앱이 제공하는 팩토리가 필요 |
+| 빈 `Modifier` | 🟡 부분: 클래스에서 시작하는 `Modifier.padding(16)` 과 `Card(modifier=Modifier)` 는 실제 Compose 에서 앱이 제공하는 팩토리(`register_empty`)가 필요 (#134) |
 | `Alignment` / `Arrangement` | ✅ 구현 및 테스트: `Alignment.Center`, `Arrangement.spaced_by(8)`, 그리고 `Alignment.End` 와 나란히 묶음 표기 `Alignment.Horizontal.End` |
 | Material 3 위젯 (`Text`, `Button`, `Card`, `TextField`, …) | 🟡 부분: 규칙으로 재노출됨; 위젯별 렌더 증거 대기(#9) |
 | 실제 Compose 1.11.1-ext.2 에서 생성한 타입 스텁(`.pyi`), `py.typed` | ✅ 구현, mypy 로 검사; 아직 많은 타입이 `Any` 입니다(#12) |
