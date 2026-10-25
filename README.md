@@ -174,7 +174,7 @@ it is not a standalone desktop toolkit.
 | Declared app root (`@app`), no update call; state through Kotlin's `mutable_state_of` | 🟡 partial: binder path tested against a fake host shaped after python-multiplatform #38; against real Compose, python-multiplatform's notebook E2E passes (#11, #19); numbers and strings round-trip |
 | `TextField(state=...)` with `TextFieldState` (`pythonx.compose.foundation.text.input`) | 🟡 partial: tested against a fake host shaped after python-multiplatform #73; the input-method (IME) composing proof is python-multiplatform E2E #26 (#10) |
 | `DefaultIcons` (`Icons.Default`), written `DefaultIcons.Add` | 🟡 partial: tested against a fake host shaped after python-multiplatform #37/#38; `Icon(DefaultIcons.Add, …)` is drawn in python-multiplatform's render test |
-| Colour schemes | ⏳ planned |
+| Colour schemes (`light_color_scheme`, `dark_color_scheme`) | ✅ implemented and tested: 48 Material 3 token defaults and `surface_tint = primary` through `ColorScheme`'s 48-argument constructor (#135) |
 | `remember_saveable` with the notebook's `getValue()` / `setValue()` | 🟡 partial: tested against a fake host; save and restore is python-multiplatform's test (#174) |
 | Coroutine scopes (`DefaultCoroutineScope`, `MainCoroutineScope`) | ✅ implemented and tested on top of `pythonx.concurrent` (#94) |
 

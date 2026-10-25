@@ -240,5 +240,99 @@ class TheDeadFilesAreGone(unittest.TestCase):
         self.assertFalse((REPO / "pythonx" / "compose" / "wrapper").exists())
 
 
+class TheColorSchemeFactories(unittest.TestCase):
+    """SPEC S5.3 (#135, python-multiplatform #309): `light_color_scheme` and `dark_color_scheme`
+    build a `ColorScheme` through its 48-argument constructor with Material 3's token defaults and
+    the inter-parameter default `surface_tint = primary`."""
+
+    def setUp(self):
+        sys.path.insert(0, str(REPO / "tests"))
+        sys.path.insert(0, str(REPO))
+        import adapter as adapter_loader
+        import fake_host
+
+        try:
+            self.binding = adapter_loader.install()
+        except adapter_loader.AdapterUnavailable as unavailable:
+            self.skipTest(str(unavailable))
+        self.host = fake_host.FakeHost()
+        self.host.bind()
+        self.host.register(self.binding)
+        self.addCleanup(self.host.unbind)
+        self.addCleanup(adapter_loader.uninstall)
+
+    def test_light_color_scheme_uses_light_token_defaults_with_no_arguments(self):
+        from pythonx.compose.material3 import light_color_scheme
+
+        scheme = light_color_scheme()
+        self.assertIsNotNone(scheme)
+        slots = self.host.last_color_scheme.slots
+        self.assertEqual(48, len(slots))
+        self.assertEqual("Color(0xff6750a4)", slots["primary"].label)
+        self.assertEqual("Color(0xffffffff)", slots["onPrimary"].label)
+        self.assertEqual("Color(0xffeaddff)", slots["primaryContainer"].label)
+        self.assertEqual("Color(0xfffef7ff)", slots["background"].label)
+        self.assertEqual("Color(0xfffef7ff)", slots["surface"].label)
+        self.assertEqual("Color(0xff6750a4)", slots["surfaceTint"].label)
+        self.assertEqual("Color(0xffded8e1)", slots["surfaceDim"].label)
+        self.assertEqual("Color(0xfff3edf7)", slots["surfaceContainer"].label)
+        self.assertEqual("Color(0xffffffff)", slots["surfaceContainerLowest"].label)
+        self.assertEqual("Color(0xff633b48)", slots["onTertiaryFixedVariant"].label)
+
+    def test_dark_color_scheme_uses_dark_token_defaults_with_no_arguments(self):
+        from pythonx.compose.material3 import dark_color_scheme
+
+        scheme = dark_color_scheme()
+        self.assertIsNotNone(scheme)
+        slots = self.host.last_color_scheme.slots
+        self.assertEqual(48, len(slots))
+        self.assertEqual("Color(0xffd0bcff)", slots["primary"].label)
+        self.assertEqual("Color(0xff381e72)", slots["onPrimary"].label)
+        self.assertEqual("Color(0xff4f378b)", slots["primaryContainer"].label)
+        self.assertEqual("Color(0xff141218)", slots["background"].label)
+        self.assertEqual("Color(0xff141218)", slots["surface"].label)
+        self.assertEqual("Color(0xffd0bcff)", slots["surfaceTint"].label)
+        self.assertEqual("Color(0xff141218)", slots["surfaceDim"].label)
+        self.assertEqual("Color(0xff211f26)", slots["surfaceContainer"].label)
+        self.assertEqual("Color(0xff0f0d13)", slots["surfaceContainerLowest"].label)
+        self.assertEqual("Color(0xff633b48)", slots["onTertiaryFixedVariant"].label)
+
+    def test_surface_tint_defaults_to_the_resolved_primary_unless_explicitly_passed(self):
+        from pythonx.compose.material3 import dark_color_scheme, light_color_scheme
+        from pythonx.compose.ui.graphics import Color
+
+        custom_primary = Color(0xFF123456)
+        custom_tint = Color(0xFFABCDEF)
+
+        light_color_scheme(primary=custom_primary)
+        self.assertEqual("Color(0xff123456)", self.host.last_color_scheme.slots["primary"].label)
+        self.assertEqual("Color(0xff123456)", self.host.last_color_scheme.slots["surfaceTint"].label)
+
+        dark_color_scheme(primary=custom_primary)
+        self.assertEqual("Color(0xff123456)", self.host.last_color_scheme.slots["primary"].label)
+        self.assertEqual("Color(0xff123456)", self.host.last_color_scheme.slots["surfaceTint"].label)
+
+        light_color_scheme(primary=custom_primary, surface_tint=custom_tint)
+        self.assertEqual("Color(0xff123456)", self.host.last_color_scheme.slots["primary"].label)
+        self.assertEqual("Color(0xffabcdef)", self.host.last_color_scheme.slots["surfaceTint"].label)
+
+    def test_surface_dim_lands_in_constructor_slot_30_even_when_passed_positionally_at_slot_35(self):
+        from pythonx.compose.material3 import light_color_scheme
+        from pythonx.compose.ui.graphics import Color
+
+        custom_dim = Color(0xFFDEADBE)
+        custom_container = Color(0xFFCAFE00)
+        # In lightColorScheme / darkColorScheme, slot 30 is surface_container and slot 35 is
+        # surface_dim; in ColorScheme's primary constructor, slot 30 is surfaceDim and slot 31 is
+        # surfaceContainer.
+        args = [None] * 36
+        args[30] = custom_container
+        args[35] = custom_dim
+        light_color_scheme(*args)
+        slots = self.host.last_color_scheme.slots
+        self.assertEqual("Color(0xffdeadbe)", slots["surfaceDim"].label)
+        self.assertEqual("Color(0xffcafe00)", slots["surfaceContainer"].label)
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -707,6 +707,16 @@ class TheCommittedStubs(unittest.TestCase):
         self.assertIn("Icons", _classes(icons))
         self.assertIn("DefaultIcons = _alias_0.Icons.Default", MATERIAL3.read_text(encoding="utf-8"))
 
+    def test_the_committed_material3_stub_defaults_every_color_scheme_factory_parameter(self):
+        material3 = _functions(MATERIAL3.read_text(encoding="utf-8"))
+        for name in ("light_color_scheme", "dark_color_scheme"):
+            with self.subTest(name=name):
+                self.assertEqual(1, len(material3[name]))
+                fn = material3[name][0]
+                self.assertEqual(48, len(fn.args.args))
+                self.assertEqual(48, len(fn.args.defaults))
+                self.assertEqual("ColorScheme", ast.unparse(fn.returns))
+
     def test_the_committed_alignment_and_arrangement_carry_their_groups(self):
         alignment = _nested(_classes(UI.read_text(encoding="utf-8"))["Alignment"])
         self.assertEqual({"CenterHorizontally", "End", "Start"}, _constants(alignment["Horizontal"]))
