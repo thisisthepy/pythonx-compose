@@ -84,6 +84,17 @@ class TheModifierSeam(unittest.TestCase):
             self.modifier.adapter()
         self.assertIn("PythonxAdapter.install()", str(raised.exception))
 
+    def test_install_with_no_argument_registers_modifier_companion(self):
+        """SPEC S6.2 (#138, python-multiplatform #324): `install()` defaults to `lambda: Modifier.Companion`."""
+        self.binding._EMPTY_FACTORIES.clear()
+        Modifier = self.modifier.install()
+        reads_before = self.host.companion_reads
+        self.assertEqual(Modifier.Companion, Modifier.empty())
+        self.assertGreater(self.host.companion_reads, reads_before)
+        self.assertEqual(
+            "padding(16.0) -> size(24.0)", self.describe(Modifier.padding(16).size(24))
+        )
+
     def test_the_placeholder_factory_is_labelled_as_unbound(self):
         """It is not a working default and the file must not pretend it is."""
         self.assertEqual("androidx.compose.ui.emptyModifier",
