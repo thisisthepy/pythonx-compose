@@ -136,7 +136,7 @@ class TheChaquopyMechanismIsGone(unittest.TestCase):
 
     def test_no_chaquopy_lookup_survives(self):
         for banned in ("jclass", "ComposeApp", "KotlinComposable", "KotlinWidget",
-                       "CoroutineScope", "ComposableLambdaImpl", "composableWrapper"):
+                       "ComposableLambdaImpl", "composableWrapper"):
             self.assertNotIn(banned, self.source, f"{banned} is 2024 chaquopy-era code")
 
     def test_no_content_slot_is_detected_by_inspecting_code_objects(self):

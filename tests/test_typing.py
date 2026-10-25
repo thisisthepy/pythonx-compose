@@ -105,6 +105,22 @@ class TheStubsTypeCheck(unittest.TestCase):
             m: Modifier = Modifier.padding(16).fill_max_width()
         """)
 
+    def test_modifier_class_passed_as_an_argument_type_checks(self):
+        """Issue #134 (python-multiplatform #308): `Card(modifier=Modifier)` and `Spacer(modifier=Modifier)`."""
+        self.assertPasses("""
+            from pythonx.compose.material3 import Card, Spacer, Text
+            from pythonx.compose.ui import Modifier
+
+            Card(modifier=Modifier, content=lambda scope: Text("hi"))
+            Spacer(modifier=Modifier)
+        """)
+        self.assertFails("""
+            from pythonx.compose.material3 import Card
+            from pythonx.compose.ui import Alignment
+
+            Card(modifier=Alignment, content=lambda scope: None)
+        """, "type[Alignment]", "Modifier | type[Modifier]", "[arg-type]")
+
     def test_a_misspelled_keyword_fails(self):
         self.assertFails("""
             from pythonx.compose.material3 import Text
@@ -237,12 +253,45 @@ class TheStubsTypeCheck(unittest.TestCase):
             current = messages.value
         """)
 
+    def test_what_remember_saveable_holds_is_a_saveable_scalar(self):
+        """Issue #118: only an int, float, bool or str is saved, as Kotlin's type rule says."""
+        self.assertFails("""
+            from pythonx.compose.runtime import remember_saveable
+
+            remember_saveable("").setValue([1])
+        """, "[arg-type]")
+
+    def test_composable_keeps_the_screens_signature(self):
+        """Issue #118: `@Composable` returns the function it is given, not `Any`."""
+        self.assertFails("""
+            from pythonx.compose.runtime import Composable
+
+            @Composable
+            def Screen() -> None: ...
+
+            Screen(1)
+        """, "Too many arguments")
+
     def test_what_remember_saveable_returns_has_no_other_spelling(self):
         self.assertFails("""
             from pythonx.compose.runtime import remember_saveable
 
             remember_saveable("").get_value()
         """, "get_value")
+
+    def test_a_member_function_of_a_kotlin_class_is_typed(self):
+        """Issue #125: member functions reach the stubs (python-multiplatform #215), so a checker knows
+        `TextFieldState.edit(block)` and its argument."""
+        self.assertPasses("""
+            from pythonx.compose.foundation.text.input import TextFieldState
+
+            TextFieldState("hi").edit(lambda buffer: None)
+        """)
+        self.assertFails("""
+            from pythonx.compose.foundation.text.input import TextFieldState
+
+            TextFieldState("hi").edit()
+        """, "[call-arg]")
 
     def test_a_text_field_state_types_the_state_overload(self):
         """Issue #10: `TextField(state=...)`, the state made by `pythonx.compose.foundation.text.input`."""
@@ -278,6 +327,61 @@ class TheStubsTypeCheck(unittest.TestCase):
         self.assertFails("""
             from pythonx.compose.layout import fillMaxWidth
         """, "fillMaxWidth", "[attr-defined]")
+
+    def test_compose_extended_1_11_1_ext_2_surface_type_checks(self):
+        """Issues #127, #130: stubs generated from `org.thisisthepy.compose.*:1.11.1-ext.2` carry the fork's
+        Material 3 1.11.0-alpha07 declarations (`ButtonGroup`, `MaterialTheme(motion_scheme=...)`) and
+        type `BoxWithConstraintsScope.constraints` as `_Constraints`."""
+        self.assertPasses("""
+            from pythonx.compose.layout import BoxWithConstraintsScope
+            from pythonx.compose.material3 import ButtonGroup, MaterialTheme, MotionScheme
+            from pythonx.compose.runtime import CompositionLocal
+            from pythonx.compose.ui.unit import Constraints
+
+            def check(scope: BoxWithConstraintsScope, motion: MotionScheme) -> int:
+                c = Constraints(min_width=0, max_width=100)
+                loc: CompositionLocal = MaterialTheme.LocalMotionScheme
+                MaterialTheme(motion_scheme=motion, content=lambda: None)
+                ButtonGroup(content=lambda group_scope: None)
+                return scope.constraints.max_width + c.max_width
+        """)
+
+    def test_default_and_main_coroutine_scopes_type_check(self):
+        """Issue #94: `DefaultCoroutineScope` and `MainCoroutineScope` import from `pythonx.compose.runtime`."""
+        self.assertPasses("""
+            from pythonx.compose.runtime import DefaultCoroutineScope, MainCoroutineScope
+
+            s1: object = DefaultCoroutineScope()
+            s2: object = MainCoroutineScope()
+        """)
+        self.assertFails("""
+            from pythonx.compose.runtime import DefaultCoroutineScope
+
+            DefaultCoroutineScope(1)
+        """, "Too many arguments")
+
+    def test_light_and_dark_color_scheme_type_check(self):
+        """Issue #135 (python-multiplatform #309): `light_color_scheme` and `dark_color_scheme`
+        have all 48 parameters defaulted and return `ColorScheme`."""
+        self.assertPasses("""
+            from pythonx.compose.material3 import ColorScheme, MaterialTheme, dark_color_scheme, light_color_scheme
+            from pythonx.compose.ui.graphics import Color
+
+            light: ColorScheme = light_color_scheme()
+            dark: ColorScheme = dark_color_scheme(primary=Color(0xFF123456), surface_tint=Color(0xFF654321))
+            MaterialTheme(color_scheme=light, content=lambda: None)
+            MaterialTheme(color_scheme=dark, content=lambda: None)
+        """)
+        self.assertFails("""
+            from pythonx.compose.material3 import light_color_scheme
+
+            light_color_scheme(no_such_color=None)
+        """, "no_such_color", "[call-arg]")
+        self.assertFails("""
+            from pythonx.compose.material3 import light_color_scheme
+
+            n: int = light_color_scheme()
+        """, "ColorScheme", "[assignment]")
 
 
 if __name__ == "__main__":

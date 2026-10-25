@@ -71,6 +71,15 @@ cached here. The app attaches the state to its root itself, as the 2024 demo did
 A host app binds the wrapper by listing `python.multiplatform.compose.RememberSaveableKt` in its
 `artifactIncludePackages`.
 
+## `DefaultCoroutineScope` and `MainCoroutineScope`
+
+`UI.ipynb` cell 5 imports `DefaultCoroutineScope` and `MainCoroutineScope` from
+`pythonx.compose.runtime` (`docs/INTENT.md` section 5.10, `docs/SPEC.md` S5.7, issue #94). They are
+built on `pythonx.concurrent`: `DefaultCoroutineScope()` returns
+`pythonx.concurrent.CoroutineScope(Dispatchers.Default)` and `MainCoroutineScope()` returns
+`pythonx.concurrent.CoroutineScope(Dispatchers.Main)`. `pythonx.concurrent` is imported when either
+factory is called, and if it is not installed a `RuntimeError` names `pythonx-concurrent`.
+
 ## How it is reached
 
 By its own dotted name: `import pythonx.compose.runtime` loads this file. The binder used to put a
@@ -84,9 +93,25 @@ from __future__ import annotations
 
 import importlib
 import sys
+from collections.abc import Callable
+from typing import TYPE_CHECKING, Protocol, TypeVar, cast
+
+_T = TypeVar("_T")
 
 
-def Composable(target):
+class _KotlinState(Protocol):
+    """What this module reads of a Compose `MutableState` the binder serves: one `value`."""
+
+    value: object
+
+
+if TYPE_CHECKING:
+    # For the checker only: at run time `State` is Kotlin's class, read through `__getattr__`, and
+    # the stub names that class.
+    State = _KotlinState
+
+
+def Composable(target: _T) -> _T:
     """Identity. `UI.ipynb` writes `@Composable def Screen(): ...`; nothing needs to happen to
     `Screen` for that to work, because the composer every nested `pythonx.compose.*` call needs is
     threaded by `PythonComposition`/`python_multiplatform.binding._bind_composable` from the *callee's* declared slot
@@ -103,15 +128,16 @@ app_root: State
 only, created on first read by `__getattr__` below."""
 
 
-def _new_state(initial):
+def _new_state(initial: object) -> _KotlinState:
     """A Compose `MutableState` holding `initial`, from the binder's `mutableStateOf`.
 
     Never a Python stand-in: only a state Compose created is observed by composition.
     """
     try:
-        import androidx.compose.runtime as kotlin_runtime
-
-        make = kotlin_runtime.mutableStateOf
+        make = cast(
+            "Callable[[object], _KotlinState]",
+            importlib.import_module("androidx.compose.runtime").mutableStateOf,
+        )
     except (ImportError, AttributeError) as missing:
         raise RuntimeError(
             "androidx.compose.runtime.mutableStateOf is not available from the binder: "
@@ -120,12 +146,13 @@ def _new_state(initial):
     return make(initial)
 
 
-def app(root):
+def app(root: _T) -> _T:
     """Declare `root`, a zero-argument function, as the screen the host draws; returns it unchanged.
 
     Declaring again replaces the screen; there is no update call.
     """
-    sys.modules[__name__].app_root.value = root
+    # Through the module, so its `__getattr__` creates the state on first use.
+    cast(_KotlinState, sys.modules[__name__].app_root).value = root
     return root
 
 
@@ -138,33 +165,39 @@ class SaveableState:
 
     __slots__ = ("_state",)
 
-    def __init__(self, state):
+    _state: _KotlinState
+
+    def __init__(self, state: _KotlinState) -> None:
         self._state = state
 
-    def getValue(self):
+    # What Kotlin holds is one of the four scalars `rememberSaveableWrapper` accepts.
+    def getValue(self) -> bool | int | float | str:
         """The current value, read from the Kotlin state (a snapshot read Compose records)."""
-        return self._state.value
+        return cast("bool | int | float | str", self._state.value)
 
-    def setValue(self, value):
+    def setValue(self, value: bool | int | float | str) -> None:
         """Write the Kotlin state; a composable that read it recomposes."""
         self._state.value = value
 
     @property
-    def value(self):
-        return self._state.value
+    def value(self) -> bool | int | float | str:
+        return cast("bool | int | float | str", self._state.value)
 
     @value.setter
-    def value(self, value):
+    def value(self, value: bool | int | float | str) -> None:
         self._state.value = value
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"SaveableState({self._state.value!r})"
 
 
 def remember_saveable(initial: bool | int | float | str) -> SaveableState:
     """Compose's `rememberSaveable` for an int, float, bool or str; call it inside a composition."""
     try:
-        wrapper = importlib.import_module(_SAVEABLE_HOST).rememberSaveableWrapper
+        wrapper = cast(
+            "Callable[[bool | int | float | str], _KotlinState]",
+            importlib.import_module(_SAVEABLE_HOST).rememberSaveableWrapper,
+        )
     except (ImportError, AttributeError) as missing:
         raise RuntimeError(
             f"{_SAVEABLE_HOST}.rememberSaveableWrapper is not bound: it needs python-multiplatform #174, "
@@ -174,12 +207,68 @@ def remember_saveable(initial: bool | int | float | str) -> SaveableState:
     return SaveableState(wrapper(initial))
 
 
+_CONCURRENT_PACKAGE = "pythonx.concurrent"
+
+
+class _ConcurrentScope(Protocol):
+    """What `DefaultCoroutineScope()` and `MainCoroutineScope()` return (`pythonx.concurrent.CoroutineScope`)."""
+
+    dispatcher: object
+
+    def launch(self, fn: Callable[..., object], /, *args: object, name: str | None = None) -> object: ...
+    def defer(self, fn: Callable[..., object], /, *args: object, name: str | None = None) -> object: ...
+    def cancel(self) -> None: ...
+
+
+class _ConcurrentDispatchers(Protocol):
+    Default: object
+    Main: object
+
+
+class _ConcurrentModule(Protocol):
+    Dispatchers: _ConcurrentDispatchers
+
+    def CoroutineScope(self, dispatcher: object, /) -> _ConcurrentScope: ...
+
+
+def _concurrent_scope(dispatcher: object) -> _ConcurrentScope:
+    try:
+        mod = cast(_ConcurrentModule, importlib.import_module(_CONCURRENT_PACKAGE))
+    except ImportError as missing:
+        raise RuntimeError(
+            f"{_CONCURRENT_PACKAGE} is required for DefaultCoroutineScope and MainCoroutineScope: "
+            "install pythonx-concurrent (Python 3.15+)"
+        ) from missing
+    return mod.CoroutineScope(dispatcher)
+
+
+def _concurrent_dispatchers() -> _ConcurrentDispatchers:
+    try:
+        mod = cast(_ConcurrentModule, importlib.import_module(_CONCURRENT_PACKAGE))
+        return mod.Dispatchers
+    except (ImportError, AttributeError) as missing:
+        raise RuntimeError(
+            f"{_CONCURRENT_PACKAGE} is required for DefaultCoroutineScope and MainCoroutineScope: "
+            "install pythonx-concurrent (Python 3.15+)"
+        ) from missing
+
+
+def DefaultCoroutineScope() -> object:
+    """Create an app-level `CoroutineScope(Dispatchers.Default)` backed by `pythonx.concurrent` (SPEC S5.7)."""
+    return _concurrent_scope(_concurrent_dispatchers().Default)
+
+
+def MainCoroutineScope() -> object:
+    """Create an app-level `CoroutineScope(Dispatchers.Main)` backed by `pythonx.concurrent` (SPEC S5.7)."""
+    return _concurrent_scope(_concurrent_dispatchers().Main)
+
+
 from pythonx.compose._reexport import reexport
 
 _reexported_getattr, _reexported_dir = reexport(__name__)
 
 
-def __getattr__(name):
+def __getattr__(name: str) -> object:
     if name == "app_root":
         created = _new_state(None)
         globals()["app_root"] = created
@@ -187,5 +276,5 @@ def __getattr__(name):
     return _reexported_getattr(name)
 
 
-def __dir__():
+def __dir__() -> list[str]:
     return sorted(set(_reexported_dir()) | {"app_root"})

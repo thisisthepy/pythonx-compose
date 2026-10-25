@@ -50,8 +50,10 @@ import re
 import sys
 import types
 import weakref
+from collections.abc import Callable, Iterable, Mapping
 from functools import lru_cache
 from pathlib import Path
+from typing import Protocol, TypedDict, cast
 
 ROOT_MODULE = "python_multiplatform"
 BINDING_MODULE = "python_multiplatform.binding"
@@ -60,6 +62,30 @@ _MANIFEST = Path(__file__).resolve().parent / "pythonx-map.toml"
 
 _LOWER_UPPER = re.compile(r"([a-z0-9])([A-Z])")
 _ACRONYM_WORD = re.compile(r"([A-Z]+)([A-Z][a-z])")
+
+# `pythonx-map.toml`'s shape. Its tables are keyed by Kotlin and module names, so the hyphenated
+# keys are spelled in the functional form.
+_ValueClasses = TypedDict("_ValueClasses", {"raw-primitive-allowed": list[str]}, total=False)
+Manifest = TypedDict(
+    "Manifest",
+    {
+        "modules": dict[str, str],
+        "value-classes": _ValueClasses,
+        "aliases": dict[str, dict[str, "list[str] | dict[str, str]"]],
+    },
+    total=False,
+)
+
+
+class BindingLayer(Protocol):
+    """What this module asks of `python_multiplatform.binding`."""
+
+    def allow_raw_primitive(self, kotlin_type: str, /) -> None: ...
+    def register_empty(self, kotlin_type: object, empty_factory: object, /) -> None: ...
+
+
+Describe = Callable[[types.ModuleType, str], object]
+"""`python_multiplatform.describe(module, name)`."""
 
 
 def snake_case(kotlin_name: str) -> str:
@@ -80,12 +106,12 @@ def python_name(kotlin_name: str) -> str:
 
 
 @lru_cache(maxsize=1)
-def manifest() -> dict:
+def manifest() -> Manifest:
     """`pythonx-map.toml`, parsed once."""
     import tomllib
 
     with _MANIFEST.open("rb") as handle:
-        return tomllib.load(handle)
+        return cast(Manifest, tomllib.load(handle))
 
 
 def kotlin_package_of(module_name: str) -> str:
@@ -97,7 +123,7 @@ def kotlin_package_of(module_name: str) -> str:
         ) from None
 
 
-def binding_layer():
+def binding_layer() -> BindingLayer:
     """The binder's installed binding module, or a `RuntimeError` that says what did not happen."""
     binding = sys.modules.get(BINDING_MODULE)
     if binding is None:
@@ -105,34 +131,47 @@ def binding_layer():
             "the python-multiplatform binding layer is not installed: the Kotlin host must run "
             "PythonxAdapter.install() before pythonx.compose can resolve a Kotlin declaration"
         )
-    return binding
+    return cast(BindingLayer, binding)
 
 
-_PRIMED = weakref.WeakSet()
+_PRIMED: weakref.WeakSet[BindingLayer] = weakref.WeakSet()
+_MODIFIER_TYPE = "androidx.compose.ui.Modifier"
 
 
-def _prime(binding) -> None:
-    """Hand this binding layer the manifest's value-class allowlist, once.
+def _modifier_companion() -> object:
+    """`Modifier.Companion` read live from `androidx.compose.ui.Modifier` (python-multiplatform #324)."""
+    return cast(object, importlib.import_module("androidx.compose.ui").Modifier.Companion)
+
+
+def _prime(binding: BindingLayer) -> None:
+    """Hand this binding layer the manifest's value-class allowlist and the default empty `Modifier`, once.
 
     Method names and keywords on a proxy are the binder's own since python-multiplatform #131
-    (snake_case by this package's rule); nothing is registered for them here.
+    (snake_case by this package's rule); nothing is registered for them here. Since
+    python-multiplatform #324, `Modifier.Companion` is bound as a value on the proxy class and
+    `register_empty` accepts a callable (`SPEC.md` S6.2, #138); if the caller has not already
+    registered an explicit empty factory for `androidx.compose.ui.Modifier`, `_modifier_companion`
+    is registered as the default.
     """
     if binding in _PRIMED:
         return
     for kotlin_type in manifest().get("value-classes", {}).get("raw-primitive-allowed", ()):
         binding.allow_raw_primitive(kotlin_type)
+    factories = cast("Mapping[str, object]", getattr(binding, "_EMPTY_FACTORIES", {}))
+    if _MODIFIER_TYPE not in factories:
+        binding.register_empty(_MODIFIER_TYPE, _modifier_companion)
     _PRIMED.add(binding)
 
 
-def kotlin_module(module_name: str):
+def kotlin_module(module_name: str) -> types.ModuleType:
     """The binder's module for the Kotlin package `module_name` maps to."""
     _prime(binding_layer())
     return importlib.import_module(kotlin_package_of(module_name))
 
 
-def _name_table(kotlin) -> dict:
+def _name_table(kotlin: types.ModuleType) -> dict[str, str]:
     """Pythonic name -> Kotlin name for everything the Kotlin module reports, with collisions refused."""
-    table = {}
+    table: dict[str, str] = {}
     for kotlin_name in dir(kotlin):
         if kotlin_name.startswith("_"):
             continue
@@ -147,7 +186,7 @@ def _name_table(kotlin) -> dict:
     return table
 
 
-def _declared_type(kotlin, kotlin_name: str):
+def _declared_type(kotlin: types.ModuleType, kotlin_name: str) -> tuple[object, str | None] | None:
     """`(kind, declared return type)` of the bound name [kotlin_name] in [kotlin], without reading it.
 
     `python_multiplatform.describe(module, name)` answers from the binder's table and never runs a
@@ -155,7 +194,7 @@ def _declared_type(kotlin, kotlin_name: str):
     that is not a single bound declaration (an overload set, a child package), answers `None`.
     """
     root = sys.modules.get(ROOT_MODULE)
-    describe = getattr(root, "describe", None)
+    describe = cast("Describe | None", getattr(root, "describe", None))
     if describe is None:
         return None
     try:
@@ -164,10 +203,13 @@ def _declared_type(kotlin, kotlin_name: str):
         return None
     if not isinstance(described, dict):
         return None
-    return described.get("kind"), described.get("returns")
+    # The binder's answer is a plain dict of strings; its values are only compared and sliced here.
+    answer = cast(dict[str, object], described)
+    returns = answer.get("returns")
+    return answer.get("kind"), returns if isinstance(returns, str) else None
 
 
-def _pythonic(value, name):
+def _pythonic(value: object) -> object:
     if isinstance(value, types.ModuleType):
         # A Kotlin object served as a sub-package. Since python-multiplatform #35 the binder lists it
         # and exposes it as an attribute of its parent, so the name table reaches it directly.
@@ -177,7 +219,7 @@ def _pythonic(value, name):
     return value
 
 
-def _resolve(kotlin, name: str):
+def _resolve(kotlin: types.ModuleType, name: str) -> tuple[object, bool] | None:
     """What the Pythonic [name] means in the binder's module [kotlin]: `(value, cacheable)` or `None`.
 
     A name the module lists is looked up by the rule. An upper-case name it does not list may be a
@@ -187,10 +229,10 @@ def _resolve(kotlin, name: str):
     """
     kotlin_name = _name_table(kotlin).get(name)
     if kotlin_name is not None:
-        value = getattr(kotlin, kotlin_name)
+        value = cast(object, getattr(kotlin, kotlin_name))
         # The binder declined to cache it -- a live property, read again on every access -- so this
         # layer does not freeze it either.
-        return _pythonic(value, name), kotlin_name in vars(kotlin)
+        return _pythonic(value), kotlin_name in cast(Mapping[str, object], vars(kotlin))
     if name[:1].isupper():
         try:
             nested = importlib.import_module(kotlin.__name__ + "." + name)
@@ -203,7 +245,7 @@ def _resolve(kotlin, name: str):
 _STATIC_GETTER = "STATIC_GETTER"
 
 
-def _constant_groups(kotlin) -> dict:
+def _constant_groups(kotlin: types.ModuleType) -> dict[str, dict[str, str]]:
     """Group name -> {Pythonic constant name: Kotlin name}, for the Kotlin object [kotlin].
 
     A group is a type nested in the object, `P.G`, that some constant of `P` is declared as; it holds
@@ -213,12 +255,13 @@ def _constant_groups(kotlin) -> dict:
     """
     prefix = kotlin.__name__ + "."
     members = _name_table(kotlin)
-    groups: dict = {}
+    groups: dict[str, dict[str, str]] = {}
     for pythonic, kotlin_name in members.items():
         declared = _declared_type(kotlin, kotlin_name)
         if declared is None or declared[0] != _STATIC_GETTER or not declared[1]:
             continue
-        group = declared[1][len(prefix):] if declared[1].startswith(prefix) else ""
+        returns = declared[1]
+        group = returns[len(prefix):] if returns.startswith(prefix) else ""
         if not group[:1].isupper() or "." in group or group in members:
             continue
         groups.setdefault(group, {})[pythonic] = kotlin_name
@@ -236,17 +279,24 @@ class KotlinObject:
 
     __slots__ = ("_kotlin", "_cache", "_groups")
 
-    def __init__(self, kotlin_module):
+    _kotlin: types.ModuleType
+    _cache: dict[str, object]
+    _groups: dict[str, dict[str, str]] | None
+
+    def __init__(self, kotlin_module: types.ModuleType) -> None:
         object.__setattr__(self, "_kotlin", kotlin_module)
-        object.__setattr__(self, "_cache", {})
+        object.__setattr__(self, "_cache", dict[str, object]())
         object.__setattr__(self, "_groups", None)
 
-    def _constant_groups(self) -> dict:
-        if self._groups is None:
-            object.__setattr__(self, "_groups", _constant_groups(self._kotlin))
-        return self._groups
+    def _constant_groups(self) -> dict[str, dict[str, str]]:
+        known = self._groups
+        if known is not None:
+            return known
+        groups = _constant_groups(self._kotlin)
+        object.__setattr__(self, "_groups", groups)
+        return groups
 
-    def __getattr__(self, name):
+    def __getattr__(self, name: str) -> object:
         if name.startswith("__") and name.endswith("__"):
             raise AttributeError(name)
         cached = self._cache.get(name)
@@ -260,19 +310,21 @@ class KotlinObject:
                     f"{self._kotlin.__name__} has nothing spelled {name!r} under pythonx's naming rule"
                 )
             # The grouping is metadata and is kept; the constants inside are read on each access.
-            resolved = ConstantGroup(self, f"{self._kotlin.__name__}.{name}", members), True
+            group = ConstantGroup(self, f"{self._kotlin.__name__}.{name}", members)
+            self._cache[name] = group
+            return group
         value, cacheable = resolved
         if cacheable:
             self._cache[name] = value
         return value
 
-    def __setattr__(self, name, value):
+    def __setattr__(self, name: str, value: object) -> None:
         raise AttributeError(f"{self._kotlin.__name__} is a Kotlin object; its members are read-only here")
 
-    def __dir__(self):
+    def __dir__(self) -> list[str]:
         return sorted(set(_name_table(self._kotlin)) | set(self._constant_groups()))
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"<pythonx view of Kotlin object {self._kotlin.__name__}>"
 
 
@@ -286,11 +338,11 @@ class CallableKotlinObject(KotlinObject):
 
     __slots__ = ()
 
-    def __call__(self, *args, **kwargs):
-        return self._kotlin(*args, **kwargs)
+    def __call__(self, *args: object, **kwargs: object) -> object:
+        return cast("Callable[..., object]", self._kotlin)(*args, **kwargs)
 
 
-def _kotlin_object(kotlin_module):
+def _kotlin_object(kotlin_module: types.ModuleType) -> KotlinObject:
     """The namespace for a Kotlin object module: callable only when the binder made the module callable."""
     return CallableKotlinObject(kotlin_module) if callable(kotlin_module) else KotlinObject(kotlin_module)
 
@@ -305,12 +357,16 @@ class ConstantGroup:
 
     __slots__ = ("_owner", "_kotlin_type", "_members")
 
-    def __init__(self, owner, kotlin_type, members):
+    _owner: KotlinObject
+    _kotlin_type: str
+    _members: dict[str, str]
+
+    def __init__(self, owner: KotlinObject, kotlin_type: str, members: Mapping[str, str]) -> None:
         object.__setattr__(self, "_owner", owner)
         object.__setattr__(self, "_kotlin_type", kotlin_type)
         object.__setattr__(self, "_members", dict(members))
 
-    def __getattr__(self, name):
+    def __getattr__(self, name: str) -> object:
         if name.startswith("__") and name.endswith("__"):
             raise AttributeError(name)
         if name not in self._members:
@@ -319,33 +375,36 @@ class ConstantGroup:
                 f"{self._owner._kotlin.__name__} declared as {self._kotlin_type}: "
                 + ", ".join(sorted(self._members))
             )
-        return getattr(self._owner, name)
+        # The owner's own resolver, by name: a constant is never an attribute of `KotlinObject` itself.
+        return self._owner.__getattr__(name)
 
-    def __setattr__(self, name, value):
+    def __setattr__(self, name: str, value: object) -> None:
         raise AttributeError(f"{self._kotlin_type} is a group of Kotlin constants; they are read-only here")
 
-    def __dir__(self):
+    def __dir__(self) -> list[str]:
         return sorted(self._members)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"<pythonx group of {self._owner._kotlin.__name__} constants declared {self._kotlin_type}>"
 
 
-def _aliases(module_name: str) -> dict:
+def _aliases(module_name: str) -> dict[str, tuple[str, str]]:
     """Name -> `(source module, attribute path in it)`, per the manifest's `[aliases]`.
 
     An entry under a source module is a list of names (lent under the same name, path = the name) or
     a table `{ lent = "Path.To.Attr" }` (a different name, through an attribute path).
     """
-    borrowed = {}
+    borrowed: dict[str, tuple[str, str]] = {}
     for source, lent in manifest().get("aliases", {}).get(module_name, {}).items():
-        pairs = ((name, name) for name in lent) if isinstance(lent, list) else lent.items()
+        pairs: Iterable[tuple[str, str]] = (
+            ((name, name) for name in lent) if isinstance(lent, list) else lent.items()
+        )
         for name, path in pairs:
             borrowed[name] = (source, path)
     return borrowed
 
 
-def _borrow(module_name: str, name: str, source: str, path: str):
+def _borrow(module_name: str, name: str, source: str, path: str) -> object:
     """The value of the alias [name]: [path] read in [source].
 
     A bare name is resolved once and kept in the owner's namespace. A path with attribute steps is
@@ -353,22 +412,22 @@ def _borrow(module_name: str, name: str, source: str, path: str):
     serves `Icons.Default` afresh on every read and this layer does not freeze it either.
     """
     head, *rest = path.split(".")
-    value = getattr(importlib.import_module(source), head)
+    value = cast(object, getattr(importlib.import_module(source), head))
     for step in rest:
-        value = getattr(value, step)
+        value = cast(object, getattr(value, step))
     if not rest:
         setattr(sys.modules[module_name], name, value)
     return value
 
 
-def reexport(module_name: str):
+def reexport(module_name: str) -> tuple[Callable[[str], object], Callable[[], list[str]]]:
     """The module-level `__getattr__` and `__dir__` for the mapped package `module_name`.
 
     Nothing is resolved here, only when a name is first read, so importing a `pythonx.compose`
     module needs neither the manifest row's Kotlin package nor an installed binder.
     """
 
-    def __getattr__(name):
+    def __getattr__(name: str) -> object:
         if name.startswith("__") and name.endswith("__"):
             raise AttributeError(name)
         if importlib.util.find_spec(module_name + "." + name) is not None:
@@ -396,8 +455,8 @@ def reexport(module_name: str):
             setattr(sys.modules[module_name], name, value)
         return value
 
-    def __dir__():
-        own = set(vars(sys.modules[module_name])) | set(_aliases(module_name))
+    def __dir__() -> list[str]:
+        own = set(cast(Mapping[str, object], vars(sys.modules[module_name]))) | set(_aliases(module_name))
         try:
             own.update(_name_table(kotlin_module(module_name)))
         except (RuntimeError, ImportError):

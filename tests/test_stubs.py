@@ -139,14 +139,31 @@ class TheConversion(unittest.TestCase):
 
     def test_names_the_package_defines_itself_are_carried_over(self):
         runtime = self.stubs[COMPOSE / "runtime" / "__init__.pyi"]
-        self.assertIn("def Composable(target)", runtime)
+        self.assertIn("def Composable(target: _T) -> _T", runtime)
+
+    def test_a_type_variable_the_package_defines_is_carried_over(self):
+        # `Composable` and `app` return what they are given (issue #118); the stub needs the
+        # TypeVar their annotations name, defined before them.
+        runtime = self.stubs[COMPOSE / "runtime" / "__init__.pyi"]
+        self.assertIn("import typing as _t\n", runtime)
+        defined = runtime.find("_T = _t.TypeVar('_T')")
+        self.assertGreater(defined, -1)
+        self.assertLess(defined, runtime.find("def Composable("))
+
+    def test_what_only_the_checker_reads_stays_out_of_the_stub(self):
+        # `State` is Kotlin's class in the stub; the protocol the module checks against is private.
+        runtime = self.stubs[COMPOSE / "runtime" / "__init__.pyi"]
+        self.assertNotIn("_KotlinState", runtime)
+        self.assertNotIn("TYPE_CHECKING", runtime)
 
     def test_a_class_the_package_defines_keeps_its_public_members(self):
         # `remember_saveable` returns `SaveableState` (issue #102); an editor must see its three
         # spellings, so a class is carried over with its public methods, not as an empty body.
         runtime = self.stubs[COMPOSE / "runtime" / "__init__.pyi"]
         self.assertIn("class SaveableState:", runtime)
-        for member in ("def getValue(self)", "def setValue(self, value)", "def value(self)"):
+        for member in ("def getValue(self) -> bool | int | float | str",
+                       "def setValue(self, value: bool | int | float | str) -> None",
+                       "def value(self) -> bool | int | float | str"):
             with self.subTest(member=member):
                 self.assertIn(member, runtime)
         self.assertIn("def remember_saveable(initial", runtime)
@@ -158,7 +175,7 @@ class TheConversion(unittest.TestCase):
         # only annotates it; the stub must still say it exists.
         runtime = self.stubs[COMPOSE / "runtime" / "__init__.pyi"]
         self.assertIn("app_root: State", runtime)
-        self.assertIn("def app(root)", runtime)
+        self.assertIn("def app(root: _T) -> _T", runtime)
         self.assertNotIn("def state(", runtime, "state() is removed (INTENT 5.11)")
 
     def test_every_stub_is_valid_python(self):
@@ -242,7 +259,14 @@ class TheCurrentFormat(unittest.TestCase):
         text = self.stubs[LAYOUT]
         self.assertIn("import pythonx.compose.ui", _imports(text))
         column = _functions(text)["Column"][0]
-        self.assertEqual("pythonx.compose.ui.Modifier", ast.unparse(column.args.args[0].annotation))
+        self.assertEqual(
+            "pythonx.compose.ui.Modifier | type[pythonx.compose.ui.Modifier]",
+            ast.unparse(column.args.args[0].annotation),
+        )
+        self.assertEqual(
+            "pythonx.compose.ui.Modifier",
+            ast.unparse(_functions(text)["fill_max_width"][0].returns),
+        )
         self.assertFalse({name for name in _code_names(text) if name.startswith("androidx")})
 
     def test_the_first_manifest_module_for_a_package_is_the_one_referenced(self):
@@ -682,6 +706,16 @@ class TheCommittedStubs(unittest.TestCase):
         icons = ICONS.read_text(encoding="utf-8")
         self.assertIn("Icons", _classes(icons))
         self.assertIn("DefaultIcons = _alias_0.Icons.Default", MATERIAL3.read_text(encoding="utf-8"))
+
+    def test_the_committed_material3_stub_defaults_every_color_scheme_factory_parameter(self):
+        material3 = _functions(MATERIAL3.read_text(encoding="utf-8"))
+        for name in ("light_color_scheme", "dark_color_scheme"):
+            with self.subTest(name=name):
+                self.assertEqual(1, len(material3[name]))
+                fn = material3[name][0]
+                self.assertEqual(48, len(fn.args.args))
+                self.assertEqual(48, len(fn.args.defaults))
+                self.assertEqual("ColorScheme", ast.unparse(fn.returns))
 
     def test_the_committed_alignment_and_arrangement_carry_their_groups(self):
         alignment = _nested(_classes(UI.read_text(encoding="utf-8"))["Alignment"])

@@ -26,22 +26,21 @@ None of that is per-declaration Python, which is exactly why none of it is a fil
 (`docs/pythonx-adapter-design.md` §7). **If this file ever grows a `def padding`, the 2024 mistake
 has been made again.**
 
-## What is left, and why it cannot be derived
+## What is left, and how the empty `Modifier` is reached
 
-One fact, and it is data rather than code: **the name of a Kotlin function that returns an empty
-`Modifier`.**
+`Modifier` as a Kotlin *expression* is `Modifier.Companion`, an object instance. Since
+python-multiplatform #324 (`ba338d4f`, closing #322), a public companion object is bound as a
+`STATIC_GETTER` (`androidx.compose.ui.Modifier.Companion`, typed as `Modifier`) and read on the
+owner's proxy class as `Modifier.Companion`, while `register_empty` accepts the proxy class and a
+Python callable (`register_empty(Modifier, lambda: Modifier.Companion)`).
 
-`Modifier` as a Kotlin *expression* is `Modifier.Companion`, an object instance, and the artefact
-walker binds functions. So the empty modifier every chain starts from has **no bound name**, and the
-adaptation layer refuses to invent one -- `Modifier.padding(16)` raises a `TypeError` naming
-`register_empty` rather than guessing. Registering that name is the seam, and this file is it.
-
-**No such function exists in Compose today.** `androidx.compose.ui.emptyModifier` is the name
-`ComposeShapedFragment` uses for the fixture, and it is a placeholder: against the real jars nothing
-is bound under it, so the class-object spelling does not yet work and only the instance spelling
-(`m.padding(16)`, on a `Modifier` Kotlin handed out) does. Closing that needs one line of Kotlin in
-the consuming application -- `fun emptyModifier(): Modifier = Modifier`, picked up by KSP -- and
-[install] is where its name is supplied.
+`pythonx.compose._reexport._prime` registers that callable by default on first resolution of a
+`pythonx.compose` module, and [install] with no argument registers the same
+`register_empty(Modifier, lambda: Modifier.Companion)` (`SPEC.md` S6.2, #138). Both the class-object
+chain (`Modifier.padding(16)`) and passing `Modifier` as an argument (`Card(modifier=Modifier)`,
+`Spacer(modifier=Modifier)`) therefore evaluate `Modifier.Companion` out of the box against real
+Compose, with no application-supplied Kotlin `emptyModifier` helper needed. [install] still accepts
+an explicit Kotlin function name or callable when a test or host overrides the default.
 
 ## How this module is reached
 
@@ -53,6 +52,8 @@ from __future__ import annotations
 
 import importlib
 import sys
+from collections.abc import Callable
+from typing import Protocol, cast
 
 BINDING_MODULE = "python_multiplatform.binding"
 
@@ -62,10 +63,16 @@ KOTLIN_TYPE = KOTLIN_PACKAGE + ".Modifier"
 """The Kotlin type the proxy stands for. The walker reports it as `receiverTypeName`."""
 
 PLACEHOLDER_EMPTY_FACTORY = "androidx.compose.ui.emptyModifier"
-"""A name that is **not** bound by Compose. See the module docstring; supply your own to [install]."""
+"""A name that is **not** bound by Compose. Kept for fixture tests; [install] defaults to `Modifier.Companion`."""
 
 
-def adapter():
+class BindingLayer(Protocol):
+    """What this module asks of `python_multiplatform.binding`."""
+
+    def register_empty(self, kotlin_type: object, empty_factory: str | Callable[[], object], /) -> None: ...
+
+
+def adapter() -> BindingLayer:
     """The binder's installed binding layer, or a `RuntimeError` that says what did not happen.
 
     The Kotlin host installs it (`PythonxAdapter.install()`), not an import, so its absence means
@@ -77,31 +84,40 @@ def adapter():
             "the python-multiplatform binding layer is not installed: the Kotlin host must run "
             "PythonxAdapter.install() before anything here can resolve a Modifier"
         )
-    return module
+    return cast(BindingLayer, module)
 
 
-def modifier_type(layer=None):
+def modifier_type(layer: BindingLayer | None = None) -> type[object]:
     """The `Modifier` proxy class -- the same object `pythonx.compose.ui.Modifier` is."""
     if layer is None:
         adapter()
     # Through this package's own module, so the manifest's value-class allowlist is in force.
-    return importlib.import_module("pythonx.compose.ui").Modifier
+    return cast("type[object]", importlib.import_module("pythonx.compose.ui").Modifier)
 
 
-def install(empty_factory=PLACEHOLDER_EMPTY_FACTORY, layer=None):
+def _modifier_companion() -> object:
+    """`Modifier.Companion` read live from `androidx.compose.ui.Modifier` (python-multiplatform #324)."""
+    return cast(object, importlib.import_module("androidx.compose.ui").Modifier.Companion)
+
+
+def install(
+    empty_factory: str | Callable[[], object] | None = None,
+    layer: BindingLayer | None = None,
+) -> type[object]:
     """Register where an empty `Modifier` comes from, and return the proxy class.
 
-    :param empty_factory: the fully-qualified Kotlin name of a zero-argument function returning
-        `Modifier`. Must be bound in the upcall table; nothing in Compose is, so this is normally a
-        one-line function in the consuming application's own Kotlin.
+    :param empty_factory: a zero-argument callable returning an empty `Modifier` (defaults to
+        `lambda: Modifier.Companion`, python-multiplatform #324), or the fully-qualified Kotlin name
+        of a zero-argument function returning `Modifier`.
     :param layer: the adaptation layer, for tests that hold one directly.
     """
     layer = layer or adapter()
-    layer.register_empty(KOTLIN_TYPE, empty_factory)
-    return modifier_type(layer)
+    cls = modifier_type(layer)
+    layer.register_empty(cls, _modifier_companion if empty_factory is None else empty_factory)
+    return cls
 
 
-def __getattr__(name):
+def __getattr__(name: str) -> type[object]:
     # `Modifier` is resolved rather than defined, so that this module cannot hold a stale class
     # across a table reinstall -- `_register_table` invalidates every proxy, and a module-level
     # binding made at import time would outlive that.

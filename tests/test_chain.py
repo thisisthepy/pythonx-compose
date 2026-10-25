@@ -152,16 +152,72 @@ class TheChain(AdapterCase):
         self.assertIn("fill_max_size", str(raised.exception))
         self.assertIn(fake_host.MODIFIER, str(raised.exception))
 
-    def test_the_class_object_spelling_needs_an_empty_factory_and_says_so(self):
-        """Against real Compose this is the state the chain is actually in.
+    def test_the_class_object_chains_from_modifier_companion_by_default(self):
+        """SPEC S6.2 (#138, python-multiplatform #324): importing `Modifier` registers
+        `register_empty(Modifier, lambda: Modifier.Companion)`, so `Modifier.padding(16)` works
+        with no app-supplied factory."""
+        Modifier = self.modifier_type()
+        reads_before = self.host.companion_reads
+        chained = Modifier.padding(16).size(24)
+        self.assertGreater(self.host.companion_reads, reads_before)
+        self.assertEqual(Modifier.Companion, Modifier.empty())
+        self.assertEqual("padding(16.0) -> size(24.0)", self.describe(chained))
 
-        The walker binds functions; `Modifier` as an expression is `Modifier.Companion`, an object.
-        So no name for the empty modifier is bound, and the refusal has to name the seam rather than
-        guess. `register_empty` is that seam and it is not registered here.
-        """
+    def test_the_class_object_spelling_needs_an_empty_factory_and_says_so(self):
+        """When the registered factory is cleared, the class-object spelling names `register_empty`."""
+        Modifier = self.modifier_type()
+        self.binding._EMPTY_FACTORIES.pop(fake_host.MODIFIER, None)
         with self.assertRaises(TypeError) as raised:
-            self.modifier_type().padding(16)
+            Modifier.padding(16)
         self.assertIn("register_empty", str(raised.exception))
+
+
+class ProxyClassAsArgument(AdapterCase):
+    """SPEC S6.1, S6.2 (python-multiplatform #308, #324, #134, #138): `Card(modifier=Modifier)` is `Modifier.empty()`."""
+
+    def test_modifier_class_passed_as_an_argument_is_its_empty_value(self):
+        import pythonx.compose.layout as layout
+
+        Modifier = self.modifier_type()
+        self.assertEqual("<empty>", self.describe(Modifier))
+        self.assertEqual(Modifier.Companion, Modifier.empty())
+        self.assertEqual(self.describe(Modifier.empty()), self.describe(Modifier))
+        self.assertEqual("padding(16.0)", self.describe(layout.padding(Modifier, 16)))
+
+    def test_card_and_spacer_accept_modifier_class_in_composition(self):
+        import pythonx.compose.material3 as material3
+
+        Modifier = self.modifier_type()
+        self.binding.push_composer(self.host.composer())
+        self.addCleanup(self.binding.pop_composer)
+        material3.Card(modifier=Modifier)
+        self.assertEqual("<empty>", self.host.last_card_modifier)
+        material3.Spacer(modifier=Modifier)
+        self.assertEqual("<empty>", self.host.last_spacer_modifier)
+
+    def test_modifier_class_without_a_registered_factory_names_register_empty(self):
+        import pythonx.compose.material3 as material3
+
+        Modifier = self.modifier_type()
+        self.binding._EMPTY_FACTORIES.pop(fake_host.MODIFIER, None)
+        with self.assertRaises(TypeError) as raised:
+            self.describe(Modifier)
+        self.assertIn("register_empty", str(raised.exception))
+        self.binding.push_composer(self.host.composer())
+        self.addCleanup(self.binding.pop_composer)
+        with self.assertRaises(TypeError) as card_raised:
+            material3.Card(modifier=Modifier)
+        self.assertIn("register_empty", str(card_raised.exception))
+
+    def test_an_unrelated_proxy_class_is_refused(self):
+        import pythonx.compose.layout as layout
+
+        self.register_empty()
+        pv_class = type(layout.padding_values_of(8))
+        with self.assertRaises(TypeError) as raised:
+            self.describe(pv_class)
+        self.assertNotIn("register_empty", str(raised.exception))
+        self.assertIn("Modifier", str(raised.exception))
 
 
 class OverloadDispatch(AdapterCase):

@@ -148,9 +148,11 @@ python_name("Modifier")       # 'Modifier'
 ## 📦 설치
 
 pip 패키지 **`pythonx-compose`**(파이썬 3.11 이상)로 배포되며, import 패키지 `pythonx.compose` 와
-매니페스트를 wheel 안에 담으며, 타입 정보도 함께 배포합니다: 실제 Compose 1.11.1 에서 생성한 `.pyi`
-스텁과 `py.typed`. [python-multiplatform](https://github.com/thisisthepy/python-multiplatform)
-으로 CPython 을 임베딩한 앱 안에서 동작하며, 단독 데스크톱 툴킷이 아닙니다.
+매니페스트를 wheel 안에 담으며, 타입 정보도 함께 배포합니다: 실제 Compose 1.11.1-ext.2(라이브러리
+`org.thisisthepy.compose.*:1.11.1-ext.2`, Maven Central 의 Gradle 플러그인
+`org.thisisthepy.compose:1.11.1-ext.3`)에서 생성한 `.pyi` 스텁과 `py.typed`.
+[python-multiplatform](https://github.com/thisisthepy/python-multiplatform) 으로 CPython 을 임베딩한
+앱 안에서 동작하며, 단독 데스크톱 툴킷이 아닙니다.
 
 ## 🧪 현황
 
@@ -162,17 +164,17 @@ pip 패키지 **`pythonx-compose`**(파이썬 3.11 이상)로 배포되며, impo
 | snake_case 메서드를 쓰는 `Modifier` 체인, 오버로드 디스패치, 숫자로 쓰는 `Dp` | ✅ 구현, 바인더 계층으로 테스트됨 |
 | `layout` 뿐 아니라 `material3` 에서도 쓰는 `Column`, `Row`, `Spacer` | ✅ 구현, 테스트됨 |
 | `snake_case` 메서드 키워드 인자 | ✅ 구현, 테스트됨: 모듈 함수와 메서드(메서드는 python-multiplatform 의 `describe_member` 필요) |
-| 빈 `Modifier` | 🟡 부분: 클래스에서 시작하는 `Modifier.padding(16)` 은 실제 Compose 에서 앱이 제공하는 팩토리가 필요 |
+| 빈 `Modifier` | ✅ 구현, 테스트됨: 클래스에서 시작하는 `Modifier.padding(16)` 과 `Card(modifier=Modifier)` 가 `register_empty(Modifier, lambda: Modifier.Companion)` 으로 `Modifier.Companion` 을 평가 (#134, #138) |
 | `Alignment` / `Arrangement` | ✅ 구현 및 테스트: `Alignment.Center`, `Arrangement.spaced_by(8)`, 그리고 `Alignment.End` 와 나란히 묶음 표기 `Alignment.Horizontal.End` |
 | Material 3 위젯 (`Text`, `Button`, `Card`, `TextField`, …) | 🟡 부분: 규칙으로 재노출됨; 위젯별 렌더 증거 대기(#9) |
-| 실제 Compose 1.11.1 에서 생성한 타입 스텁(`.pyi`), `py.typed` | ✅ 구현, mypy 로 검사; 아직 많은 타입이 `Any` 입니다(#12) |
+| 실제 Compose 1.11.1-ext.2 에서 생성한 타입 스텁(`.pyi`), `py.typed` | ✅ 구현, mypy 로 검사; 아직 많은 타입이 `Any` 입니다(#12) |
 | 배포 (`pythonx-compose`) | 🟡 부분: wheel 에 매니페스트, 재노출 규칙, 스텁, `py.typed` 포함 |
 | 갱신 호출 없는 선언형 앱 루트(`@app`), 상태는 Kotlin 의 `mutable_state_of` | 🟡 부분: 바인더 경로는 python-multiplatform #38 모양의 가짜 호스트로 테스트됨, 실제 Compose 에서는 python-multiplatform 노트북 E2E 가 통과(#11, #19), 숫자와 문자열은 왕복됨 |
 | `TextField(state=...)` 와 `TextFieldState` (`pythonx.compose.foundation.text.input`) | 🟡 부분: python-multiplatform #73 모양의 가짜 호스트로 테스트됨; 입력기(IME) 조합 증거는 python-multiplatform E2E #26 (#10) |
 | `DefaultIcons`(`Icons.Default`), `DefaultIcons.Add` 로 씀 | 🟡 부분: python-multiplatform #37/#38 모양의 가짜 호스트로 테스트됨; `Icon(DefaultIcons.Add, …)` 의 실제 그리기는 python-multiplatform 의 렌더 테스트에 있음 |
-| 색 스킴 | ⏳ 계획 |
+| 색 스킴 (`light_color_scheme`, `dark_color_scheme`) | ✅ 구현, 테스트됨: 48 개 Material 3 토큰 기본값과 `surface_tint = primary` 를 `ColorScheme` 48-인자 생성자로 구성 (#135) |
 | 노트북의 `getValue()` / `setValue()` 를 쓰는 `remember_saveable` | 🟡 부분: 가짜 호스트로 테스트됨, 저장과 복원은 python-multiplatform 의 테스트(#174) |
-| 코루틴 스코프(`DefaultCoroutineScope`, `MainCoroutineScope`) | ⏳ 계획, pythonx-concurrent 이후 |
+| 코루틴 스코프(`DefaultCoroutineScope`, `MainCoroutineScope`) | ✅ 구현, `pythonx.concurrent` 위에서 테스트됨 (#94) |
 
 전체 목록은 가이드의 [현황 페이지](https://thisisthepy.github.io/pythonx-compose/status.html)에 있습니다.
 

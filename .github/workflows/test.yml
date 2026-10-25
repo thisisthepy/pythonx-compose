@@ -4,10 +4,10 @@ name: Tests
 # python-multiplatform develop beside it. The tests only read three Kotlin
 # source files from it, so no JVM or Gradle is needed.
 on:
-  pull_request:
-    branches: [develop]
+  # Checked on develop after merging, not on every pull request (user decision,
+  # 2026-10-17). A red develop is fixed forward by its own pull request.
   push:
-    branches: ['feat/**']
+    branches: [develop]
   workflow_dispatch:
   # Daily against python-multiplatform develop as it is that day: the binder's contract moves under
   # this package without a pull request here, and #41 found out only at the next PR.
@@ -19,11 +19,15 @@ permissions:
 
 concurrency:
   group: test-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
   no-binder:
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python: ['3.13', '3.15']
     env:
       # A path that does not exist, so the binder tests skip.
       PYTHONMULTIPLATFORM_HOME: /nonexistent
@@ -33,7 +37,7 @@ jobs:
           fetch-depth: 1
       - uses: actions/setup-python@v5
         with:
-          python-version: '3.13'
+          python-version: ${{ matrix.python }}
       - run: pip install pytest mypy setuptools wheel
       - name: Run the suite
         run: python -m pytest tests -q -rs
@@ -60,8 +64,9 @@ jobs:
           fetch-depth: 1
       - uses: actions/setup-python@v5
         with:
-          python-version: '3.13'
-      - run: pip install pytest mypy setuptools wheel
+          python-version: '3.15'
+      # pyrefly, pinned as python-multiplatform's TypedPython gate pins it, for tests/test_typedpython.py.
+      - run: pip install pytest mypy setuptools wheel "pyrefly==1.3.2"
       - name: Run the suite
         run: python -m pytest tests -q -rs
 

@@ -63,6 +63,17 @@ class TheModifierSeam(unittest.TestCase):
         )
         self.assertEqual(["padding__Dp", "size__Dp"], self.host.calls)
 
+    def test_card_takes_modifier_class_as_the_empty_modifier_once_installed(self):
+        """Issue #134 (python-multiplatform #308): `Card(modifier=Modifier)` passes `Modifier.empty()`."""
+        import pythonx.compose.material3 as material3
+
+        Modifier = self.modifier.install(fake_host.EMPTY_MODIFIER)
+        self.binding.push_composer(self.host.composer())
+        self.addCleanup(self.binding.pop_composer)
+        material3.Card(modifier=Modifier)
+        self.assertEqual(["Card"], self.host.composable_calls)
+        self.assertEqual("<empty>", self.host.last_card_modifier)
+
     def test_the_module_level_modifier_attribute_resolves_lazily(self):
         self.modifier.install(fake_host.EMPTY_MODIFIER)
         self.assertIs(self.modifier.Modifier, self.modifier.modifier_type())
@@ -72,6 +83,17 @@ class TheModifierSeam(unittest.TestCase):
         with self.assertRaises(RuntimeError) as raised:
             self.modifier.adapter()
         self.assertIn("PythonxAdapter.install()", str(raised.exception))
+
+    def test_install_with_no_argument_registers_modifier_companion(self):
+        """SPEC S6.2 (#138, python-multiplatform #324): `install()` defaults to `lambda: Modifier.Companion`."""
+        self.binding._EMPTY_FACTORIES.clear()
+        Modifier = self.modifier.install()
+        reads_before = self.host.companion_reads
+        self.assertEqual(Modifier.Companion, Modifier.empty())
+        self.assertGreater(self.host.companion_reads, reads_before)
+        self.assertEqual(
+            "padding(16.0) -> size(24.0)", self.describe(Modifier.padding(16).size(24))
+        )
 
     def test_the_placeholder_factory_is_labelled_as_unbound(self):
         """It is not a working default and the file must not pretend it is."""
