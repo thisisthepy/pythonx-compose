@@ -483,7 +483,13 @@ class Converter:
                         found.add(alias.name)
         return found
 
-    def convert(self, source: str, kotlin_package: str = "", module_name: str = "") -> str:
+    def convert(
+        self,
+        source: str,
+        kotlin_package: str = "",
+        module_name: str = "",
+        own_names: frozenset[str] = frozenset(),
+    ) -> str:
         """One Kotlin-named stub module, rewritten to the Pythonic surface."""
         dropped: list[str] = []
         tree = parse(source, dropped)
@@ -498,6 +504,11 @@ class Converter:
                 continue
             if isinstance(node, ast.FunctionDef):
                 node.name = python_name(node.name)
+                if node.name in own_names:
+                    # A function the package's own `__init__.py` defines (`light_color_scheme`,
+                    # `dark_color_scheme`) shadows the binder's declaration at run time; its own
+                    # signature is emitted by `own_definitions` below.
+                    continue
                 _rename_property_decorators(node)
                 _rename_arguments(node.args)
                 base, sep, _ = node.name.partition("__")
@@ -505,6 +516,8 @@ class Converter:
                     explicit.setdefault(base, []).append(node)
             elif isinstance(node, ast.AnnAssign) and isinstance(node.target, ast.Name):
                 node.target.id = python_name(node.target.id)
+                if node.target.id in own_names:
+                    continue
             elif isinstance(node, ast.ClassDef):
                 self._convert_class(node)
             body.append(node)
@@ -514,7 +527,7 @@ class Converter:
         defined = {node.name for node in body if isinstance(node, ast.FunctionDef)} | {
             node.target.id for node in body
             if isinstance(node, ast.AnnAssign) and isinstance(node.target, ast.Name)
-        }
+        } | set(own_names)
         classes = {node.name for node in body if isinstance(node, ast.ClassDef)}
         for base, variants in explicit.items():
             if base in defined:
@@ -810,16 +823,20 @@ def generate(kotlin_stubs: Path, package_root: Path, notes: list[str] | None = N
     out: dict[Path, str] = {}
     for module_name, kotlin_package in manifest()["modules"].items():
         module_dir = package_root.joinpath(*module_name.split(".")[1:])
+        own = own_definitions(module_dir / "__init__.py")
+        own_names = frozenset(
+            name for snippet in own for node in ast.parse(snippet).body
+            if (name := _name_of(node)) is not None
+        )
         first = converter.first_module[kotlin_package]
         source = stubs.stub(kotlin_package)
         if first != module_name:
             # The same Kotlin package under a second name: at run time, the same objects.
             text = header(stubs.provenance) + f"from {first} import *\n"
         elif source is not None:
-            text = converter.convert(source, kotlin_package, module_name)
+            text = converter.convert(source, kotlin_package, module_name, own_names)
         else:
             text = header(stubs.provenance)
-        own = own_definitions(module_dir / "__init__.py")
         if own:
             if "import typing as _t\n" not in text:
                 text += "import typing as _t\n"

@@ -392,7 +392,7 @@ toggle family, `TextField`, `Checkbox` and `Switch` are meant to be reached thro
   `Button`, `Card`, `Icon`, `Column`, `Row` (with an `Arrangement` and an `Alignment.Horizontal`)
   and `Spacer` from the installed wheel, each pixel-equal to the same composables drawn from Kotlin.
 
-### S5.3 `DefaultIcons`, `Icon` and colour schemes: `partial`
+### S5.3 `DefaultIcons`, `Icon` and colour schemes: `implemented` (against the fake host; real-Compose draw proofs live in python-multiplatform's render tests)
 
 `DefaultIcons` is `implemented` against the fake host: `pythonx.compose.material.icons`
 (`androidx.compose.material.icons`) serves `Icons`; `Icons.Default` resolves to `Icons.Filled`
@@ -409,9 +409,32 @@ python-multiplatform's render test and its notebook E2E (cells 28 to 30). Tests:
 `androidx.compose.ui.graphics.vector` is the manifest row `pythonx.compose.ui.graphics.vector`), checked by
 `tests/test_typing.py::test_default_icons_imports_from_material3` and `test_a_default_icon_is_an_image_vector`
 (`DefaultIcons.Add` is an `ImageVector`, `DefaultIcons.NotAnIcon` an error). `Icon` itself is a Material 3 composable, served by the §3 rule.
-Still `planned`: the two colour-scheme factories take 36 `Color` parameters against
-the binding's omission cap (python-multiplatform `a6742a1c`). The hand-written `icon.py` /
-`color_scheme.py` that recorded this were dead code and are deleted (#31).
+
+**Colour schemes (`light_color_scheme`, `dark_color_scheme`, #135):** `implemented` in
+`pythonx/compose/material3/__init__.py` on top of the bound 48-argument `ColorScheme` constructor
+(python-multiplatform #309, `8ed68d93`).
+
+- Why here: in Compose Material 3 (`org.thisisthepy.compose.material3:1.11.1-ext.2`),
+  `lightColorScheme` and `darkColorScheme` each declare 48 defaulted `Color` parameters, past the
+  binder's omission cap (`MAX_OMITTABLE_PARAMETERS = 6`), so the binder exposes them with every
+  parameter required, and their defaults depend on each other (`surfaceTint: Color = primary`),
+  ruling out a defaults-then-copy helper in the binder.
+- What `pythonx.compose.material3` provides: `light_color_scheme` and `dark_color_scheme` accept all
+  48 `Color` parameters as optional (`None` defaults to Compose Material 3's `ColorLightTokens` /
+  `ColorDarkTokens` `PaletteTokens` values, constructed via `pythonx.compose.ui.graphics.Color(0xFFRRGGBB)`),
+  reproduce Kotlin's inter-parameter default (`surface_tint` defaults to the resolved `primary` when
+  `surface_tint` is omitted, including when `primary` was overridden by the caller), and call
+  `ColorScheme(...)` in its 48-parameter constructor order (`surface_bright`, `surface_dim`,
+  `surface_container`, `surface_container_high`, `surface_container_highest`,
+  `surface_container_low`, `surface_container_lowest`).
+- Stubs: `scripts/gen_stubs.py` replaces same-named functions from the Kotlin stub when a package's
+  own `__init__.py` defines them (`own_definitions`), so `pythonx/compose/material3/__init__.pyi`
+  carries one `def light_color_scheme(...) -> ColorScheme` and one `def dark_color_scheme(...) -> ColorScheme`
+  with all 48 parameters optional (`= None`).
+- Tests: `tests/test_material3_module.py::TheColorSchemeFactories` (runtime, against the fake host's
+  48-argument `ColorScheme` constructor row), `tests/test_stubs.py` (stub replacement), and
+  `tests/test_typing.py::TheStubsTypeCheck::test_light_and_dark_color_scheme_type_check` (mypy).
+  The retired 2024 `icon.py` and `color_scheme.py` reflection files remain deleted (#31).
 
 ### S5.5 `TextField(state=...)` and `TextFieldState`: `partial`
 

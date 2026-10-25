@@ -81,6 +81,29 @@ TEXT_INPUT = "androidx.compose.foundation.text.input"
 TEXT_FIELD_STATE = TEXT_INPUT + ".TextFieldState"
 TEXT_RANGE = "androidx.compose.ui.text.TextRange"
 MATERIAL3 = "androidx.compose.material3"
+COLOR_SCHEME = MATERIAL3 + ".ColorScheme"
+COLOR_SCHEME_CONSTRUCTOR_SLOTS = (
+    "primary", "onPrimary", "primaryContainer", "onPrimaryContainer", "inversePrimary",
+    "secondary", "onSecondary", "secondaryContainer", "onSecondaryContainer",
+    "tertiary", "onTertiary", "tertiaryContainer", "onTertiaryContainer",
+    "background", "onBackground", "surface", "onSurface", "surfaceVariant", "onSurfaceVariant",
+    "surfaceTint", "inverseSurface", "inverseOnSurface",
+    "error", "onError", "errorContainer", "onErrorContainer",
+    "outline", "outlineVariant", "scrim",
+    "surfaceBright", "surfaceDim", "surfaceContainer", "surfaceContainerHigh",
+    "surfaceContainerHighest", "surfaceContainerLow", "surfaceContainerLowest",
+    "primaryFixed", "primaryFixedDim", "onPrimaryFixed", "onPrimaryFixedVariant",
+    "secondaryFixed", "secondaryFixedDim", "onSecondaryFixed", "onSecondaryFixedVariant",
+    "tertiaryFixed", "tertiaryFixedDim", "onTertiaryFixed", "onTertiaryFixedVariant",
+)
+COLOR_SCHEME_FACTORY_SLOTS = (
+    COLOR_SCHEME_CONSTRUCTOR_SLOTS[:29]
+    + (
+        "surfaceBright", "surfaceContainer", "surfaceContainerHigh",
+        "surfaceContainerHighest", "surfaceContainerLow", "surfaceContainerLowest", "surfaceDim",
+    )
+    + COLOR_SCHEME_CONSTRUCTOR_SLOTS[36:]
+)
 
 EMPTY_MODIFIER = "androidx.compose.ui.emptyModifier"
 """The one entry the real walker does **not** produce; see `ComposeShapedFragment.EMPTY_MODIFIER`.
@@ -154,6 +177,15 @@ class StubState:
         self.writes.append(value)
 
 
+class StubColorScheme:
+    """A `ColorScheme` for this fixture: the 48 `Color` slots handed to its primary constructor."""
+
+    __slots__ = ("slots",)
+
+    def __init__(self, slots):
+        self.slots = dict(slots)
+
+
 def _dp(value):
     # `ComposeShapedFragment.dp` is `(value as Double).toString()`, so 16 renders as "16.0".
     return str(float(value))
@@ -175,6 +207,7 @@ class FakeHost:
         self.last_spacer_modifier = None
         self.last_text_field_flags = None
         self.last_text_field_modifier = None
+        self.last_color_scheme = None
         self.saveable_calls = []
         self._composer = None
         self._build()
@@ -587,12 +620,44 @@ class FakeHost:
         The binder makes such a module callable (`_make_callable`): `Color(0xFFFFFFFF)` calls the
         function, `Color.Red` reads a constant of the object. One overload is modelled; the real
         `Color(Int)` / `Color(Long)` pair and its ambiguity are python-multiplatform #146.
+
+        `ColorScheme` and `lightColorScheme` / `darkColorScheme` follow python-multiplatform #309:
+        `lightColorScheme` and `darkColorScheme` have 48 defaulted parameters (past the binder's
+        6-parameter cap), so the walker binds them with all 48 parameters required (`has_default`
+        all `False`), while `ColorScheme`'s 48-argument primary constructor takes the 48 `Color`
+        values positionally (`surfaceDim` at slot 30 in the constructor, slot 35 in the factories).
         """
         self._add(
             COLOR, 1, ("color",), ("INT",), ("kotlin.Long",), "OBJECT", COLOR, False, None,
             (False,), lambda args: StubConstant(f"Color({args[0]:#x})"),
         )
         self._constant(f"{COLOR}.Red", COLOR)
+
+        def build_scheme(slots):
+            def body(args):
+                scheme = StubColorScheme(zip(slots, args))
+                self.last_color_scheme = scheme
+                return scheme
+
+            return body
+
+        arity = len(COLOR_SCHEME_CONSTRUCTOR_SLOTS)
+        self._add(
+            COLOR_SCHEME, arity, COLOR_SCHEME_CONSTRUCTOR_SLOTS, ("OBJECT",) * arity,
+            (COLOR,) * arity, "OBJECT", COLOR_SCHEME, False, None, (False,) * arity,
+            build_scheme(COLOR_SCHEME_CONSTRUCTOR_SLOTS),
+        )
+        for factory in ("lightColorScheme", "darkColorScheme"):
+            self._add(
+                f"{MATERIAL3}.{factory}", arity, COLOR_SCHEME_FACTORY_SLOTS, ("OBJECT",) * arity,
+                (COLOR,) * arity, "OBJECT", COLOR_SCHEME, False, None, (False,) * arity,
+                build_scheme(COLOR_SCHEME_FACTORY_SLOTS),
+            )
+        for slot in COLOR_SCHEME_CONSTRUCTOR_SLOTS:
+            self._add(
+                f"{COLOR_SCHEME}.{slot}", 0, (), (), (), "OBJECT", COLOR, False,
+                COLOR_SCHEME, (), lambda args, s=slot: args[0].slots[s], kind="GETTER",
+            )
 
     def _constant(self, name, declared):
         self._add(name, 0, (), (), (), "OBJECT", declared, False, None, (),

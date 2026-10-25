@@ -360,6 +360,29 @@ class TheStubsTypeCheck(unittest.TestCase):
             DefaultCoroutineScope(1)
         """, "Too many arguments")
 
+    def test_light_and_dark_color_scheme_type_check(self):
+        """Issue #135 (python-multiplatform #309): `light_color_scheme` and `dark_color_scheme`
+        have all 48 parameters defaulted and return `ColorScheme`."""
+        self.assertPasses("""
+            from pythonx.compose.material3 import ColorScheme, MaterialTheme, dark_color_scheme, light_color_scheme
+            from pythonx.compose.ui.graphics import Color
+
+            light: ColorScheme = light_color_scheme()
+            dark: ColorScheme = dark_color_scheme(primary=Color(0xFF123456), surface_tint=Color(0xFF654321))
+            MaterialTheme(color_scheme=light, content=lambda: None)
+            MaterialTheme(color_scheme=dark, content=lambda: None)
+        """)
+        self.assertFails("""
+            from pythonx.compose.material3 import light_color_scheme
+
+            light_color_scheme(no_such_color=None)
+        """, "no_such_color", "[call-arg]")
+        self.assertFails("""
+            from pythonx.compose.material3 import light_color_scheme
+
+            n: int = light_color_scheme()
+        """, "ColorScheme", "[assignment]")
+
 
 if __name__ == "__main__":
     unittest.main()

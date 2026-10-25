@@ -172,7 +172,7 @@ pip 패키지 **`pythonx-compose`**(파이썬 3.11 이상)로 배포되며, impo
 | 갱신 호출 없는 선언형 앱 루트(`@app`), 상태는 Kotlin 의 `mutable_state_of` | 🟡 부분: 바인더 경로는 python-multiplatform #38 모양의 가짜 호스트로 테스트됨, 실제 Compose 에서는 python-multiplatform 노트북 E2E 가 통과(#11, #19), 숫자와 문자열은 왕복됨 |
 | `TextField(state=...)` 와 `TextFieldState` (`pythonx.compose.foundation.text.input`) | 🟡 부분: python-multiplatform #73 모양의 가짜 호스트로 테스트됨; 입력기(IME) 조합 증거는 python-multiplatform E2E #26 (#10) |
 | `DefaultIcons`(`Icons.Default`), `DefaultIcons.Add` 로 씀 | 🟡 부분: python-multiplatform #37/#38 모양의 가짜 호스트로 테스트됨; `Icon(DefaultIcons.Add, …)` 의 실제 그리기는 python-multiplatform 의 렌더 테스트에 있음 |
-| 색 스킴 | ⏳ 계획 |
+| 색 스킴 (`light_color_scheme`, `dark_color_scheme`) | ✅ 구현, 테스트됨: 48 개 Material 3 토큰 기본값과 `surface_tint = primary` 를 `ColorScheme` 48-인자 생성자로 구성 (#135) |
 | 노트북의 `getValue()` / `setValue()` 를 쓰는 `remember_saveable` | 🟡 부분: 가짜 호스트로 테스트됨, 저장과 복원은 python-multiplatform 의 테스트(#174) |
 | 코루틴 스코프(`DefaultCoroutineScope`, `MainCoroutineScope`) | ✅ 구현, `pythonx.concurrent` 위에서 테스트됨 (#94) |
 
