@@ -20,7 +20,7 @@ files) lives **inside this repository's root directory.**
 | What | Where |
 |---|---|
 | Worktrees | `.worktrees/<name>` (git-ignored) |
-| Temporary files | `.tmp/` (git-ignored); delete when done |
+| Temporary files | the session scratchpad directory, or `.cache/` (git-ignored); delete when done |
 | Benchmarks | `benchmarks/` |
 | CI scripts | `.github/scripts/` |
 | Build tooling (stub generator) | `scripts/` (not shipped in the wheel) |
@@ -36,7 +36,7 @@ Writing to *another* repository is not an exception either. Do it only when told
 
 Do not create new folders or files at the repository root on your own. Work goes inside the
 existing modules and directories: source inside the package (`pythonx/`), CI scripts in
-`.github/scripts/`, build tooling in `scripts/`, temporary files in the git-ignored `.tmp/`.
+`.github/scripts/`, build tooling in `scripts/`, temporary files in the git-ignored `.cache/`.
 
 The standing root entries are `pyproject.toml`, `README.md`, `LICENSE`, `PROJECT.md`, `AGENTS.md`,
 `pythonx/`, `scripts/` (approved by the maintainer, 2026-10-03), `tests/`, `docs/`, `.github/`,
@@ -214,7 +214,7 @@ worktree so a test can see it. Read it in place.
     uv run --with pytest --with mypy pytest tests -q
 
 - The suite needs `pytest`; if the system Python has none, create a virtual environment under
-  `.tmp/` (rule 2), not in the home directory.
+  `.cache/` (rule 2), not in the home directory.
 - Tests that exercise the binder's adaptation layer read it, read-only, from a `PythonMultiplatform`
   checkout: the sibling directory `../PythonMultiplatform`, or `PYTHONMULTIPLATFORM_HOME`. Without
   one they **skip**; against an older python-multiplatform some still skip, each saying which binder
