@@ -166,7 +166,7 @@ it is not a standalone desktop toolkit.
 | `Modifier` chains with snake_case methods, overload dispatch, `Dp` as a number | ✅ implemented and tested against the binder's layer |
 | `Column`, `Row`, `Spacer` from `material3` as well as `layout` | ✅ implemented and tested |
 | Method keyword arguments in `snake_case` | ✅ implemented and tested: module functions and methods (methods need python-multiplatform's `describe_member`) |
-| The empty `Modifier` | 🟡 partial: `Modifier.padding(16)` and `Card(modifier=Modifier)` from the class need an app-supplied factory (`register_empty`) against real Compose (#134) |
+| The empty `Modifier` | ✅ implemented and tested: `Modifier.padding(16)` and `Card(modifier=Modifier)` from the class evaluate `Modifier.Companion` through `register_empty(Modifier, lambda: Modifier.Companion)` (#134, #138) |
 | `Alignment` / `Arrangement` | ✅ implemented and tested: `Alignment.Center`, `Arrangement.spaced_by(8)`, and grouped `Alignment.Horizontal.End` beside `Alignment.End` |
 | Material 3 widgets (`Text`, `Button`, `Card`, `TextField`, …) | 🟡 partial: re-exported by rule; render proofs per widget pending (#9) |
 | Type stubs (`.pyi`) from real Compose 1.11.1-ext.2, `py.typed` | ✅ implemented and checked with mypy; many types are still `Any` (#12) |

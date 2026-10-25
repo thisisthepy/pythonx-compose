@@ -209,6 +209,8 @@ class FakeHost:
         self.last_text_field_modifier = None
         self.last_color_scheme = None
         self.saveable_calls = []
+        self.companion_reads = 0
+        self.modifier_companion = StubModifier()
         self._composer = None
         self._build()
 
@@ -344,6 +346,10 @@ class FakeHost:
         self._build_text_field()
         self._build_color()
         self._build_saveable()
+        self._add(
+            f"{MODIFIER}.Companion", 0, (), (), (), "OBJECT", MODIFIER, False, None, (),
+            self._read_modifier_companion, kind="STATIC_GETTER",
+        )
         self._add(
             EMPTY_MODIFIER, 0, (), (), (), "OBJECT", MODIFIER, False, None, (),
             lambda args: StubModifier(),
@@ -568,6 +574,10 @@ class FakeHost:
         self.calls.append(f"Icons.Filled.{icon}")
         return StubConstant(icon)
 
+    def _read_modifier_companion(self, args):
+        self.companion_reads += 1
+        return self.modifier_companion
+
     def _scalar_boxes(self):
         """`PythonCallables`' box entries, the shape python-multiplatform 26485a02 (#69) registers.
 
@@ -586,6 +596,17 @@ class FakeHost:
                       (False,), lambda args: self._handle(args[0]))
         self._add(prefix + "unboxScalar", 1, ("handle",), ("INT",), ("kotlin.Long",), "OBJECT", None,
                   False, None, (False,), self._unbox)
+        self._add(prefix + "sameObject", 2, ("left", "right"), ("INT", "INT"),
+                  ("kotlin.Long", "kotlin.Long"), "BOOLEAN", "kotlin.Boolean", False, None,
+                  (False, False),
+                  lambda args: (
+                      args[0] in self._handles
+                      and args[1] in self._handles
+                      and self._handles[args[0]] is self._handles[args[1]]
+                  ))
+        self._add(prefix + "hashOf", 1, ("handle",), ("INT",), ("kotlin.Long",), "INT",
+                  "kotlin.Long", False, None, (False,),
+                  lambda args: id(self._handles[args[0]]) if args[0] in self._handles else 0)
 
     def _unbox(self, args):
         held = self._handles.get(args[0])

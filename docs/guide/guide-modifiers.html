@@ -31,8 +31,8 @@ r.lang=l;if(t==='dark'||t==='light'){r.setAttribute('data-theme',t);}})();</scri
 
 <div class="wrap doc narrow">
 <section class="flush">
-<p><span class="chip partial"><span data-lang="en">partial</span><span data-lang="ko">부분</span></span></p>
-<p data-lang="en" class="muted">Chains, snake_case method names, overload dispatch and <code>Dp</code> as a number are implemented and pass against the binder's adaptation layer (python-multiplatform <code>ba4c6f49</code> or later). The partial piece is where a chain starts against real Compose. See <a href="#empty">the empty Modifier</a> below.</p><p data-lang="ko" class="muted">체인, snake_case 메서드 이름, 오버로드 디스패치, 숫자로 쓰는 <code>Dp</code> 는 구현되어 있고 바인더의 적응 계층(python-multiplatform <code>ba4c6f49</code> 이후)에서 통과합니다. 부분적인 것은 실제 Compose 에서 체인이 시작되는 지점입니다. 아래 <a href="#empty">빈 Modifier</a> 를 보세요.</p>
+<p><span class="chip ok"><span data-lang="en">implemented</span><span data-lang="ko">구현</span></span></p>
+<p data-lang="en" class="muted">Chains, snake_case method names, overload dispatch, <code>Dp</code> as a number, and starting a chain or passing <code>Modifier</code> from the class object (<code>Modifier.padding(16)</code>, <code>Card(modifier=Modifier)</code>) are implemented and pass against the binder's adaptation layer (python-multiplatform #324 or later). See <a href="#empty">the empty Modifier</a> below.</p><p data-lang="ko" class="muted">체인, snake_case 메서드 이름, 오버로드 디스패치, 숫자로 쓰는 <code>Dp</code>, 그리고 클래스 객체에서 체인을 시작하거나 <code>Modifier</code> 를 인자로 넘기는 표기(<code>Modifier.padding(16)</code>, <code>Card(modifier=Modifier)</code>)는 모두 구현되어 바인더의 적응 계층(python-multiplatform #324 이후)에서 통과합니다. 아래 <a href="#empty">빈 Modifier</a> 를 보세요.</p>
 </section>
 
 <section>
@@ -77,13 +77,14 @@ m.padding_from_baseline(16)    # TypeError: TextUnit would be reinterpreted</cod
 
 <section id="empty">
 <h2><span data-lang="en">The empty Modifier</span><span data-lang="ko">빈 Modifier</span></h2>
-<p data-lang="en">In Kotlin, <code>Modifier</code> as an expression is an object, and bindings are functions, so there is no bound name for the empty modifier a chain starts from. <code>pythonx/compose/ui/modifier.py</code> is the seam: an application registers a one-line Kotlin factory.</p><p data-lang="ko">Kotlin 에서 식으로 쓰인 <code>Modifier</code> 는 객체이고 바인딩은 함수이므로, 체인이 시작하는 빈 모디파이어에는 바인딩된 이름이 없습니다. <code>pythonx/compose/ui/modifier.py</code> 가 그 접점이며, 앱이 한 줄짜리 Kotlin 팩토리를 등록합니다.</p>
-<pre><code class="language-kotlin">// in the application&#x27;s Kotlin
-fun emptyModifier(): Modifier = Modifier</code></pre>
-<pre><code class="language-python">import pythonx.compose.ui.modifier as seam
+<p data-lang="en">In Kotlin, <code>Modifier</code> as an expression is the companion object <code>Modifier.Companion</code>. Since python-multiplatform #324, a public companion object is bound as <code>Owner.Companion</code> on the proxy class and <code>register_empty</code> accepts the class and a Python callable. <code>pythonx.compose</code> registers <code>register_empty(Modifier, lambda: Modifier.Companion)</code> by default, and <code>pythonx.compose.ui.modifier.install()</code> registers the same default (#138):</p><p data-lang="ko">Kotlin 에서 식으로 쓰인 <code>Modifier</code> 는 동반 객체 <code>Modifier.Companion</code> 입니다. python-multiplatform #324 부터 공개 동반 객체가 프록시 클래스의 <code>Owner.Companion</code> 값으로 바인딩되고 <code>register_empty</code> 가 클래스와 파이썬 callable 도 받습니다. <code>pythonx.compose</code> 는 기본적으로 <code>register_empty(Modifier, lambda: Modifier.Companion)</code> 을 등록하며, <code>pythonx.compose.ui.modifier.install()</code> 도 같은 기본값을 등록합니다(#138):</p>
+<pre><code class="language-python">from pythonx.compose.ui import Modifier
+from pythonx.compose.material3 import Card, Spacer, Text
 
-seam.install(&quot;com.example.emptyModifier&quot;)   # then Modifier.padding(16) and Card(modifier=Modifier) work</code></pre>
-<p data-lang="en">Once installed, the class object itself is accepted anywhere a <code>Modifier</code> parameter is expected (<code>Card(modifier=Modifier)</code>, <code>Spacer(modifier=Modifier)</code>), standing for <code>Modifier.empty()</code> (python-multiplatform #308, #134). Without it, <code>Modifier.padding(16)</code> and <code>Card(modifier=Modifier)</code> raise a <code>TypeError</code> naming <code>register_empty</code>. A <code>Modifier</code> instance Kotlin hands out chains without it.</p><p data-lang="ko">설치되면 <code>Modifier</code> 매개변수가 기대되는 자리 어디에나 클래스 객체 자체를 넘길 수 있으며(<code>Card(modifier=Modifier)</code>, <code>Spacer(modifier=Modifier)</code>), <code>Modifier.empty()</code> 를 뜻합니다(python-multiplatform #308, #134). 이것이 없으면 <code>Modifier.padding(16)</code> 과 <code>Card(modifier=Modifier)</code> 는 <code>register_empty</code> 를 밝히는 <code>TypeError</code> 를 냅니다. Kotlin 이 건네준 <code>Modifier</code> 인스턴스는 이것 없이도 체이닝됩니다.</p>
+m = Modifier.padding(16).size(24)               # starts from Modifier.Companion
+Card(modifier=Modifier, content=lambda s: Text(&quot;hi&quot;))
+Spacer(modifier=Modifier)</code></pre>
+<p data-lang="en">Both the class-object chain (<code>Modifier.padding(16)</code>) and passing the class object itself anywhere a <code>Modifier</code> parameter is expected (<code>Card(modifier=Modifier)</code>, <code>Spacer(modifier=Modifier)</code>) evaluate <code>Modifier.Companion</code> (python-multiplatform #308, #324; #134, #138). <code>pythonx.compose.ui.modifier.install(empty_factory)</code> still accepts an explicit Kotlin function name or callable when a test or host overrides the default.</p><p data-lang="ko">클래스 객체에서 시작하는 체인(<code>Modifier.padding(16)</code>)과 <code>Modifier</code> 매개변수가 기대되는 자리에 클래스 객체 자체를 넘기는 표기(<code>Card(modifier=Modifier)</code>, <code>Spacer(modifier=Modifier)</code>) 모두 <code>Modifier.Companion</code> 을 평가합니다(python-multiplatform #308, #324; #134, #138). 테스트나 호스트가 기본값을 덮어쓸 때에는 <code>pythonx.compose.ui.modifier.install(empty_factory)</code> 에 명시적 Kotlin 함수 이름이나 callable 을 넘길 수 있습니다.</p>
 <div class="pager"><a href="guide-composables.html">← <span data-lang="en">Composables</span><span data-lang="ko">컴포저블</span></a><a href="guide-manifest.html"><span data-lang="en">Manifest</span><span data-lang="ko">매니페스트</span> →</a></div>
 </section>
 </div>

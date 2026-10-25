@@ -553,30 +553,39 @@ and `tests/test_typing.py::test_default_and_main_coroutine_scopes_type_check`.
 ### S6.1 `Modifier` extensions are methods on the receiver proxy: `implemented`
 
 `Modifier.padding(16).size(24)` chains; each link returns a new receiver; an unbound name raises
-`AttributeError` naming where it looked; the class-object spelling without a registered empty
-factory raises `TypeError` naming `register_empty`; `pythonx.compose.ui.Modifier` is the binder's
-proxy class itself. Passing a proxy class as an `OBJECT` argument (`Card(modifier=Modifier)`,
+`AttributeError` naming where it looked; a proxy class without a registered empty factory raises
+`TypeError` naming `register_empty`; `pythonx.compose.ui.Modifier` is the binder's proxy class
+itself. Passing a proxy class as an `OBJECT` argument (`Card(modifier=Modifier)`,
 `Spacer(modifier=Modifier)`, `describe_modifier(Modifier)`, `padding(Modifier, 16)`) passes its
 registered empty value, equal to `Modifier.empty()` (python-multiplatform #308, #134); without a
 registered factory it propagates `empty()`'s `TypeError` naming `register_empty`, and passing a
 proxy class of an unrelated type is refused.
 
 Evidence: `tests/test_chain.py::TheChain` (8 tests), `::ProxyClassAsArgument` (4 tests) and
-`tests/test_modifier_module.py::TheModifierSeam` (6 tests), against python-multiplatform `2ae4aab8`.
+`tests/test_modifier_module.py::TheModifierSeam` (7 tests), against python-multiplatform `6cf658d8` (#324).
 A snake_case method is served by the binder (python-multiplatform #131) and leaves its class Kotlin-named in `dir()`.
 
-### S6.2 The empty-`Modifier` seam: `partial`
+### S6.2 The empty-`Modifier` seam: `implemented`
 
-`pythonx/compose/ui/modifier.py` provides `install(empty_factory)` to register which Kotlin function
-returns an empty `Modifier` (`register_empty('androidx.compose.ui.Modifier', empty_factory)`), and
-resolves `Modifier` lazily. Once installed, both the class-object chain (`Modifier.padding(16)`) and
-passing `Modifier` itself as an argument (`Card(modifier=Modifier)`, `Spacer(modifier=Modifier)`)
-evaluate that registered factory (python-multiplatform #308, #134). **No such function exists in Compose**:
-the default `androidx.compose.ui.emptyModifier` is a placeholder, so the class-object spelling
-(`Modifier.padding(...)`, `Card(modifier=Modifier)`) does not work against real Compose until an application supplies a
-one-line Kotlin factory. The instance spelling (`m.padding(16)` on a `Modifier` Kotlin returned)
-does not need it. `tests/test_modifier_module.py::TheShellIsGone` (3 tests, passing) checks the old
-hand-written shell is gone.
+Since python-multiplatform #324 (`ba338d4f`, closing #322), a public companion object is bound as a
+`STATIC_GETTER` (`androidx.compose.ui.Modifier.Companion`, typed as `Modifier`) and read on the
+owner's proxy class as `Modifier.Companion`, while `register_empty` accepts the proxy class itself
+and a Python callable (`register_empty(Modifier, lambda: Modifier.Companion)`).
+
+When `pythonx.compose._reexport._prime` primes an installed binding layer (or when
+`pythonx.compose.ui.modifier.install()` is called with no argument), it registers the default empty
+factory for `androidx.compose.ui.Modifier` (`register_empty(Modifier, lambda: Modifier.Companion)`
+through `importlib.import_module("androidx.compose.ui").Modifier.Companion`), unless the caller or
+test has already registered an explicit factory for `androidx.compose.ui.Modifier` (#138). Both the
+class-object chain (`Modifier.padding(16)`) and passing `Modifier` itself as an argument
+(`Card(modifier=Modifier)`, `Spacer(modifier=Modifier)`) therefore evaluate `Modifier.Companion` out
+of the box against real Compose (verified in python-multiplatform's
+`ProxyClassArgumentRenderTest.aModifierClassPassedToCardIsTheCompanionRegisteredFromPython`), with
+no application-supplied Kotlin `emptyModifier` helper needed. `pythonx.compose.ui.modifier.install(empty_factory)`
+still accepts an explicit Kotlin function name or callable when a test or host overrides the default.
+
+Evidence: `tests/test_chain.py::TheChain`, `::ProxyClassAsArgument` and
+`tests/test_modifier_module.py::TheModifierSeam` (7 tests) and `::TheShellIsGone` (3 tests).
 
 ### S6.3 Overload dispatch: `implemented`
 

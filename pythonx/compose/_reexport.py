@@ -81,6 +81,7 @@ class BindingLayer(Protocol):
     """What this module asks of `python_multiplatform.binding`."""
 
     def allow_raw_primitive(self, kotlin_type: str, /) -> None: ...
+    def register_empty(self, kotlin_type: object, empty_factory: object, /) -> None: ...
 
 
 Describe = Callable[[types.ModuleType, str], object]
@@ -134,18 +135,31 @@ def binding_layer() -> BindingLayer:
 
 
 _PRIMED: weakref.WeakSet[BindingLayer] = weakref.WeakSet()
+_MODIFIER_TYPE = "androidx.compose.ui.Modifier"
+
+
+def _modifier_companion() -> object:
+    """`Modifier.Companion` read live from `androidx.compose.ui.Modifier` (python-multiplatform #324)."""
+    return cast(object, importlib.import_module("androidx.compose.ui").Modifier.Companion)
 
 
 def _prime(binding: BindingLayer) -> None:
-    """Hand this binding layer the manifest's value-class allowlist, once.
+    """Hand this binding layer the manifest's value-class allowlist and the default empty `Modifier`, once.
 
     Method names and keywords on a proxy are the binder's own since python-multiplatform #131
-    (snake_case by this package's rule); nothing is registered for them here.
+    (snake_case by this package's rule); nothing is registered for them here. Since
+    python-multiplatform #324, `Modifier.Companion` is bound as a value on the proxy class and
+    `register_empty` accepts a callable (`SPEC.md` S6.2, #138); if the caller has not already
+    registered an explicit empty factory for `androidx.compose.ui.Modifier`, `_modifier_companion`
+    is registered as the default.
     """
     if binding in _PRIMED:
         return
     for kotlin_type in manifest().get("value-classes", {}).get("raw-primitive-allowed", ()):
         binding.allow_raw_primitive(kotlin_type)
+    factories = cast("Mapping[str, object]", getattr(binding, "_EMPTY_FACTORIES", {}))
+    if _MODIFIER_TYPE not in factories:
+        binding.register_empty(_MODIFIER_TYPE, _modifier_companion)
     _PRIMED.add(binding)
 
 
