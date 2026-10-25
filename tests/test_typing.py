@@ -105,6 +105,22 @@ class TheStubsTypeCheck(unittest.TestCase):
             m: Modifier = Modifier.padding(16).fill_max_width()
         """)
 
+    def test_modifier_class_passed_as_an_argument_type_checks(self):
+        """Issue #134 (python-multiplatform #308): `Card(modifier=Modifier)` and `Spacer(modifier=Modifier)`."""
+        self.assertPasses("""
+            from pythonx.compose.material3 import Card, Spacer, Text
+            from pythonx.compose.ui import Modifier
+
+            Card(modifier=Modifier, content=lambda scope: Text("hi"))
+            Spacer(modifier=Modifier)
+        """)
+        self.assertFails("""
+            from pythonx.compose.material3 import Card
+            from pythonx.compose.ui import Alignment
+
+            Card(modifier=Alignment, content=lambda scope: None)
+        """, "type[Alignment]", "Modifier | type[Modifier]", "[arg-type]")
+
     def test_a_misspelled_keyword_fails(self):
         self.assertFails("""
             from pythonx.compose.material3 import Text

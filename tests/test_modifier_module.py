@@ -63,6 +63,17 @@ class TheModifierSeam(unittest.TestCase):
         )
         self.assertEqual(["padding__Dp", "size__Dp"], self.host.calls)
 
+    def test_card_takes_modifier_class_as_the_empty_modifier_once_installed(self):
+        """Issue #134 (python-multiplatform #308): `Card(modifier=Modifier)` passes `Modifier.empty()`."""
+        import pythonx.compose.material3 as material3
+
+        Modifier = self.modifier.install(fake_host.EMPTY_MODIFIER)
+        self.binding.push_composer(self.host.composer())
+        self.addCleanup(self.binding.pop_composer)
+        material3.Card(modifier=Modifier)
+        self.assertEqual(["Card"], self.host.composable_calls)
+        self.assertEqual("<empty>", self.host.last_card_modifier)
+
     def test_the_module_level_modifier_attribute_resolves_lazily(self):
         self.modifier.install(fake_host.EMPTY_MODIFIER)
         self.assertIs(self.modifier.Modifier, self.modifier.modifier_type())

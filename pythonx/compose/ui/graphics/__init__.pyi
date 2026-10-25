@@ -1197,11 +1197,11 @@ def find_first_root(segment: PathSegment, fraction: float) -> float:
     """Kotlin: androidx.compose.ui.graphics.findFirstRoot(segment: androidx.compose.ui.graphics.PathSegment, fraction: kotlin.Float): kotlin.Float"""
     ...
 
-def graphics_layer__Float_Float_Float_Float_Float_Float_Float_Float_Float_Float_TransformOrigin_Shape_Boolean_RenderEffect_Color_Color_CompositingStrategy_BlendMode_ColorFilter(receiver: pythonx.compose.ui.Modifier, /, scale_x: float, scale_y: float, alpha: float, translation_x: float, translation_y: float, shadow_elevation: float, rotation_x: float, rotation_y: float, rotation_z: float, camera_distance: float, transform_origin: _t.Any, shape: Shape, clip: bool, render_effect: RenderEffect | None, ambient_shadow_color: _t.Any, spot_shadow_color: _t.Any, compositing_strategy: _t.Any, blend_mode: _t.Any, color_filter: ColorFilter | None) -> pythonx.compose.ui.Modifier:
+def graphics_layer__Float_Float_Float_Float_Float_Float_Float_Float_Float_Float_TransformOrigin_Shape_Boolean_RenderEffect_Color_Color_CompositingStrategy_BlendMode_ColorFilter(receiver: pythonx.compose.ui.Modifier | type[pythonx.compose.ui.Modifier], /, scale_x: float, scale_y: float, alpha: float, translation_x: float, translation_y: float, shadow_elevation: float, rotation_x: float, rotation_y: float, rotation_z: float, camera_distance: float, transform_origin: _t.Any, shape: Shape, clip: bool, render_effect: RenderEffect | None, ambient_shadow_color: _t.Any, spot_shadow_color: _t.Any, compositing_strategy: _t.Any, blend_mode: _t.Any, color_filter: ColorFilter | None) -> pythonx.compose.ui.Modifier:
     """Kotlin: androidx.compose.ui.Modifier.graphicsLayer(scaleX: kotlin.Float, scaleY: kotlin.Float, alpha: kotlin.Float, translationX: kotlin.Float, translationY: kotlin.Float, shadowElevation: kotlin.Float, rotationX: kotlin.Float, rotationY: kotlin.Float, rotationZ: kotlin.Float, cameraDistance: kotlin.Float, transformOrigin: androidx.compose.ui.graphics.TransformOrigin, shape: androidx.compose.ui.graphics.Shape, clip: kotlin.Boolean, renderEffect: androidx.compose.ui.graphics.RenderEffect?, ambientShadowColor: androidx.compose.ui.graphics.Color, spotShadowColor: androidx.compose.ui.graphics.Color, compositingStrategy: androidx.compose.ui.graphics.CompositingStrategy, blendMode: androidx.compose.ui.graphics.BlendMode, colorFilter: androidx.compose.ui.graphics.ColorFilter?): androidx.compose.ui.Modifier"""
     ...
 
-def graphics_layer__Unit(receiver: pythonx.compose.ui.Modifier, /, block: _t.Callable[[_GraphicsLayerScope], None]) -> pythonx.compose.ui.Modifier:
+def graphics_layer__Unit(receiver: pythonx.compose.ui.Modifier | type[pythonx.compose.ui.Modifier], /, block: _t.Callable[[_GraphicsLayerScope], None]) -> pythonx.compose.ui.Modifier:
     """Kotlin: androidx.compose.ui.Modifier.graphicsLayer(block: kotlin.Function1): androidx.compose.ui.Modifier"""
     ...
 
@@ -1289,7 +1289,7 @@ def to_svg(receiver: _Path, /, as_document: bool = ...) -> str:
     """Kotlin: androidx.compose.ui.graphics.Path.toSvg(asDocument: kotlin.Boolean): kotlin.String"""
     ...
 
-def tooling_graphics_layer(receiver: pythonx.compose.ui.Modifier, /) -> pythonx.compose.ui.Modifier:
+def tooling_graphics_layer(receiver: pythonx.compose.ui.Modifier | type[pythonx.compose.ui.Modifier], /) -> pythonx.compose.ui.Modifier:
     """Kotlin: androidx.compose.ui.Modifier.toolingGraphicsLayer(): androidx.compose.ui.Modifier"""
     ...
 
@@ -1325,9 +1325,9 @@ def draw_outline(receiver: _t.Any, /, outline: Outline, color: _t.Any, alpha: fl
 def draw_outline(receiver: _Canvas, /, outline: Outline, paint: _Paint) -> None: ...  # type: ignore[overload-cannot-match]
 
 @_t.overload
-def graphics_layer(receiver: pythonx.compose.ui.Modifier, /, scale_x: float, scale_y: float, alpha: float, translation_x: float, translation_y: float, shadow_elevation: float, rotation_x: float, rotation_y: float, rotation_z: float, camera_distance: float, transform_origin: _t.Any, shape: Shape, clip: bool, render_effect: RenderEffect | None, ambient_shadow_color: _t.Any, spot_shadow_color: _t.Any, compositing_strategy: _t.Any, blend_mode: _t.Any, color_filter: ColorFilter | None) -> pythonx.compose.ui.Modifier: ...
+def graphics_layer(receiver: pythonx.compose.ui.Modifier | type[pythonx.compose.ui.Modifier], /, scale_x: float, scale_y: float, alpha: float, translation_x: float, translation_y: float, shadow_elevation: float, rotation_x: float, rotation_y: float, rotation_z: float, camera_distance: float, transform_origin: _t.Any, shape: Shape, clip: bool, render_effect: RenderEffect | None, ambient_shadow_color: _t.Any, spot_shadow_color: _t.Any, compositing_strategy: _t.Any, blend_mode: _t.Any, color_filter: ColorFilter | None) -> pythonx.compose.ui.Modifier: ...
 @_t.overload
-def graphics_layer(receiver: pythonx.compose.ui.Modifier, /, block: _t.Callable[[_GraphicsLayerScope], None]) -> pythonx.compose.ui.Modifier: ...  # type: ignore[overload-cannot-match]
+def graphics_layer(receiver: pythonx.compose.ui.Modifier | type[pythonx.compose.ui.Modifier], /, block: _t.Callable[[_GraphicsLayerScope], None]) -> pythonx.compose.ui.Modifier: ...  # type: ignore[overload-cannot-match]
 
 @_t.overload
 def is_supported(receiver: _t.Any, /) -> bool: ...

@@ -142,7 +142,10 @@ and the name the interpreter resolves cannot drift.
   - a reference to another Kotlin package is rewritten to the `pythonx.compose` module the
     manifest lists first for it (`androidx.compose.foundation.layout` → `pythonx.compose.layout`);
     a reference to a package the manifest does not map, or to a name the target stub does not
-    declare, becomes `typing.Any`;
+    declare, becomes `typing.Any`. A parameter annotated as a declared class `Cls` is typed
+    `Cls | type[Cls]` (`Modifier | type[Modifier]`), because the binder accepts a proxy class
+    in an `OBJECT` parameter slot as its registered empty value (python-multiplatform #308,
+    S6.1); return and property annotations stay `Cls`;
   - a module that maps the same Kotlin package as an earlier one (`pythonx.compose.foundation.layout`)
     re-exports it (`from pythonx.compose.layout import *`), since at run time both names reach the
     same objects; `[aliases]` become re-exports too (`material3` exports `Column`, `Row`, `Spacer`
@@ -529,18 +532,25 @@ and `tests/test_typing.py::test_default_and_main_coroutine_scopes_type_check`.
 `Modifier.padding(16).size(24)` chains; each link returns a new receiver; an unbound name raises
 `AttributeError` naming where it looked; the class-object spelling without a registered empty
 factory raises `TypeError` naming `register_empty`; `pythonx.compose.ui.Modifier` is the binder's
-proxy class itself.
+proxy class itself. Passing a proxy class as an `OBJECT` argument (`Card(modifier=Modifier)`,
+`Spacer(modifier=Modifier)`, `describe_modifier(Modifier)`, `padding(Modifier, 16)`) passes its
+registered empty value, equal to `Modifier.empty()` (python-multiplatform #308, #134); without a
+registered factory it propagates `empty()`'s `TypeError` naming `register_empty`, and passing a
+proxy class of an unrelated type is refused.
 
-Evidence: `tests/test_chain.py::TheChain` (8 tests) and
-`tests/test_modifier_module.py::TheModifierSeam` (5 tests), against python-multiplatform `ba4c6f49`.
+Evidence: `tests/test_chain.py::TheChain` (8 tests), `::ProxyClassAsArgument` (4 tests) and
+`tests/test_modifier_module.py::TheModifierSeam` (6 tests), against python-multiplatform `2ae4aab8`.
 A snake_case method is served by the binder (python-multiplatform #131) and leaves its class Kotlin-named in `dir()`.
 
 ### S6.2 The empty-`Modifier` seam: `partial`
 
 `pythonx/compose/ui/modifier.py` provides `install(empty_factory)` to register which Kotlin function
-returns an empty `Modifier`, and resolves `Modifier` lazily. **No such function exists in Compose**:
+returns an empty `Modifier` (`register_empty('androidx.compose.ui.Modifier', empty_factory)`), and
+resolves `Modifier` lazily. Once installed, both the class-object chain (`Modifier.padding(16)`) and
+passing `Modifier` itself as an argument (`Card(modifier=Modifier)`, `Spacer(modifier=Modifier)`)
+evaluate that registered factory (python-multiplatform #308, #134). **No such function exists in Compose**:
 the default `androidx.compose.ui.emptyModifier` is a placeholder, so the class-object spelling
-(`Modifier.padding(...)`) does not work against real Compose until an application supplies a
+(`Modifier.padding(...)`, `Card(modifier=Modifier)`) does not work against real Compose until an application supplies a
 one-line Kotlin factory. The instance spelling (`m.padding(16)` on a `Modifier` Kotlin returned)
 does not need it. `tests/test_modifier_module.py::TheShellIsGone` (3 tests, passing) checks the old
 hand-written shell is gone.
@@ -657,7 +667,7 @@ the binder lists no member that would win over these groups.
 | `remember_saveable` | imported from `pythonx.compose.runtime`; `main.App.messages` read/written with `getValue()` / `setValue()` (cells 9 to 13) | INTENT §5.9: supported as written, `.value` as the alias; S5.6, `partial` (#102; save and restore proved in python-multiplatform #174) |
 | `DefaultCoroutineScope`, `MainCoroutineScope` | imported from `pythonx.compose.runtime` | INTENT §5.10: built on pythonx-concurrent; S5.7, `planned` |
 | `DefaultIcons` | `DefaultIcons.Add()` | INTENT §5.7, `implemented` as `DefaultIcons.Add`. The notebook's `Add()` is the spelling of its time; the current spelling is `Add`, a property read without parentheses, as for every constant (decided with the ecosystem lead; S5.3, `tests/test_chain.py::DefaultIconsAlias`, fake host) |
-| `modifier` | lower-case instance from `pythonx.compose.ui` | INTENT §5.4: not provided; written `Modifier` |
+| `modifier` | lower-case instance from `pythonx.compose.ui` | INTENT §5.4: not provided; written `Modifier` (`Card(modifier=Modifier)`, S6.1/S6.2, python-multiplatform #308, #134) |
 | `color=0xFFFF0000` | ARGB integer for a colour | INTENT §5.5: not accepted; written `Color(0xFFFF0000)` |
 | `Spacer(start=..., top=...)` | spacing parameters | INTENT §5.6: not supported; written `Spacer(modifier=Modifier.padding(...))` |
 | `Column`, `Row`, `Spacer` | imported from `pythonx.compose.material3` | INTENT §5.2: served from both, by the manifest's `[aliases]` (`tests/test_chain.py::ManifestAliases`); rendered from the installed wheel in python-multiplatform's notebook E2E (#9, S5.2) |

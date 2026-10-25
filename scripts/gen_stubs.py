@@ -355,13 +355,49 @@ class _Qualify(ast.NodeTransformer):
 
 
 class _References(ast.NodeTransformer):
-    """Rewrite `androidx.compose.ui.Modifier` to `pythonx.compose.ui.Modifier`, or to `Any`."""
+    """Rewrite `androidx.compose.ui.Modifier` to `pythonx.compose.ui.Modifier`, or to `Any`.
+
+    A parameter annotated as `androidx.compose.ui.Modifier` also accepts the class object itself
+    (`Modifier | type[Modifier]`): python-multiplatform #308 (SPEC U-7) passes `Modifier.empty()`
+    when a proxy class is handed to an object slot, so `Card(modifier=Modifier)` type-checks (#134).
+    """
 
     def __init__(self, converter: "Converter", kotlin_package: str, imported: set[str]):
         self.converter = converter
         self.kotlin_package = kotlin_package
         self.imported = imported
         self.used: set[str] = set()
+        self._in_param: bool = False
+
+    def visit_arg(self, node: ast.arg) -> ast.arg:
+        if node.annotation is None:
+            return node
+        previous = self._in_param
+        self._in_param = True
+        try:
+            node.annotation = self.visit(node.annotation)
+        finally:
+            self._in_param = previous
+        return node
+
+    def visit_Subscript(self, node: ast.Subscript) -> ast.expr:
+        previous = self._in_param
+        self._in_param = False
+        try:
+            return self.generic_visit(node)
+        finally:
+            self._in_param = previous
+
+    def visit_Name(self, node: ast.Name) -> ast.expr:
+        if (
+            self._in_param
+            and isinstance(node.ctx, ast.Load)
+            and self.kotlin_package == "androidx.compose.ui"
+            and node.id == "Modifier"
+            and self.converter.declares(self.kotlin_package, "Modifier")
+        ):
+            return _annotation("Modifier | type[Modifier]")
+        return node
 
     def visit_Attribute(self, node: ast.Attribute) -> ast.expr:
         dotted = ast.unparse(node)
@@ -377,13 +413,17 @@ class _References(ast.NodeTransformer):
         if package is None:
             return self.generic_visit(node)
         rest = dotted[len(package) + 1:]
+        is_modifier_param = self._in_param and package == "androidx.compose.ui" and rest == "Modifier"
         if package == self.kotlin_package:
-            return _annotation(rest) if self.converter.declares(package, rest) else _annotation(_ANY)
+            if not self.converter.declares(package, rest):
+                return _annotation(_ANY)
+            return _annotation(f"{rest} | type[{rest}]" if is_modifier_param else rest)
         target = self.converter.first_module.get(package)
         if target is None or not self.converter.declares(package, rest):
             return _annotation(_ANY)
         self.used.add(target)
-        return _annotation(f"{target}.{rest}")
+        spelled = f"{target}.{rest}"
+        return _annotation(f"{spelled} | type[{spelled}]" if is_modifier_param else spelled)
 
 
 # -------------------------------------------------------------------------------------- conversion

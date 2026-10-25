@@ -171,6 +171,8 @@ class FakeHost:
         self._next_handle = 1
         self.filled = StubIconSet()
         self.composable_calls = []
+        self.last_card_modifier = None
+        self.last_spacer_modifier = None
         self.last_text_field_flags = None
         self.last_text_field_modifier = None
         self.saveable_calls = []
@@ -384,11 +386,22 @@ class FakeHost:
         for layout_composable in ("Column", "Row", "Spacer"):
             # Shape only: the notebook imports these from material3 and Kotlin declares them in
             # foundation.layout. Nothing here composes; the tests check which object a name reaches.
+            def record_layout(args, label=layout_composable):
+                if label == "Spacer":
+                    self.last_spacer_modifier = None if args[0] is None else args[0].describe()
+
             self._add(
                 f"androidx.compose.foundation.layout.{layout_composable}", 1, ("modifier",),
                 ("OBJECT",), (MODIFIER,), "UNIT", "kotlin.Unit", False, None, (True,),
-                lambda args: None,
+                record_layout,
             )
+        self._composable(
+            f"{MATERIAL3}.Card",
+            (("modifier", "OBJECT", MODIFIER, True),),
+            lambda args: setattr(
+                self, "last_card_modifier", None if args[0] is None else args[0].describe()
+            ),
+        )
         # Object constants, the way `ArtifactScanner.constantsOf` binds them: a `STATIC_GETTER` with no
         # parameters, named `<package>.<Object>.<Constant>`, returning the constant's declared type.
         for constant, declared in (
