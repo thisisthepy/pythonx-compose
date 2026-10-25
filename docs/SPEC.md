@@ -83,9 +83,10 @@ and the name the interpreter resolves cannot drift.
   regenerating them from the same input produces no diff.
 - **From what.** python-multiplatform's CI artefact `kotlin-stubs` (workflow run 40147624743,
   commit `24883b92`, regenerated in #130): Kotlin-named stubs for Compose 1.11.1-ext.2
-  (`org.thisisthepy.compose.*:1.11.1-ext.2` from Maven Central, alongside
-  `org.thisisthepy.compose.androidx.*:1.11.1-ext.2` for apps using lifecycle or navigation, with
-  `org.jetbrains.compose.material:material-icons-core:1.7.3` kept upstream), one `androidx/compose/.../__init__.pyi`
+  (`org.thisisthepy.compose.*:1.11.1-ext.2` libraries and `org.thisisthepy.compose:1.11.1-ext.3`
+  Gradle plugin from Maven Central, with `mavenCentral()` in `pluginManagement`, alongside
+  `org.thisisthepy.compose.androidx.*:1.11.1-ext.2` for apps using lifecycle or navigation, and
+  `org.jetbrains.compose.material:material-icons-core:1.7.3` kept upstream; #132), one `androidx/compose/.../__init__.pyi`
   per Kotlin package. Since `8acb3475` (#125) they carry member functions of classes and interfaces as
   methods (python-multiplatform #215), a type whose name a same-named factory function takes as the
   stub-private class `_Name` instead of `Any` (#217; `PaddingValues(...)` returns a `_PaddingValues`),

@@ -148,9 +148,11 @@ python_name("Modifier")       # 'Modifier'
 ## 📦 설치
 
 pip 패키지 **`pythonx-compose`**(파이썬 3.11 이상)로 배포되며, import 패키지 `pythonx.compose` 와
-매니페스트를 wheel 안에 담으며, 타입 정보도 함께 배포합니다: 실제 Compose 1.11.1-ext.2 에서 생성한 `.pyi`
-스텁과 `py.typed`. [python-multiplatform](https://github.com/thisisthepy/python-multiplatform)
-으로 CPython 을 임베딩한 앱 안에서 동작하며, 단독 데스크톱 툴킷이 아닙니다.
+매니페스트를 wheel 안에 담으며, 타입 정보도 함께 배포합니다: 실제 Compose 1.11.1-ext.2(라이브러리
+`org.thisisthepy.compose.*:1.11.1-ext.2`, Maven Central 의 Gradle 플러그인
+`org.thisisthepy.compose:1.11.1-ext.3`)에서 생성한 `.pyi` 스텁과 `py.typed`.
+[python-multiplatform](https://github.com/thisisthepy/python-multiplatform) 으로 CPython 을 임베딩한
+앱 안에서 동작하며, 단독 데스크톱 툴킷이 아닙니다.
 
 ## 🧪 현황
 
