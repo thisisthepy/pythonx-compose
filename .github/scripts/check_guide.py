@@ -58,6 +58,9 @@ class Page(HTMLParser):
         self.stack: list[tuple[str, int]] = []
         self.errors: list[str] = []
         self.refs: list[tuple[str, str, int]] = []  # (attr, value, line)
+        self.live_steps: set[str] = set()
+        self.live_scenes: set[str] = set()
+        self.live_active_scenes: set[str] = set()
         # Per open element: list of language markers of its direct children.
         self.children_langs: list[list[str]] = [[]]
         # Per open element: does it (or an ancestor) make its text language-neutral or bilingual?
@@ -69,6 +72,14 @@ class Page(HTMLParser):
         for attr in ("href", "src"):
             if attrs.get(attr):
                 self.refs.append((attr, attrs[attr], line))
+        step = attrs.get("data-live-step")
+        if step is not None:
+            self.live_steps.add(step)
+        scene = attrs.get("data-live-scene")
+        if scene is not None:
+            self.live_scenes.add(scene)
+            if "is-active" in (attrs.get("class") or "").split():
+                self.live_active_scenes.add(scene)
         lang = attrs.get("data-lang")
         if lang is not None:
             if lang not in ("en", "ko"):
@@ -127,6 +138,13 @@ class Page(HTMLParser):
         super().close()
         for tag, line in self.stack:
             self.errors.append(f"{line}: <{tag}> is never closed")
+        if self.live_steps or self.live_scenes:
+            if self.live_steps != self.live_scenes:
+                self.errors.append(
+                    f"1: data-live-step={sorted(self.live_steps)} != data-live-scene={sorted(self.live_scenes)}"
+                )
+            if not self.live_active_scenes:
+                self.errors.append("1: live preview has no default is-active scene for non-JS rendering")
 
 
 def check_ref(page: Path, attr: str, value: str) -> str | None:
