@@ -22,14 +22,14 @@ import zipfile
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[1]
-SCRATCH = REPO / ".tmp"
+SCRATCH = REPO / ".cache"
 
 
 def _build_wheel(out: Path) -> Path:
     source = out / "src"
     shutil.copytree(
         REPO, source,
-        ignore=shutil.ignore_patterns(".git", ".tmp", ".worktrees", "build", "*.egg-info",
+        ignore=shutil.ignore_patterns(".git", ".cache", ".tmp", ".worktrees", "build", "*.egg-info",
                                       "__pycache__", "UI.ipynb", "test", "docs", "tools"),
     )
     wheels = out / "wheels"

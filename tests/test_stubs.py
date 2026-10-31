@@ -13,7 +13,7 @@ nested Kotlin types as classes (`End: Horizontal`), object functions as explicit
 with `@name.setter`.
 
 `TheCommittedStubs` holds the stubs this repository ships to the real input, python-multiplatform's
-`kotlin-stubs` artefact, when it has been downloaded to `.tmp/kotlin-stubs.zip`.
+`kotlin-stubs` artefact, when it has been downloaded to `.cache/kotlin-stubs.zip`.
 """
 
 from __future__ import annotations
@@ -41,7 +41,7 @@ KOTLIN_STUBS_V2 = HERE / "fixtures" / "kotlin_stubs_v2"
 KOTLIN_STUBS_V3 = HERE / "fixtures" / "kotlin_stubs_v3"
 KOTLIN_STUBS_V4 = HERE / "fixtures" / "kotlin_stubs_v4"
 KOTLIN_STUBS_V5 = HERE / "fixtures" / "kotlin_stubs_v5"
-ARTEFACT = REPO / ".tmp" / "kotlin-stubs.zip"
+ARTEFACT = REPO / ".cache" / "kotlin-stubs.zip"
 PACKAGE = REPO / "pythonx"
 COMPOSE = PACKAGE / "compose"
 
@@ -353,8 +353,8 @@ class TheCurrentFormat(unittest.TestCase):
         self.assertEqual(["Hairline"], [n.target.id for n in tree.body if isinstance(n, ast.AnnAssign)])
 
     def test_a_zip_converts_like_the_directory_and_tolerates_case_colliding_paths(self):
-        (REPO / ".tmp").mkdir(exist_ok=True)
-        with tempfile.TemporaryDirectory(dir=REPO / ".tmp") as scratch:
+        (REPO / ".cache").mkdir(exist_ok=True)
+        with tempfile.TemporaryDirectory(dir=REPO / ".cache") as scratch:
             archive = Path(scratch) / "kotlin-stubs.zip"
             with zipfile.ZipFile(archive, "w") as out:
                 for path in sorted(KOTLIN_STUBS_V2.rglob("*.pyi")):

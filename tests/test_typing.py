@@ -20,7 +20,7 @@ import unittest
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[1]
-SCRATCH = REPO / ".tmp"
+SCRATCH = REPO / ".cache"
 
 
 def _mypy(program: str) -> tuple[int, str]:
