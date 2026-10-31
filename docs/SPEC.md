@@ -14,30 +14,30 @@ Each item carries a status:
 
 A behaviour change starts here, then becomes a failing test, then code (`AGENTS.md` §5).
 
-## 0. Test baseline (2026-10-17, develop `7e83cc8`, after #119)
+## 0. Test baseline (2026-10-25, develop `c7f1e2d`, after #139 and #140)
 
-The GitHub Actions run on `develop` (`.github/workflows/test.yml`, run 39017245145; `python -m pytest
+The GitHub Actions run on `develop` (`.github/workflows/test.yml`, run 40208274050; `python -m pytest
 tests -q -rs`, with pytest, mypy and, in the `with-binder` job, `pyrefly==1.3.2`). CI has neither
-`UI.ipynb` nor `.tmp/kotlin-stubs.zip`, so the notebook test and the committed-stubs check skip:
+`UI.ipynb`, `.cache/kotlin-stubs.zip`, nor a `pythonx-concurrent` checkout, so those three checks skip:
 
 | Environment | Result |
 |---|---|
-| No `PythonMultiplatform` checkout found (`no-binder`, CPython 3.13 and 3.15) | **156 passed, 129 skipped**, 269 subtests passed |
-| python-multiplatform `develop` at `31c092f0` or later (property rows, #38; `describe_member`, #54; besides `add_member_resolver` and `describe(module, name)`) (`with-binder`, CPython 3.15) | **283 passed, 2 skipped**, 326 subtests passed |
+| No `PythonMultiplatform` checkout found (`no-binder`, CPython 3.13 and 3.15) | **163 passed, 141 skipped**, 284 subtests passed |
+| python-multiplatform `develop` at `6cf658d8` or later (companion objects and `register_empty(cls, callable)`, #324; `OBJECT` proxy-class empty conversion, #308; property rows, #38; `describe_member`, #54; `describe(module, name)`, #36) (`with-binder`, CPython 3.15) | **301 passed, 3 skipped**, 341 subtests passed (or **302 passed, 2 skipped** locally with `pythonx-concurrent` beside this repository) |
 | an older checkout, before python-multiplatform #131 (no binder-side snake_case names) | the same, with the snake_case method tests skipped |
 | an older one, without `describe(module, name)` (python-multiplatform #36) | with 13 more skipped again |
 | an older one still, without `add_member_resolver` | with 5 more skipped again |
 
-Without a checkout, the 122 tests that install the binder's layers through `tests/adapter.py` skip
+Without a checkout, the 133 tests that install the binder's layers through `tests/adapter.py` skip
 (one of them against the installed wheel, #88), and so do the 5 TypedPython gate tests (S1.3), the
-notebook test and the committed-stubs check.
+`pythonx.concurrent` integration test (S5.7), the notebook test and the committed-stubs check.
 Against a binder without `describe(module, name)`, the 13 that check grouped constants (§7, S7.1)
 skip. Against a binder before python-multiplatform #131, the tests that call a snake_case method or
-pass a snake_case keyword on a proxy the binder returned skip, because those names are the binder's. The skip against a current checkout is `UI.ipynb`'s (§2). A binder older than #38 skips the 5
+pass a snake_case keyword on a proxy the binder returned skip, because those names are the binder's. The skips against a current checkout on CI are `UI.ipynb`'s (§2), `.cache/kotlin-stubs.zip`'s (S1.2), and `pythonx.concurrent`'s (S5.7). A binder older than #38 skips the 5
 `TheBinderPath` tests (S5.4). A binder without the `@Composable` binding (`push_composer`) skips the 13 text-field tests (S5.5). `tests/test_typing.py` skips where mypy is not installed. A skip is not a
 pass.
 
-Of the 148 that pass without a checkout, 73 check the type stubs and the wheel (S1.2); most of the
+Of the 163 that pass without a checkout, 80 check the type stubs and the wheel (S1.2); most of the
 rest assert **absence** (a retired token, a deleted file, a docstring that exists). Those are listed
 in §9 and are not counted as features.
 
@@ -158,7 +158,7 @@ and the name the interpreter resolves cannot drift.
   object functions, property setters), and a fourth in the format of #71/#68 (a nested type with two bases, icons as typed
   properties), and a fifth in the format of #131 (alias lines, alias members, a callable module), and checks
   the generated signatures against `inspect.signature` at run time.
-  `TheCommittedStubs` regenerates from `.tmp/kotlin-stubs.zip` and requires the committed files to
+  `TheCommittedStubs` regenerates from `.cache/kotlin-stubs.zip` and requires the committed files to
   be identical (it skips where the artefact is absent, which includes CI). `tests/test_typing.py`
   runs mypy over small programs against the committed stubs: correct code passes, a misspelled
   keyword or function fails. `tests/test_wheel.py` finds `py.typed` and the stubs in the built wheel.
@@ -185,7 +185,7 @@ and the name the interpreter resolves cannot drift.
     empty.
   - Object constants named like a Python keyword (`FilterQuality.None`) cannot be written as an
     attribute, and are left out.
-  - Regenerating needs the artefact downloaded by hand into `.tmp/`; CI does not fetch it.
+  - Regenerating needs the artefact downloaded by hand into `.cache/`; CI does not fetch it.
 
 ### S1.3 The package's own Python passes TypedPython's gate: `implemented`
 
@@ -690,16 +690,16 @@ with the group lookup disabled 11 fail, and the one that stays green checks the 
 Compose surface is an extension receiver named `Alignment.Horizontal` or `Arrangement.Horizontal`, so
 the binder lists no member that would win over these groups.
 
-## 8. The notebook surface not yet covered: `planned`
+## 8. The notebook surface: coverage summary
 
-`UI.ipynb` imports or uses these, and nothing in this repository provides them:
+How each `UI.ipynb` import or spelling is covered:
 
 | Name | Notebook use | Note |
 |---|---|---|
 | `remember_saveable` | imported from `pythonx.compose.runtime`; `main.App.messages` read/written with `getValue()` / `setValue()` (cells 9 to 13) | INTENT §5.9: supported as written, `.value` as the alias; S5.6, `partial` (#102; save and restore proved in python-multiplatform #174) |
-| `DefaultCoroutineScope`, `MainCoroutineScope` | imported from `pythonx.compose.runtime` | INTENT §5.10: built on pythonx-concurrent; S5.7, `planned` |
+| `DefaultCoroutineScope`, `MainCoroutineScope` | imported from `pythonx.compose.runtime` | INTENT §5.10: built on pythonx-concurrent; S5.7, `implemented` (#94) |
 | `DefaultIcons` | `DefaultIcons.Add()` | INTENT §5.7, `implemented` as `DefaultIcons.Add`. The notebook's `Add()` is the spelling of its time; the current spelling is `Add`, a property read without parentheses, as for every constant (decided with the ecosystem lead; S5.3, `tests/test_chain.py::DefaultIconsAlias`, fake host) |
-| `modifier` | lower-case instance from `pythonx.compose.ui` | INTENT §5.4: not provided; written `Modifier` (`Card(modifier=Modifier)`, S6.1/S6.2, python-multiplatform #308, #134) |
+| `modifier` | lower-case instance from `pythonx.compose.ui` | INTENT §5.4: not provided; written `Modifier` (`Card(modifier=Modifier)` evaluates `Modifier.Companion` via default `register_empty(Modifier, lambda: Modifier.Companion)`, S6.1/S6.2, python-multiplatform #308/#324, #134/#138) |
 | `color=0xFFFF0000` | ARGB integer for a colour | INTENT §5.5: not accepted; written `Color(0xFFFF0000)` |
 | `Spacer(start=..., top=...)` | spacing parameters | INTENT §5.6: not supported; written `Spacer(modifier=Modifier.padding(...))` |
 | `Column`, `Row`, `Spacer` | imported from `pythonx.compose.material3` | INTENT §5.2: served from both, by the manifest's `[aliases]` (`tests/test_chain.py::ManifestAliases`); rendered from the installed wheel in python-multiplatform's notebook E2E (#9, S5.2) |

@@ -21,22 +21,22 @@ Compose(`androidx.compose.*`)를 파이썬에서 쓰기 위한 pip 패키지 **`
 노트북의 함수 시그니처는 **이름 예시**다. 실제 규칙은 "Kotlin 원래 매개변수를 `snake_case` 로
 노출한다" 이다 (`onclick` 이 아니라 `on_click`).
 
-## 3. 현황 (2026-10-04)
+## 3. 현황 (2026-10-25)
 
 `docs/SPEC.md` 기준. 구현 = 이 저장소의 코드 + 읽고 통과를 확인한 테스트가 있는 것.
 
 | 상태 | 항목 |
 |---|---|
-| 구현 | 매핑 매니페스트 `pythonx-map.toml`, `@Composable` 항등 데코레이터, `DefaultCoroutineScope`·`MainCoroutineScope`(`pythonx.concurrent.CoroutineScope` 기반; #94), 실제 디스크 패키지 `pythonx` 와 모듈 수준 규칙 기반 재노출(snake_case 이름·키워드·시그니처, 오버로드 디스패치, 값 클래스 허용 목록), 실제 Compose 1.11.1-ext.2(라이브러리 `org.thisisthepy.compose.*:1.11.1-ext.2`, 플러그인 `org.thisisthepy.compose:1.11.1-ext.3`, `material-icons-core:1.7.3` 은 upstream 유지; #127, #130, #132)에서 생성한 `.pyi` 스텁과 `py.typed`(wheel 포함, mypy 로 검사), `Alignment`/`Arrangement` 상수(평면 `Alignment.End` 와 묶음 `Alignment.Horizontal.End` 모두, #9), proxy 메서드의 snake_case 이름과 키워드 인자(`m.padding(padding_values=...)`; python-multiplatform #131 이 바인더 쪽에서 제공하므로 #131 이상 필요; Kotlin 이름도 실행 시 그대로 통하고 스텁은 snake_case 만), 함수이기도 한 Kotlin object 의 호출(`Color(0xFFFFFFFF)` 과 `Color.Red` 둘 다; #88, 설치한 wheel 에서도 테스트됨. Int/Long 오버로드 선택은 python-multiplatform #146), TypedPython 게이트 통과(`pythonx/` 에 오류 0, 경고 5: `_reexport.py` 의 재노출 자체인 `dynamic-attr`; #118, CI 의 with-binder 에서 검사) |
+| 구현 | 매핑 매니페스트 `pythonx-map.toml`, `@Composable` 항등 데코레이터, `DefaultCoroutineScope`·`MainCoroutineScope`(`pythonx.concurrent.CoroutineScope` 기반; #94), 색 스킴 `light_color_scheme`·`dark_color_scheme`(48개 Material 3 토큰 기본값과 `surface_tint = primary`, `ColorScheme` 48-인자 생성자; #135), 빈 `Modifier`(`register_empty(Modifier, lambda: Modifier.Companion)` 기본 등록으로 `Modifier.padding(16)` 과 `Card(modifier=Modifier)` 지원; #134, #138), 실제 디스크 패키지 `pythonx` 와 모듈 수준 규칙 기반 재노출(snake_case 이름·키워드·시그니처, 오버로드 디스패치, 값 클래스 허용 목록), 실제 Compose 1.11.1-ext.2(라이브러리 `org.thisisthepy.compose.*:1.11.1-ext.2`, 플러그인 `org.thisisthepy.compose:1.11.1-ext.3`, `material-icons-core:1.7.3` 은 upstream 유지; #127, #130, #132)에서 생성한 `.pyi` 스텁과 `py.typed`(wheel 포함, mypy 로 검사), `Alignment`/`Arrangement` 상수(평면 `Alignment.End` 와 묶음 `Alignment.Horizontal.End` 모두, #9), proxy 메서드의 snake_case 이름과 키워드 인자(`m.padding(padding_values=...)`; python-multiplatform #131 이 바인더 쪽에서 제공하므로 #131 이상 필요; Kotlin 이름도 실행 시 그대로 통하고 스텁은 snake_case 만), 함수이기도 한 Kotlin object 의 호출(`Color(0xFFFFFFFF)` 과 `Color.Red` 둘 다; #88, 설치한 wheel 에서도 테스트됨. Int/Long 오버로드 선택은 python-multiplatform #146), TypedPython 게이트 통과(`pythonx/` 에 오류 0, 경고 5: `_reexport.py` 의 재노출 자체인 `dynamic-attr`; #118, CI 의 with-binder 에서 검사) |
 | 부분 | 노트북 표기 그대로의 `remember_saveable`(`getValue()`/`setValue()`, `.value` 별칭; #102, 가짜 호스트로 테스트됨, 저장·복원 증거는 python-multiplatform #174), 선언형 앱 루트 `@app`·`app_root`(#11; 로직은 테스트됨, 바인더 경로는 #38 모양의 가짜 호스트로 테스트됨, 실제 Compose 증거는 python-multiplatform 노트북 E2E #26 에서 통과; 숫자·문자열 상태는 python-multiplatform #69 부터 왕복됨), 배포 설정, Material 3 위젯(렌더 증거는 python-multiplatform 노트북 E2E 에만, 설치한 wheel 에서 Kotlin 과 픽셀 일치), `Icon`(import 만 됨)·`DefaultIcons`(`Icons.Default` alias, 가짜 호스트로만 테스트됨, 스텁에서는 `DefaultIcons.Add` 가 `ImageVector`; `DefaultIcons.Add` 로 쓴다; 노트북의 `DefaultIcons.Add()` 가 아님), `TextField(state=...)`·`TextFieldState`(#10; `pythonx.compose.foundation.text.input`, 가짜 호스트로 테스트됨, 노트북의 `text_state=`/`padding=` 는 `state=`/`modifier=Modifier.padding(8)`; IME 조합 증거는 python-multiplatform 노트북 E2E #26 에서 통과) |
-| 계획 | 색 스킴 |
+| 계획 | extended 포크 `org.thisisthepy.compose.material3` 네임스페이스 매핑 및 회귀 가드(#54), extended GraalVM native-image 및 Kotlin/Native 데스크톱 경로(#110) |
 
 ### 테스트 기준선
 
 ```
-GitHub Actions, develop (2026-10-24, #94; with-binder 는 pyrefly==1.3.2 포함)
-  PythonMultiplatform 체크아웃 없음       160 passed, 129 skipped
-  python-multiplatform develop 31c092f0+    287 passed, 2 skipped  (UI.ipynb, .tmp/kotlin-stubs.zip 없음)
+GitHub Actions, develop (2026-10-25, #139, #140; with-binder 는 pyrefly==1.3.2 포함)
+  PythonMultiplatform 체크아웃 없음       163 passed, 141 skipped
+  python-multiplatform develop 6cf658d8+    301 passed, 3 skipped  (UI.ipynb, .cache/kotlin-stubs.zip, pythonx-concurrent 없음; 로컬에서는 302 passed, 2 skipped)
   describe_member 없는 체크아웃             같은 수, 그중 7 개 건너뜀  (python-multiplatform #54 이전)
   describe(module, name) 없는 체크아웃      같은 수, 그중 13 개 건너뜀  (python-multiplatform #36 이전)
   그보다 오래된 체크아웃                    거기에 5 개 더 건너뜀  (#131 이전, snake_case 이름 없음)
@@ -89,7 +89,7 @@ PYTHONMULTIPLATFORM_HOME=<checkout> uv run --with pytest --with mypy pytest test
 uv run python .github/scripts/check_guide.py    # 가이드: HTML 파싱, 링크, en/ko 짝 (tests/test_guide.py 도 실행)
 ```
 
-- pytest 가 없으면 `.tmp/` 아래에 가상환경을 만든다 (홈 디렉터리 금지).
+- pytest 가 없으면 `.cache/` 아래에 가상환경을 만든다 (홈 디렉터리 금지).
 - `PythonMultiplatform` 은 읽기 전용이다.
 - wheel 빌드 후 내용물 확인은 아직 자동화되어 있지 않다.
 

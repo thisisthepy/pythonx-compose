@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
-# Tests for sync-release.sh. Builds a throwaway repo under <repo>/.tmp/.
+# Tests for sync-release.sh. Builds a throwaway repo under <repo>/.cache/.
 set -u
 HERE="$(cd "$(dirname "$0")" && pwd)"
 ROOT="$(cd "$HERE/../../.." && pwd)"
 SYNC="$HERE/sync-release.sh"
-SCRATCH="$ROOT/.tmp/release-sync-test.$$"
+SCRATCH="$ROOT/.cache/release-sync-test.$$"
 FAILS=0; PASSES=0
 cleanup() { rm -rf "$SCRATCH"; }
 trap cleanup EXIT
