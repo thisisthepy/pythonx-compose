@@ -47,7 +47,7 @@ in §9 and are not counted as features.
 
 ### S1.1 Installed as `pythonx-compose`, importing `pythonx.compose`: `implemented`
 
-`pyproject.toml` declares `name = "pythonx-compose"`, version `0.1.0a2`, setuptools build,
+`pyproject.toml` declares `name = "pythonx-compose"`, version `0.1.0a3`, setuptools build,
 `requires-python >= 3.11` (the runtime reads the manifest with `tomllib`), and
 `packages.find include = ["pythonx.compose*"]`.
 
@@ -65,6 +65,8 @@ in §9 and are not counted as features.
   imports `pythonx.compose.runtime`, leaves `pythonx` a namespace package, and `Color(0xFFFFFFFF)`
   without a host raises the binder's "not installed" error, as it should. With a host, the same
   wheel passed python-multiplatform's notebook E2E (S5.4, S5.6).
+- **0.1.0a3** is the next pre-release (`v0.1.0a3`); it is not on PyPI until that GitHub Release is
+  published.
 - Released by publishing a GitHub Release tagged `v<version>` (`.github/workflows/publish-pypi.yml`,
   trigger `release: published`; a bare tag push publishes nothing): the workflow checks the
   Release's tag equals `v` + the `pyproject.toml` version (`.github/scripts/check_release_version.py`,
