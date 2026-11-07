@@ -53,8 +53,14 @@ build caches, model weights, `node_modules`) into every worktree is how 86 workt
 - Create worktrees under `.worktrees/<name>`.
 - **Symlink** large untracked directories from the main checkout instead of copying or rebuilding
   them. If a worktree-linking script exists under `.github/scripts/`, use it.
-- Delete a worktree once its branch is merged: `git worktree remove .worktrees/<name>`.
-- Periodically delete `build/` directories inside worktrees; they only grow.
+- **When a branch merges, clean up in the same step**: remove its worktree
+  (`git worktree remove .worktrees/<name>`), delete the local and remote branch, and delete every
+  build output, cache or target directory created for that work (per-branch `build/`, a
+  `CARGO_TARGET_DIR`, a venv, a scratch directory). Work is not finished while any of these remain.
+  This was added after 32 per-agent cargo target directories (33 GB) were left behind in one
+  repository.
+- Never create a per-agent or per-branch build cache (a separate `CARGO_TARGET_DIR`, a copied
+  `.gradle`, a private venv). Use the repository's one canonical location.
 
 ## 4. Branches
 
@@ -122,6 +128,27 @@ never force-push without the user's explicit approval.
 When a rule and backward compatibility conflict, **the rule wins.** List the callers that break and
 fix them; do not keep the forbidden thing "so nothing breaks".
 
+### What counts as the owner's decision
+
+Added after an agent turned the owner's question "should ExecuTorch be the NPU back end?" into an
+offline per-model `.pte` pipeline with its own CI, recorded it as "decided, do not re-discuss" and
+later as project intent. The owner had approved none of it (torchnative, 2026-08 to 2026-11).
+
+- **A question is not a decision.** "X를 쓰는게 좋을까?", "should we use X?" opens a decision. If the
+  owner did not answer, it stays open; never record it as settled.
+- **Approving a goal is not approving a means.** "Make the Snapdragon NPU work, go ahead" approves
+  the goal. The engine, the dependencies, the pipeline, the CI workflow and the artefact types an
+  agent picks to reach it are separate decisions.
+- **Never restate the owner's question as a different one.** When asking for a decision, quote the
+  owner's words and the constraint behind them (for example "NNAPI is deprecated, so what
+  abstraction reaches every vendor's NPU?"), and give options that answer that question.
+- **Ask before adding** a dependency, a pipeline, a CI workflow or a kind of artefact the owner did
+  not name. Show the options and wait.
+- **Docs keep provenance.** A line in INTENT, SPEC, AGENTS or a design doc that states a direction
+  cites the owner's words (date and source). Anything else is marked "agent proposal, not
+  confirmed". Never write "decided", "settled" or "do not re-discuss" for a choice the owner did not
+  make, and keep that mark when a doc is restructured.
+
 ## 8. Verification that can fail
 
 - Never read a build's exit code through a pipe (`| tail`, `| grep`). Redirect to a file, then read
@@ -153,10 +180,13 @@ to implement", say what you counted against.
   counts, lifetimes, class loaders) gets the strongest tier; work a test will catch can use a
   cheaper one.
 - Give every agent prompt the absolute paths it may write to, and repeat rule 2 in it.
-- **Subagents do not run heavy local builds.** Subagents write code, design, investigate, review
-  and document. Gradle builds, cargo builds, the test gate and model runs are done by the session
-  itself (one at a time on this machine) or by CI (GitHub Actions) on a pushed branch. Several
-  sessions share one machine; parallel local builds slow every one of them.
+- **Agents do not build.** Every agent, teammate sessions and subagents alike, may check that code
+  compiles and nothing more: `cargo check`, a Gradle `compile*` task, `python -m py_compile`, a
+  type checker or linter. Full builds (`cargo build`, `assemble`, wheels, native images, app
+  packages), test suites, gates, benchmarks and model runs go to CI (GitHub Actions) on a pushed
+  branch. The only local exceptions are device tests and measurements the coordinating session
+  runs itself, one at a time, and says why. Several sessions share one machine, and agent builds
+  once filled the disk and slowed every session.
 
 ---
 
