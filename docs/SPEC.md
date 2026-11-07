@@ -22,8 +22,8 @@ tests -q -rs`, with pytest, mypy and, in the `with-binder` job, `pyrefly==1.3.2`
 
 | Environment | Result |
 |---|---|
-| No `PythonMultiplatform` checkout found (`no-binder`, CPython 3.13 and 3.15) | **163 passed, 141 skipped**, 284 subtests passed |
-| python-multiplatform `develop` at `6cf658d8` or later (companion objects and `register_empty(cls, callable)`, #324; `OBJECT` proxy-class empty conversion, #308; property rows, #38; `describe_member`, #54; `describe(module, name)`, #36) (`with-binder`, CPython 3.15) | **301 passed, 3 skipped**, 341 subtests passed (or **302 passed, 2 skipped** locally with `pythonx-concurrent` beside this repository) |
+| No `PythonMultiplatform` checkout found (`no-binder`, CPython 3.13 and 3.15) | **166 passed, 141 skipped**, 313 subtests passed |
+| python-multiplatform `develop` at `9975a417` or later (Kotlin/Native desktop targets, #370; companion objects and `register_empty(cls, callable)`, #324; `OBJECT` proxy-class empty conversion, #308; property rows, #38; `describe_member`, #54; `describe(module, name)`, #36) (`with-binder`, CPython 3.15) | **304 passed, 3 skipped**, 370 subtests passed (or **305 passed, 2 skipped** locally with `pythonx-concurrent` beside this repository) |
 | an older checkout, before python-multiplatform #131 (no binder-side snake_case names) | the same, with the snake_case method tests skipped |
 | an older one, without `describe(module, name)` (python-multiplatform #36) | with 13 more skipped again |
 | an older one still, without `add_member_resolver` | with 5 more skipped again |
@@ -218,6 +218,48 @@ python-multiplatform checkout or without `pyrefly` importable), `tests/test_stub
 (`test_composable_keeps_the_screens_signature`,
 `test_what_remember_saveable_holds_is_a_saveable_scalar`). CI's `with-binder` job installs
 `pyrefly==1.3.2`, so the gate runs there against python-multiplatform `develop`.
+
+### S1.4 Runs unchanged across JVM, GraalVM native-image and Kotlin/Native desktop paths: `partial`
+
+Source: issue #110, INTENT §3 ("Bindings are produced at build time because GraalVM native images
+and Kotlin/Native have no reflection").
+
+- **Zero JVM-only or AWT dependencies in `pythonx/`.** Every `.py` file under `pythonx/` is pure
+  Python 3.11+ (`importlib`, `re`, `sys`, `tomllib`, `types`, `weakref`, `functools`, `pathlib`,
+  `typing`) and talks only to `python_multiplatform` and `python_multiplatform.binding`
+  (`allow_raw_primitive`, `register_empty`, `describe`, and the bound `androidx.compose.*` modules).
+  No executable token in `pythonx/` names a JVM reflection, JNI, AWT, Swing or platform FFI bridge
+  (`jclass`, `jpype`, `java`, `javax`, `awt`, `swing`, `ctypes`, `cffi`). Pinned across every `.py`
+  file in `pythonx/` by `tests/test_legacy_modules.py::TestNoJvmOrAwtDependenciesInPackage`.
+- **Same `material3` mapping across paths.** Both the upstream Compose JVM build and the extended
+  fork (`org.thisisthepy.compose.*:1.11.1-ext.2`, plugin `org.thisisthepy.compose:1.11.1-ext.3`)
+  publish Material 3 under the Kotlin package `androidx.compose.material3`, which `pythonx-map.toml`
+  maps to `pythonx.compose.material3` (§2, S5.2, S5.3).
+- **Three runtime paths in `python-multiplatform`:**
+  1. **Default / upstream Compose JVM:** `:python-multiplatform-compose:fixtures:notebook-e2e:desktopTest`
+     runs all 20 `UI.ipynb` scenarios against the installed `pythonx-compose` wheel on the JVM
+     (`20 passed, 0 failed of 20`, run in `python-multiplatform` CI `.github/workflows/desktop.yml`
+     job `notebook-e2e`).
+  2. **Extended GraalVM native-image (`ApplicationOutput.NativeImage`):**
+     `:python-multiplatform-compose:fixtures:notebook-e2e:notebookE2eNativeRun` compiles
+     `NotebookE2eMain` into a standalone native binary with `-Dcompose.awt=false`
+     (`compose.main.dispatcher=coroutines`), stages `python-multiplatform-home/` with the installed
+     `pythonx-compose` wheel beside the executable, runs with `JAVA_HOME` and `PYTHONHOME` unset, and
+     passes all 20 `UI.ipynb` scenarios (`NOTEBOOK_E2E: 20 passed, 0 failed of 20`) with no `libjvm`
+     (`python-multiplatform` #249, #251; run in CI `.github/workflows/desktop.yml` job
+     `notebook-e2e-native-image`).
+  3. **Extended Kotlin/Native desktop (`org.thisisthepy.kotlin.native.desktop`, `macosArm64`,
+     `linuxX64`):** `:python-multiplatform` supports `macosArm64` and `linuxX64` (`#370`, `decc90e7`;
+     `PackagedPythonHome.desktopNative.kt`, `PythonPayload.desktopNative.kt`, 496/496 interpreter and
+     binder tests passing on both targets in CI). Because `pythonx-compose` depends only on that
+     binder contract, the Python package itself needs no change for Kotlin/Native. Status is
+     `partial` because `:python-multiplatform-compose` and its `notebook-e2e` fixture currently
+     declare `androidTarget` and `jvm("desktop")` only; running the 20 Compose `notebook-e2e`
+     scenarios on a Kotlin/Native host awaits `:python-multiplatform-compose` adding `macosArm64` and
+     `linuxX64` targets (`python-multiplatform` #191 Phase B).
+- **Guide page.** `docs/guide/guide-runtimes.html` documents choosing between the three paths, with
+  `uv`, `ppp` and `tcl` install examples and the host Gradle configuration for each path, checked by
+  `tests/test_guide.py::TestGuide::test_runtime_paths_guide_page_covers_all_three_paths`.
 
 ## 2. The mapping manifest (`pythonx-map.toml`): `implemented`
 

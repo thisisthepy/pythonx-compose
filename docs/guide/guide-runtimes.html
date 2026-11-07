@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Runtime paths · pythonx-compose</title>
+<meta name="description" content="pythonx-compose: write Compose user interfaces in Python, with Compose's own widgets and Pythonic names.">
+<script>(function(){var r=document.documentElement,l=null,t=null;
+try{l=localStorage.getItem('pxc-lang');t=localStorage.getItem('pxc-theme');}catch(e){}
+if(l!=='en'&&l!=='ko'){l=((navigator.language||'en').toLowerCase().indexOf('ko')===0)?'ko':'en';}
+r.lang=l;if(t==='dark'||t==='light'){r.setAttribute('data-theme',t);}})();</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&amp;family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap">
+<link rel="stylesheet" href="assets/style.css">
+<script src="assets/site.js" defer></script>
+</head>
+<body data-title-en="Runtime paths" data-title-ko="런타임 경로">
+<header class="site-header">
+<div class="wrap bar">
+<a class="brand" href="index.html"><svg class="mark" viewBox="0 0 24 24" aria-hidden="true"><rect x="1.5" y="1.5" width="21" height="21" rx="6" fill="none" stroke="var(--accent)" stroke-width="1.6"/><path d="M7 8.5h6M7 12h10M7 15.5h4" stroke="var(--fg)" stroke-width="1.6" stroke-linecap="round"/></svg>pythonx-compose</a>
+<nav class="nav" aria-label="Guide"><a href="index.html"><span data-lang="en">Home</span><span data-lang="ko">홈</span></a><a href="getting-started.html"><span data-lang="en">Getting started</span><span data-lang="ko">시작하기</span></a><a href="concepts.html"><span data-lang="en">Concepts</span><span data-lang="ko">개념</span></a><a href="guide-composables.html"><span data-lang="en">Composables</span><span data-lang="ko">컴포저블</span></a><a href="guide-modifiers.html"><span data-lang="en">Modifiers</span><span data-lang="ko">모디파이어</span></a><a href="guide-manifest.html"><span data-lang="en">Manifest</span><span data-lang="ko">매니페스트</span></a><a href="guide-runtimes.html" aria-current="page"><span data-lang="en">Runtimes</span><span data-lang="ko">런타임</span></a><a href="ecosystem.html"><span data-lang="en">Ecosystem</span><span data-lang="ko">생태계</span></a><a href="status.html"><span data-lang="en">Status & FAQ</span><span data-lang="ko">현황 · FAQ</span></a></nav>
+<div class="tools">
+<button class="btn-ghost" id="lang-toggle" type="button"><span data-lang="en">한국어</span><span data-lang="ko">English</span></button>
+<button class="btn-ghost" id="theme-toggle" type="button" aria-label="Toggle colour theme"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M12 3a9 9 0 1 0 9 9 7 7 0 0 1-9-9z"/></svg></button>
+</div>
+</div>
+</header>
+<main>
+<header class="page-head wrap"><p class="kicker"><span data-lang="en">Guide</span><span data-lang="ko">가이드</span></p><h1><span data-lang="en">Choosing a runtime path</span><span data-lang="ko">런타임 경로 고르기</span></h1><p class="lead"><span data-lang="en">One Python package, three ways the host can run it: default Compose JVM, GraalVM native-image, or Kotlin/Native desktop.</span><span data-lang="ko">하나의 파이썬 패키지를 세 가지 호스트 경로에서 그대로 실행합니다: 기본 Compose JVM, GraalVM 네이티브 이미지, Kotlin/Native 데스크톱.</span></p></header>
+
+<div class="wrap doc narrow">
+<section class="flush">
+<p><span class="chip partial"><span data-lang="en">partial · #110</span><span data-lang="ko">부분 · #110</span></span></p>
+<p data-lang="en" class="muted"><code>pythonx-compose</code> is pure Python 3.11+ with zero JVM reflection or AWT calls (<code>tests/test_legacy_modules.py</code>). It runs unchanged on the default JVM desktop path and on the extended fork's GraalVM native-image path (both verified across all 20 <code>UI.ipynb</code> scenarios in CI). On Kotlin/Native desktop, the binder supports <code>macosArm64</code> and <code>linuxX64</code> (python-multiplatform #370); the Compose host module for those targets is in progress.</p><p data-lang="ko" class="muted"><code>pythonx-compose</code> 는 JVM 리플렉션이나 AWT 호출이 전혀 없는 순수 파이썬 3.11+ 패키지입니다(<code>tests/test_legacy_modules.py</code>). 기본 JVM 데스크톱 경로와 extended 포크의 GraalVM 네이티브 이미지 경로에서 수정 없이 그대로 동작하며, 두 경로 모두 CI 에서 20 개 <code>UI.ipynb</code> 시나리오를 통과합니다. Kotlin/Native 데스크톱은 바인더가 <code>macosArm64</code> 와 <code>linuxX64</code> 를 지원하며(python-multiplatform #370), 해당 타겟의 Compose 호스트 모듈은 진행 중입니다.</p>
+</section>
+
+<section>
+<h2><span data-lang="en">Why the Python code never changes</span><span data-lang="ko">파이썬 코드가 바뀌지 않는 이유</span></h2>
+<p data-lang="en">Every widget, modifier, object and state in <code>pythonx.compose</code> resolves through the build-time table that <a href="https://github.com/thisisthepy/python-multiplatform">python-multiplatform</a> generates and registers under <code>androidx.compose.*</code>. Because nothing in <code>pythonx/</code> calls <code>jclass</code>, JNI reflection, or AWT directly, your Python files and the installed <code>pythonx-compose</code> wheel stay identical whichever host path you pick.</p><p data-lang="ko"><code>pythonx.compose</code> 의 모든 위젯, 모디파이어, 객체, 상태는 <a href="https://github.com/thisisthepy/python-multiplatform">python-multiplatform</a> 이 빌드 타임에 생성해 <code>androidx.compose.*</code> 아래에 등록하는 테이블을 통해 해석됩니다. <code>pythonx/</code> 안의 어떤 코드도 <code>jclass</code>, JNI 리플렉션, AWT 를 직접 부르지 않으므로, 어느 호스트 경로를 고르든 파이썬 코드와 설치된 <code>pythonx-compose</code> wheel 은 똑같습니다.</p>
+<pre><code class="language-bash"># 1. Add pythonx-compose to your Python environment with uv:
+uv add --prerelease allow pythonx-compose
+
+# 2. Or, in a pypackpack workspace:
+ppp core add &quot;pythonx-compose==0.1.0a2&quot;
+
+# 3. Or, with toolchain-lite:
+tcl install pythonx-compose</code></pre>
+</section>
+
+<section>
+<h2><span data-lang="en">Comparing the three paths</span><span data-lang="ko">세 경로 비교</span></h2>
+<div class="table-wrap"><table>
+<thead><tr><th><span data-lang="en">Path</span><span data-lang="ko">경로</span></th><th><span data-lang="en">Gradle plugin</span><span data-lang="ko">Gradle 플러그인</span></th><th><span data-lang="en">Host runtime</span><span data-lang="ko">호스트 런타임</span></th><th><span data-lang="en">When to choose</span><span data-lang="ko">언제 고르는가</span></th></tr></thead>
+<tbody>
+<tr><td><span data-lang="en"><strong>1. Default Compose JVM</strong></span><span data-lang="ko"><strong>1. 기본 Compose JVM</strong></span></td><td><code>org.thisisthepy.compose</code></td><td><span data-lang="en">JVM + embedded CPython</span><span data-lang="ko">JVM + 임베딩된 CPython</span></td><td><span data-lang="en">Fastest edit-run cycle, full JVM ecosystem, and live notebook reloading.</span><span data-lang="ko">가장 빠른 수정·실행 주기, 전체 JVM 생태계, 라이브 노트북 리로딩.</span></td></tr>
+<tr><td><span data-lang="en"><strong>2. Extended GraalVM native-image</strong></span><span data-lang="ko"><strong>2. Extended GraalVM 네이티브 이미지</strong></span></td><td><code>org.thisisthepy.compose</code></td><td><span data-lang="en">Ahead-of-time native binary (no <code>libjvm</code>, <code>-Dcompose.awt=false</code>) + embedded CPython</span><span data-lang="ko">AOT 네이티브 바이너리 (<code>libjvm</code> 없음, <code>-Dcompose.awt=false</code>) + 임베딩된 CPython</span></td><td><span data-lang="en">Single desktop binary with instant startup and no JDK required on the user's machine.</span><span data-lang="ko">사용자 기기에 JDK 없이 즉시 시작되는 단일 데스크톱 바이너리.</span></td></tr>
+<tr><td><span data-lang="en"><strong>3. Extended Kotlin/Native desktop</strong></span><span data-lang="ko"><strong>3. Extended Kotlin/Native 데스크톱</strong></span></td><td><code>org.thisisthepy.kotlin.native.desktop</code></td><td><span data-lang="en">Kotlin/Native (<code>macosArm64</code>, <code>linuxX64</code>) + embedded CPython via <code>cinterop</code></span><span data-lang="ko">Kotlin/Native (<code>macosArm64</code>, <code>linuxX64</code>) + <code>cinterop</code> CPython 임베딩</span></td><td><span data-lang="en">Native compilation without a JVM or GraalVM toolchain; shares Kotlin/Native targets with iOS/desktop libraries.</span><span data-lang="ko">JVM 이나 GraalVM 툴체인 없는 네이티브 컴파일; iOS·데스크톱 라이브러리와 Kotlin/Native 타겟 공유.</span></td></tr>
+</tbody>
+</table></div>
+</section>
+
+<section>
+<h2><span data-lang="en">Path 1: Default Compose JVM</span><span data-lang="ko">경로 1: 기본 Compose JVM</span></h2>
+<p data-lang="en">The standard desktop JVM target uses the extended Compose plugin (<code>org.thisisthepy.compose:1.11.1-ext.3</code>) and libraries (<code>org.thisisthepy.compose.*:1.11.1-ext.2</code>) from Maven Central, or upstream JetBrains Compose where native-image is not needed. All 20 scenarios of <code>UI.ipynb</code> pass on this path in CI (<code>:python-multiplatform-compose:fixtures:notebook-e2e:desktopTest</code>).</p><p data-lang="ko">표준 데스크톱 JVM 타겟은 Maven Central 의 extended Compose 플러그인(<code>org.thisisthepy.compose:1.11.1-ext.3</code>)과 라이브러리(<code>org.thisisthepy.compose.*:1.11.1-ext.2</code>), 또는 네이티브 이미지가 필요 없는 곳에서는 업스트림 JetBrains Compose 를 씁니다. <code>UI.ipynb</code> 의 20 개 시나리오 전체가 이 경로의 CI(<code>:python-multiplatform-compose:fixtures:notebook-e2e:desktopTest</code>)에서 통과합니다.</p>
+<pre><code class="language-kotlin">// settings.gradle.kts
+pluginManagement {
+    repositories {
+        mavenCentral()
+        google()
+        gradlePluginPortal()
+    }
+}
+
+// build.gradle.kts
+plugins {
+    kotlin(&quot;multiplatform&quot;)
+    id(&quot;org.thisisthepy.compose&quot;) version &quot;1.11.1-ext.3&quot;
+    id(&quot;org.jetbrains.kotlin.plugin.compose&quot;)
+    id(&quot;org.thisisthepy.python-multiplatform&quot;) version &quot;3.15.0-alpha02&quot;
+}
+
+kotlin {
+    jvm(&quot;desktop&quot;)
+}</code></pre>
+</section>
+
+<section>
+<h2><span data-lang="en">Path 2: Extended GraalVM native-image</span><span data-lang="ko">경로 2: Extended GraalVM 네이티브 이미지</span></h2>
+<p data-lang="en">Setting <code>output.set(ApplicationOutput.NativeImage)</code> on <code>compose.desktop.application</code> switches the desktop target from a JAR to a GraalVM <code>native-image</code> executable. On the extended fork, passing <code>-Dcompose.awt=false</code> and <code>-Dcompose.main.dispatcher=coroutines</code> runs Compose Desktop without AWT/Swing initialization, while <code>python-multiplatform</code> stages <code>python-multiplatform-home/</code> (including <code>pythonx-compose</code>) beside the binary so it starts with <code>JAVA_HOME</code> and <code>PYTHONHOME</code> unset. Verified in CI by <code>:python-multiplatform-compose:fixtures:notebook-e2e:notebookE2eNativeRun</code> (20/20 scenarios, no <code>libjvm</code>).</p><p data-lang="ko"><code>compose.desktop.application</code> 에 <code>output.set(ApplicationOutput.NativeImage)</code> 를 설정하면 데스크톱 타겟이 JAR 대신 GraalVM <code>native-image</code> 실행 파일로 빌드됩니다. extended 포크에서 <code>-Dcompose.awt=false</code> 와 <code>-Dcompose.main.dispatcher=coroutines</code> 를 넘기면 AWT/Swing 초기화 없이 Compose Desktop 이 실행되며, <code>python-multiplatform</code> 이 바이너리 옆에 <code>python-multiplatform-home/</code>(설치된 <code>pythonx-compose</code> 포함)을 배치해 <code>JAVA_HOME</code> 과 <code>PYTHONHOME</code> 없이도 바로 시작됩니다. CI 의 <code>:python-multiplatform-compose:fixtures:notebook-e2e:notebookE2eNativeRun</code> 에서 검증됩니다(20/20 시나리오 통과, <code>libjvm</code> 없음).</p>
+<pre><code class="language-kotlin">import org.jetbrains.compose.desktop.application.dsl.ApplicationOutput
+
+compose.desktop {
+    application {
+        mainClass = &quot;my.app.MainKt&quot;
+        output.set(ApplicationOutput.NativeImage)
+        nativeImage {
+            buildArgs.addAll(
+                &quot;--no-fallback&quot;,
+                &quot;-Dcompose.awt=false&quot;,
+                &quot;-Dcompose.main.dispatcher=coroutines&quot;,
+            )
+        }
+    }
+}</code></pre>
+</section>
+
+<section>
+<h2><span data-lang="en">Path 3: Extended Kotlin/Native desktop</span><span data-lang="ko">경로 3: Extended Kotlin/Native 데스크톱</span></h2>
+<p data-lang="en">The extended fork also ships <code>org.thisisthepy.kotlin.native.desktop</code>, which compiles Kotlin directly to a native binary on <code>macosArm64()</code> and <code>linuxX64()</code> using GLFW and Skia without a JVM. <code>python-multiplatform</code> supports both targets via CPython <code>cinterop</code> (python-multiplatform #370, 496/496 binder tests passing in CI). Because <code>pythonx-compose</code> imports only the binder's <code>androidx.compose.*</code> modules, your Python UI code needs no changes; adding the <code>macosArm64</code> and <code>linuxX64</code> targets to <code>:python-multiplatform-compose</code> is the remaining host-side step (python-multiplatform #191 Phase B).</p><p data-lang="ko">extended 포크는 JVM 없이 GLFW 와 Skia 로 Kotlin 을 <code>macosArm64()</code> 및 <code>linuxX64()</code> 네이티브 바이너리로 직접 컴파일하는 <code>org.thisisthepy.kotlin.native.desktop</code> 플러그인도 제공합니다. <code>python-multiplatform</code> 은 CPython <code>cinterop</code> 으로 두 타겟을 모두 지원합니다(python-multiplatform #370, CI 에서 496/496 바인더 테스트 통과). <code>pythonx-compose</code> 는 바인더의 <code>androidx.compose.*</code> 모듈만 import 하므로 파이썬 UI 코드는 바꿀 것이 없으며, <code>:python-multiplatform-compose</code> 에 <code>macosArm64</code> 와 <code>linuxX64</code> 타겟을 여는 것이 남은 호스트 쪽 단계입니다(python-multiplatform #191 Phase B).</p>
+<pre><code class="language-kotlin">plugins {
+    kotlin(&quot;multiplatform&quot;)
+    id(&quot;org.thisisthepy.compose&quot;) version &quot;1.11.1-ext.3&quot;
+    id(&quot;org.thisisthepy.kotlin.native.desktop&quot;) version &quot;1.11.1-ext.3&quot;
+    id(&quot;org.jetbrains.kotlin.plugin.compose&quot;)
+    id(&quot;org.thisisthepy.python-multiplatform&quot;) version &quot;3.15.0-alpha02&quot;
+}
+
+kotlin {
+    macosArm64()
+    linuxX64()
+}</code></pre>
+<div class="pager"><a href="guide-manifest.html">← <span data-lang="en">Manifest</span><span data-lang="ko">매니페스트</span></a><a href="ecosystem.html"><span data-lang="en">Ecosystem</span><span data-lang="ko">생태계</span> →</a></div>
+</section>
+</div>
+
+</main>
+<footer>
+<div class="wrap">
+<span><span data-lang="en">pythonx-compose: Compose, restructured for Python.</span><span data-lang="ko">pythonx-compose: 파이썬을 위해 재구성한 Compose.</span></span>
+<span><a href="https://github.com/thisisthepy/pythonx-compose">GitHub</a> · <span data-lang="en">Apache License 2.0</span><span data-lang="ko">Apache 라이선스 2.0</span></span>
+</div>
+</footer>
+</body>
+</html>
