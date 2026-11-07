@@ -46,6 +46,7 @@ REQUIRED_PAGES = (
     "guide-composables.html",
     "guide-modifiers.html",
     "guide-manifest.html",
+    "guide-runtimes.html",
     "ecosystem.html",
     "status.html",
 )

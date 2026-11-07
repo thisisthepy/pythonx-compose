@@ -37,6 +37,23 @@ class TestGuide(unittest.TestCase):
         self.assertIn("IntersectionObserver", js)
         self.assertIn("prefers-reduced-motion", js)
 
+    def test_runtime_paths_guide_page_covers_all_three_paths(self) -> None:
+        page = REPO / "docs" / "guide" / "guide-runtimes.html"
+        self.assertTrue(page.is_file(), "docs/guide/guide-runtimes.html is missing")
+        text = page.read_text(encoding="utf-8")
+        for expected in (
+            "ApplicationOutput.NativeImage",
+            "-Dcompose.awt=false",
+            "org.thisisthepy.kotlin.native.desktop",
+            "macosArm64()",
+            "linuxX64()",
+            "uv add --prerelease allow pythonx-compose",
+            "ppp core add",
+            "tcl install pythonx-compose",
+        ):
+            with self.subTest(expected=expected):
+                self.assertIn(expected, text)
+
 
 if __name__ == "__main__":
     unittest.main()

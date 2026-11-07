@@ -11,7 +11,7 @@
 [![pip](https://img.shields.io/badge/pip-pythonx--compose-7c4dff.svg)](https://github.com/thisisthepy/pythonx-compose/blob/main/pyproject.toml)
 [![Status](https://img.shields.io/badge/status-pre--alpha-lightgrey.svg)](#-현황)
 
-[가이드](https://thisisthepy.github.io/pythonx-compose/) · [시작하기](https://thisisthepy.github.io/pythonx-compose/getting-started.html) · [개념](https://thisisthepy.github.io/pythonx-compose/concepts.html) · [현황](https://thisisthepy.github.io/pythonx-compose/status.html)
+[가이드](https://thisisthepy.github.io/pythonx-compose/) · [시작하기](https://thisisthepy.github.io/pythonx-compose/getting-started.html) · [개념](https://thisisthepy.github.io/pythonx-compose/concepts.html) · [런타임](https://thisisthepy.github.io/pythonx-compose/guide-runtimes.html) · [현황](https://thisisthepy.github.io/pythonx-compose/status.html)
 
 </div>
 
@@ -175,6 +175,7 @@ pip 패키지 **`pythonx-compose`**(파이썬 3.11 이상)로 배포되며, impo
 | 색 스킴 (`light_color_scheme`, `dark_color_scheme`) | ✅ 구현, 테스트됨: 48 개 Material 3 토큰 기본값과 `surface_tint = primary` 를 `ColorScheme` 48-인자 생성자로 구성 (#135) |
 | 노트북의 `getValue()` / `setValue()` 를 쓰는 `remember_saveable` | 🟡 부분: 가짜 호스트로 테스트됨, 저장과 복원은 python-multiplatform 의 테스트(#174) |
 | 코루틴 스코프(`DefaultCoroutineScope`, `MainCoroutineScope`) | ✅ 구현, `pythonx.concurrent` 위에서 테스트됨 (#94) |
+| 데스크톱 런타임 경로([런타임](https://thisisthepy.github.io/pythonx-compose/guide-runtimes.html), #110) | 🟡 부분: `pythonx/` 에 JVM/AWT 토큰 0 개; 기본 Compose JVM 과 extended GraalVM 네이티브 이미지(`libjvm` 없음)에서 20 개 `UI.ipynb` 시나리오 검증; Kotlin/Native 데스크톱(`macosArm64`, `linuxX64`)은 `:python-multiplatform` 지원 완료(#370), `:python-multiplatform-compose` K/N 타겟 대기 |
 
 전체 목록은 가이드의 [현황 페이지](https://thisisthepy.github.io/pythonx-compose/status.html)에 있습니다.
 
