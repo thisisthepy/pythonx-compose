@@ -42,7 +42,7 @@ r.lang=l;if(t==='dark'||t==='light'){r.setAttribute('data-theme',t);}})();</scri
 uv add --prerelease allow pythonx-compose
 
 # 2. Or, in a pypackpack workspace:
-ppp core add &quot;pythonx-compose==0.1.0a2&quot;
+ppp core add &quot;pythonx-compose==0.1.0a3&quot;
 
 # 3. Or, with toolchain-lite:
 tcl install pythonx-compose</code></pre>
@@ -77,12 +77,13 @@ plugins {
     kotlin(&quot;multiplatform&quot;)
     id(&quot;org.thisisthepy.compose&quot;) version &quot;1.11.1-ext.3&quot;
     id(&quot;org.jetbrains.kotlin.plugin.compose&quot;)
-    id(&quot;org.thisisthepy.python-multiplatform&quot;) version &quot;3.15.0-alpha02&quot;
+    id(&quot;org.thisisthepy.python.multiplatform.bindings&quot;) version &quot;3.15.0-alpha03&quot;
 }
 
 kotlin {
     jvm(&quot;desktop&quot;)
 }</code></pre>
+<p data-lang="en">The complete build file, with the <code>python-multiplatform-compose</code> dependency, the walked packages and the Kotlin <code>main</code> that hosts the screen, is the desktop host recipe in <a href="getting-started.html">Getting started</a>, step 5.</p><p data-lang="ko"><code>python-multiplatform-compose</code> 의존성, 바인딩할 패키지 목록, 화면을 띄우는 Kotlin <code>main</code> 까지 갖춘 전체 빌드 파일은 <a href="getting-started.html">시작하기</a> 5 단계의 데스크톱 호스트 레시피에 있습니다.</p>
 </section>
 
 <section>
@@ -113,7 +114,7 @@ compose.desktop {
     id(&quot;org.thisisthepy.compose&quot;) version &quot;1.11.1-ext.3&quot;
     id(&quot;org.thisisthepy.kotlin.native.desktop&quot;) version &quot;1.11.1-ext.3&quot;
     id(&quot;org.jetbrains.kotlin.plugin.compose&quot;)
-    id(&quot;org.thisisthepy.python-multiplatform&quot;) version &quot;3.15.0-alpha02&quot;
+    id(&quot;org.thisisthepy.python.multiplatform.bindings&quot;) version &quot;3.15.0-alpha03&quot;
 }
 
 kotlin {

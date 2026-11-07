@@ -86,13 +86,13 @@ flowchart LR
 ## 🚀 빠른 시작
 
 > [!NOTE]
-> `pythonx-compose` 는 **알파** 단계입니다. `0.1.0a2` 가 [PyPI](https://pypi.org/project/pythonx-compose/) 에
+> `pythonx-compose` 는 **알파** 단계입니다. `0.1.0a3` 이 [PyPI](https://pypi.org/project/pythonx-compose/) 에
 > 있으며, 프리릴리스이므로 uv(또는 ppp, tcl)로 설치합니다.
 
 ```bash
 uv add --prerelease allow pythonx-compose
 # 또는 pypackpack 으로, ppp 워크스페이스의 패키지에 추가:
-ppp core add "pythonx-compose==0.1.0a2"
+ppp core add "pythonx-compose==0.1.0a3"
 # 또는 toolchain-lite 로:
 tcl install pythonx-compose
 ```
@@ -153,6 +153,12 @@ pip 패키지 **`pythonx-compose`**(파이썬 3.11 이상)로 배포되며, impo
 `org.thisisthepy.compose:1.11.1-ext.3`)에서 생성한 `.pyi` 스텁과 `py.typed`.
 [python-multiplatform](https://github.com/thisisthepy/python-multiplatform) 으로 CPython 을 임베딩한
 앱 안에서 동작하며, 단독 데스크톱 툴킷이 아닙니다.
+
+호스트는 Maven Central 에서 가져옵니다: python-multiplatform `3.15.0-alpha03`
+(`org.thisisthepy:python-multiplatform` 과 `org.thisisthepy:python-multiplatform-compose`, Gradle
+플러그인 `org.thisisthepy.python.multiplatform.bindings`). 가이드의
+[시작하기](https://thisisthepy.github.io/pythonx-compose/getting-started.html) 5 단계에 이것으로 만든
+데스크톱 호스트 레시피가 있습니다.
 
 ## 🧪 현황
 

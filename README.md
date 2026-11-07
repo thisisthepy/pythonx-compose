@@ -88,13 +88,13 @@ Each module is a real file whose `__init__.py` calls one re-export rule; names r
 ## 🚀 Quick start
 
 > [!NOTE]
-> `pythonx-compose` is an **alpha**. `0.1.0a2` is on [PyPI](https://pypi.org/project/pythonx-compose/);
+> `pythonx-compose` is an **alpha**. `0.1.0a3` is on [PyPI](https://pypi.org/project/pythonx-compose/);
 > as a pre-release it installs with uv (or ppp, or tcl):
 
 ```bash
 uv add --prerelease allow pythonx-compose
 # or, with pypackpack, into a package of a ppp workspace:
-ppp core add "pythonx-compose==0.1.0a2"
+ppp core add "pythonx-compose==0.1.0a3"
 # or, with toolchain-lite:
 tcl install pythonx-compose
 ```
@@ -155,6 +155,12 @@ real Compose 1.11.1-ext.2 (`org.thisisthepy.compose.*:1.11.1-ext.2` libraries, G
 `org.thisisthepy.compose:1.11.1-ext.3` on Maven Central) and `py.typed` ship with it. It runs inside
 an app that embeds CPython through [python-multiplatform](https://github.com/thisisthepy/python-multiplatform);
 it is not a standalone desktop toolkit.
+
+The host comes from Maven Central: python-multiplatform `3.15.0-alpha03`
+(`org.thisisthepy:python-multiplatform` and `org.thisisthepy:python-multiplatform-compose`, Gradle
+plugin `org.thisisthepy.python.multiplatform.bindings`). The guide's
+[Getting started](https://thisisthepy.github.io/pythonx-compose/getting-started.html), step 5, has a
+desktop host recipe built on them.
 
 ## 🧪 Status
 
