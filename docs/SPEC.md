@@ -83,8 +83,8 @@ and the name the interpreter resolves cannot drift.
 - **What is generated.** `pythonx/compose/**/__init__.pyi` for every module in `pythonx-map.toml`,
   beside its `__init__.py`, and an empty `pythonx/compose/py.typed`. The stubs are committed;
   regenerating them from the same input produces no diff.
-- **From what.** python-multiplatform's CI artefact `kotlin-stubs` (workflow run 40147624743,
-  commit `24883b92`, regenerated in #130): Kotlin-named stubs for Compose 1.11.1-ext.2
+- **From what.** python-multiplatform's CI artefact `kotlin-stubs` (workflow run 42402779166,
+  commit `9507e6dd`, regenerated in #130 and again for 0.1.0a3 in #148): Kotlin-named stubs for Compose 1.11.1-ext.2
   (`org.thisisthepy.compose.*:1.11.1-ext.2` libraries and `org.thisisthepy.compose:1.11.1-ext.3`
   Gradle plugin from Maven Central, with `mavenCentral()` in `pluginManagement`, alongside
   `org.thisisthepy.compose.androidx.*:1.11.1-ext.2` for apps using lifecycle or navigation, and
