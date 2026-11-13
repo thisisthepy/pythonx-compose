@@ -463,11 +463,10 @@ def reexport(module_name: str) -> tuple[Callable[[str], object], Callable[[], li
             raise AttributeError(
                 f"module {module_name!r} has no attribute {name!r} ({missing})"
             ) from missing
-        resolved = None
-        for kotlin in layers:
-            resolved = _resolve(kotlin, name)
-            if resolved is not None:
-                break
+        # The first layer that declares the name answers (SPEC S2.1).
+        resolved = next(
+            (found for kotlin in layers if (found := _resolve(kotlin, name)) is not None), None
+        )
         if resolved is None:
             searched = ", ".join(kotlin.__name__ for kotlin in layers)
             raise AttributeError(
