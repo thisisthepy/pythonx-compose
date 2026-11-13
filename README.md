@@ -11,7 +11,7 @@ English | [한국어](https://github.com/thisisthepy/pythonx-compose/blob/main/d
 [![pip](https://img.shields.io/badge/pip-pythonx--compose-7c4dff.svg)](https://github.com/thisisthepy/pythonx-compose/blob/main/pyproject.toml)
 [![Status](https://img.shields.io/badge/status-pre--alpha-lightgrey.svg)](#-status)
 
-[Guide](https://thisisthepy.github.io/pythonx-compose/) · [Getting started](https://thisisthepy.github.io/pythonx-compose/getting-started.html) · [Concepts](https://thisisthepy.github.io/pythonx-compose/concepts.html) · [Status](https://thisisthepy.github.io/pythonx-compose/status.html)
+[Guide](https://thisisthepy.github.io/pythonx-compose/) · [Getting started](https://thisisthepy.github.io/pythonx-compose/getting-started.html) · [Concepts](https://thisisthepy.github.io/pythonx-compose/concepts.html) · [Runtimes](https://thisisthepy.github.io/pythonx-compose/guide-runtimes.html) · [Status](https://thisisthepy.github.io/pythonx-compose/status.html)
 
 </div>
 
@@ -177,6 +177,7 @@ it is not a standalone desktop toolkit.
 | Colour schemes (`light_color_scheme`, `dark_color_scheme`) | ✅ implemented and tested: 48 Material 3 token defaults and `surface_tint = primary` through `ColorScheme`'s 48-argument constructor (#135) |
 | `remember_saveable` with the notebook's `getValue()` / `setValue()` | 🟡 partial: tested against a fake host; save and restore is python-multiplatform's test (#174) |
 | Coroutine scopes (`DefaultCoroutineScope`, `MainCoroutineScope`) | ✅ implemented and tested on top of `pythonx.concurrent` (#94) |
+| Desktop runtime paths ([Runtimes](https://thisisthepy.github.io/pythonx-compose/guide-runtimes.html), #110) | 🟡 partial: zero JVM/AWT tokens in `pythonx/`; verified across all 20 `UI.ipynb` scenarios on default Compose JVM and extended GraalVM native-image (no `libjvm`); Kotlin/Native desktop (`macosArm64`, `linuxX64`) supported in `:python-multiplatform` (#370), pending `:python-multiplatform-compose` K/N targets |
 
 The full list is on the guide's [Status page](https://thisisthepy.github.io/pythonx-compose/status.html).
 

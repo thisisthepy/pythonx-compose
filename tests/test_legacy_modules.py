@@ -107,5 +107,37 @@ class TestRetiredModulesExposeTheirExplanationAsADocstring(unittest.TestCase):
                 self.assertGreater(len(doc.strip()), 40, f"{relative}'s docstring says almost nothing")
 
 
+class TestNoJvmOrAwtDependenciesInPackage(unittest.TestCase):
+    """SPEC S1.4 (#110): `pythonx/` must run unchanged across JVM, GraalVM native-image, and
+    Kotlin/Native desktop paths, so no `.py` file under `pythonx/` may reference JVM reflection,
+    AWT/Swing, JNI, or ctypes in executable tokens."""
+
+    BANNED_TOKENS = (
+        "jclass",
+        "jpype",
+        "java",
+        "javax",
+        "awt",
+        "swing",
+        "ctypes",
+        "cffi",
+    )
+
+    def test_every_package_module_is_free_of_jvm_and_awt_tokens(self) -> None:
+        package_root = REPO / "pythonx"
+        py_files = sorted(package_root.rglob("*.py"))
+        self.assertGreater(len(py_files), 0)
+        for path in py_files:
+            rel = path.relative_to(REPO).as_posix()
+            tokens = _get_executable_tokens(path)
+            with self.subTest(module=rel):
+                for banned in self.BANNED_TOKENS:
+                    self.assertNotIn(
+                        banned,
+                        tokens,
+                        f"{rel} contains JVM/AWT/FFI token {banned!r} in executable code",
+                    )
+
+
 if __name__ == "__main__":
     unittest.main()

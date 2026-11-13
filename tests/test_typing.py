@@ -20,7 +20,7 @@ import unittest
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[1]
-SCRATCH = REPO / ".tmp"
+SCRATCH = REPO / ".cache"
 
 
 def _mypy(program: str) -> tuple[int, str]:
@@ -97,6 +97,15 @@ class TheStubsTypeCheck(unittest.TestCase):
 
             Modifier.padding(paddingValues=None)
         """, '"paddingValues"', 'did you mean "padding_values"')
+
+    def test_a_defaults_objects_members_type_check(self):
+        """Issue #148: the `*Defaults` objects carry their members (`ButtonDefaults.buttonColors()`)."""
+        self.assertPasses("""
+            from pythonx.compose.material3 import ButtonColors, ButtonDefaults, CardColors, CardDefaults
+
+            b: ButtonColors = ButtonDefaults.button_colors()
+            c: CardColors = CardDefaults.card_colors()
+        """)
 
     def test_a_modifier_chain_on_the_class_passes(self):
         self.assertPasses("""

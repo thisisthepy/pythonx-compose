@@ -32,7 +32,7 @@ Only Markdown is ever dropped.
     .github/scripts/release/sync-release.sh --dry-run     # list paths that would be dropped
     .github/scripts/release/sync-release.sh               # regenerate local release branch
     .github/scripts/release/sync-release.sh --push        # also push to origin
-    .github/scripts/release/test-sync-release.sh          # tests (throwaway repo in .tmp/)
+    .github/scripts/release/test-sync-release.sh          # tests (throwaway repo in .cache/)
 
 The script uses plumbing and a private index, so your working tree, index and HEAD are untouched.
 It refuses to run while `release` is checked out.
