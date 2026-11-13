@@ -211,11 +211,17 @@ them.
    `org.thisisthepy.compose.designsystem`), are exposed the same way as `pythonx.compose.<name>`, each
    with a regression guard.
 
-   > Agent proposal, not confirmed by the owner (#152): the means. The `material3` row lists the
-   > design-system package **before** `androidx.compose.material3` rather than replacing it, because
-   > `UI.ipynb` imports `Text`, `Button`, `Card`, `TextField` from `pythonx.compose.material3` and only
-   > `androidx.compose.material3` declares them (the design-system package declares
-   > `Material3DesignSystem`, `materialDesignSystem` and `MaterialButton`). The shared contract is
+   The means (leader's decisions, 2026-11-13, recorded on #54; first proposed by an agent in #152).
+   The `material3` row lists the
+   design-system package **before** `androidx.compose.material3` rather than replacing it, because
+   `UI.ipynb` imports `Text`, `Button`, `Card`, `TextField` from `pythonx.compose.material3` and only
+   `androidx.compose.material3` declares them (the design-system package declares
+   `Material3DesignSystem`, `materialDesignSystem` and `MaterialButton`). The regression guard is a
+   per-module public-surface diff between fork releases with a reviewed allowlist (SPEC §2.1). The
+   leader asks the fork's maintainers (the darkpyonix team) to publish `extended/design-systems` to
+   Maven Central with `macosArm64` and `linuxX64`; once published, they become a python-multiplatform
+   dependency so the binder serves them.
+
+   > Agent proposal, not confirmed by the owner (#152): the module names. The shared contract is
    > exposed as `pythonx.compose.designsystem`, and Liquid Glass as `pythonx.compose.liquidglass`
-   > (its Kotlin package's last segment). The regression guard is a committed public-surface snapshot
-   > per module (SPEC §2.1).
+   > (its Kotlin package's last segment).
