@@ -1,4 +1,9 @@
-"""`pythonx.compose.material3` -- the Pythonic view of `androidx.compose.material3`.
+"""`pythonx.compose.material3` -- the Pythonic view of `org.thisisthepy.compose.material3` over `androidx.compose.material3`.
+
+The manifest row lists both packages (owner's decision of 2026-11-13, #54; the layering is SPEC S2.1,
+#152): a name is looked up in the fork's design-system package first (`Material3DesignSystem`,
+`materialDesignSystem`, `MaterialButton`), then in Material 3 itself. The design system is not on
+Maven Central yet, so today every name comes from `androidx.compose.material3`.
 
 Every Material 3 composable (`Text`, `Button`, `Card`, `TextField`, `Checkbox`, ...) is served by
 the one rule in `pythonx/compose/_reexport.py`: Kotlin's own declaration, upper-case names kept,

@@ -77,7 +77,13 @@ flowchart LR
 | `pythonx.compose.runtime` | `androidx.compose.runtime` |
 | `pythonx.compose.ui` | `androidx.compose.ui` |
 | `pythonx.compose.layout` | `androidx.compose.foundation.layout` |
-| `pythonx.compose.material3` | `androidx.compose.material3` |
+| `pythonx.compose.material3` | `org.thisisthepy.compose.material3`, 그다음 `androidx.compose.material3` |
+| `pythonx.compose.cupertino`, `.fluent`, `.gnome`, `.breeze`, `.deepin`, `.liquidglass`, `.designsystem` | `org.thisisthepy.compose.<같은 이름>` |
+
+한 줄에 패키지를 여러 개 적을 수 있습니다: 이름은 그것을 선언한 첫 패키지에서 오므로,
+`pythonx.compose.material3` 는 Material 3 앞에 포크의 Material 3 디자인 시스템(`MaterialButton`,
+`materialDesignSystem`)을 더합니다. 포크의 디자인 시스템은 아직 Maven Central 에 없으므로,
+python-multiplatform 이 이를 제공하기 전까지 해당 모듈은 import 되지만 이름을 해석하지 않습니다.
 
 각 모듈은 재노출 규칙 하나를 부르는 `__init__.py` 를 가진 실제 파일이며, 이름은 처음 쓸 때
 해석됩니다. `Column`, `Row`, `Spacer` 는 노트북이 쓰는 대로 `pythonx.compose.layout` 뿐 아니라
