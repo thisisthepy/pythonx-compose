@@ -92,13 +92,14 @@ python-multiplatform 이 이를 제공하기 전까지 해당 모듈은 import �
 ## 🚀 빠른 시작
 
 > [!NOTE]
-> `pythonx-compose` 는 **알파** 단계입니다. `0.1.0a2` 가 [PyPI](https://pypi.org/project/pythonx-compose/) 에
-> 있으며, 프리릴리스이므로 uv(또는 ppp, tcl)로 설치합니다.
+> `pythonx-compose` 는 **알파** 단계입니다. `0.1.0a3` 가 [PyPI](https://pypi.org/project/pythonx-compose/) 에
+> 있으며, 프리릴리스이므로 uv(또는 ppp, tcl)로 설치합니다. 위의 디자인 시스템 모듈은 0.1.0a3 이후에
+> 들어갑니다.
 
 ```bash
 uv add --prerelease allow pythonx-compose
 # 또는 pypackpack 으로, ppp 워크스페이스의 패키지에 추가:
-ppp core add "pythonx-compose==0.1.0a2"
+ppp core add "pythonx-compose==0.1.0a3"
 # 또는 toolchain-lite 로:
 tcl install pythonx-compose
 ```

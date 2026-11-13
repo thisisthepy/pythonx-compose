@@ -65,8 +65,10 @@ in §9 and are not counted as features.
   imports `pythonx.compose.runtime`, leaves `pythonx` a namespace package, and `Color(0xFFFFFFFF)`
   without a host raises the binder's "not installed" error, as it should. With a host, the same
   wheel passed python-multiplatform's notebook E2E (S5.4, S5.6).
-- **0.1.0a3** is the next pre-release (`v0.1.0a3`); it is not on PyPI until that GitHub Release is
-  published.
+- **0.1.0a3 is on PyPI** (2026-11-13: pre-release `v0.1.0a3` on main `3b3bad10`, publish-pypi run
+  43370905909; PyPI lists `pythonx_compose-0.1.0a3-py3-none-any.whl` and the sdist). Its `pythonx/`
+  equals develop `28dd28b`, so it predates S2.1 (#153): the design-system modules and the layered
+  `material3` row come in the next release.
 - Released by publishing a GitHub Release tagged `v<version>` (`.github/workflows/publish-pypi.yml`,
   trigger `release: published`; a bare tag push publishes nothing): the workflow checks the
   Release's tag equals `v` + the `pyproject.toml` version (`.github/scripts/check_release_version.py`,
