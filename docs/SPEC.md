@@ -309,7 +309,7 @@ checkout.
 
 ### S2.1 Layered rows and the fork's design systems: `implemented` (served once the binder walks them)
 
-INTENT §5.12 (owner, 2026-11-13; the means are an agent proposal, #152). A row is one Kotlin package
+INTENT §5.12 (owner, 2026-11-13; the means are the leader's decisions, 2026-11-13, #54). A row is one Kotlin package
 or a list of them. A name is looked up in each listed package in order and the **first that declares
 it wins**; a listed package the binder does not serve is skipped; if it serves none, reading a name
 is an `AttributeError` that names every package. `dir()` lists every served layer. The stub generator
@@ -341,8 +341,9 @@ anything, so its snapshot is recorded the first time the binder serves it.
 | Surface snapshots exist, lose nothing unacknowledged, empty ones stay empty until recorded; the guard fails on a dropped line | `tests/test_design_systems.py::TheSurfaceGuard` |
 | Each design system is a package on disk that imports without a binder | `tests/test_design_systems.py::ThePackagesOnDisk` |
 
-Not done here: publishing `extended/design-systems` (the fork's side, darkpyonix team) and
-python-multiplatform walking it; the design-system `material3` module also declares no
+Not done here: publishing `extended/design-systems` (the fork's side, darkpyonix team; the leader
+asks for it, 2026-11-13) and then adding it as a python-multiplatform dependency so the binder walks
+it; the design-system `material3` module also declares no
 `macosArm64`/`linuxX64` target (S1.4).
 
 ## 3. `pythonx` is a real package: `implemented` (module level)
