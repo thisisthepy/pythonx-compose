@@ -137,7 +137,9 @@ uv run python .github/scripts/check_guide.py    # 가이드: HTML 파싱, 링크
   `v0.1.0a1`, publish-pypi run 37120641414; https://pypi.org/project/pythonx-compose/). PyPI 에서 새로
   설치한 0.1.0a1 이 import 스모크를 통과했다. **0.1.0a2 배포됨**(develop `f6dd3e2` 에서 pre-release `v0.1.0a2`,
   publish-pypi run 37138576477). 2026-10-17 에 깨끗한 venv 에 uv 로 설치해 import, namespace 패키지 유지,
-  호스트 없는 `Color(...)` 의 바인더 오류를 확인했다.
+  호스트 없는 `Color(...)` 의 바인더 오류를 확인했다. **0.1.0a3 배포됨**(2026-11-13, main `3b3bad10` 에서
+  pre-release `v0.1.0a3`, publish-pypi run 43370905909). `pythonx/` 는 develop `28dd28b` 와 같아서 #153(디자인
+  시스템 모듈, 겹친 `material3` 행)은 들어 있지 않다.
 
 ### 결정됨 (2026-10-03, `docs/INTENT.md` §5)
 
