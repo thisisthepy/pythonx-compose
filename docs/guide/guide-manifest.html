@@ -38,8 +38,10 @@ r.lang=l;if(t==='dark'||t==='light'){r.setAttribute('data-theme',t);}})();</scri
 <section>
 <h2><span data-lang="en">Mapping a module</span><span data-lang="ko">모듈 대응시키기</span></h2>
 <pre><code class="language-toml">[modules]
-&quot;pythonx.compose.material3&quot; = &quot;androidx.compose.material3&quot;
-&quot;pythonx.compose.layout&quot;    = &quot;androidx.compose.foundation.layout&quot;</code></pre>
+&quot;pythonx.compose.material3&quot; = [&quot;org.thisisthepy.compose.material3&quot;, &quot;androidx.compose.material3&quot;]
+&quot;pythonx.compose.layout&quot;    = &quot;androidx.compose.foundation.layout&quot;
+&quot;pythonx.compose.cupertino&quot; = &quot;org.thisisthepy.compose.cupertino&quot;</code></pre>
+<p data-lang="en">A row may list several Kotlin packages. A name comes from the first one that declares it, and a package the binder does not serve is skipped: <code>material3</code> puts the fork&#x27;s Material 3 design system in front of Material 3 itself. The fork&#x27;s design systems (<code>cupertino</code>, <code>fluent</code>, <code>gnome</code>, <code>breeze</code>, <code>deepin</code>, <code>liquidglass</code>, and their contract <code>designsystem</code>) have rows too; they are not on Maven Central yet, so they resolve no names until python-multiplatform serves them.</p><p data-lang="ko">한 줄에 Kotlin 패키지를 여러 개 적을 수 있습니다. 이름은 그것을 선언한 첫 패키지에서 오고, 바인더가 제공하지 않는 패키지는 건너뜁니다: <code>material3</code> 는 Material 3 앞에 포크의 Material 3 디자인 시스템을 둡니다. 포크의 디자인 시스템(<code>cupertino</code>, <code>fluent</code>, <code>gnome</code>, <code>breeze</code>, <code>deepin</code>, <code>liquidglass</code>, 그리고 공통 계약 <code>designsystem</code>)도 줄이 있습니다. 아직 Maven Central 에 없으므로 python-multiplatform 이 제공하기 전까지 이름을 해석하지 않습니다.</p>
 <p data-lang="en">The second row is why the mapping is written down rather than derived: it drops <code>foundation.</code> from the middle of the name, which no prefix rule can do.</p><p data-lang="ko">두 번째 줄이 대응을 유도하지 않고 적어 두는 이유입니다: 이름 중간의 <code>foundation.</code> 을 빼는 것은 어떤 접두사 규칙으로도 할 수 없습니다.</p>
 <p data-lang="en">Every row is a real file on disk: a new <code>pythonx.compose.*</code> module gets a row here and an <code>__init__.py</code> that calls <code>reexport(__name__)</code>, in the same change.</p><p data-lang="ko">모든 줄은 디스크에 있는 실제 파일입니다: 새 <code>pythonx.compose.*</code> 모듈은 같은 변경 안에서 여기 한 줄과, <code>reexport(__name__)</code> 를 부르는 <code>__init__.py</code> 를 함께 얻습니다.</p>
 </section>

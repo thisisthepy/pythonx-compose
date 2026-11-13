@@ -202,3 +202,20 @@ them.
    alias or compatibility shim. A screen keeps state the notebook's way, with `remember_saveable`
    inside `App` (§5.9), or with `mutable_state_of`. The app root's own state stays internal to this
    package.
+12. **`material3` and the fork's design systems** (owner, 2026-11-13, relayed by the leader; #54). The
+   owner, verbatim: "org.thisisthepy.compose.material3 저게 .compose 경로에 다른 디자인 시스템들도
+   있어. 그거 쓰면 되는데?" The decision: `pythonx.compose.material3` maps to the fork's design-system
+   package `org.thisisthepy.compose.material3` (`compose-multiplatform-core-extended`,
+   `extended/design-systems/material3`), and the other design systems, `breeze`, `cupertino`, `deepin`,
+   `fluent`, `gnome` and `liquid-glass` (packages `org.thisisthepy.compose.<name>`, on
+   `org.thisisthepy.compose.designsystem`), are exposed the same way as `pythonx.compose.<name>`, each
+   with a regression guard.
+
+   > Agent proposal, not confirmed by the owner (#152): the means. The `material3` row lists the
+   > design-system package **before** `androidx.compose.material3` rather than replacing it, because
+   > `UI.ipynb` imports `Text`, `Button`, `Card`, `TextField` from `pythonx.compose.material3` and only
+   > `androidx.compose.material3` declares them (the design-system package declares
+   > `Material3DesignSystem`, `materialDesignSystem` and `MaterialButton`). The shared contract is
+   > exposed as `pythonx.compose.designsystem`, and Liquid Glass as `pythonx.compose.liquidglass`
+   > (its Kotlin package's last segment). The regression guard is a committed public-surface snapshot
+   > per module (SPEC §2.1).

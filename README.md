@@ -79,7 +79,13 @@ flowchart LR
 | `pythonx.compose.runtime` | `androidx.compose.runtime` |
 | `pythonx.compose.ui` | `androidx.compose.ui` |
 | `pythonx.compose.layout` | `androidx.compose.foundation.layout` |
-| `pythonx.compose.material3` | `androidx.compose.material3` |
+| `pythonx.compose.material3` | `org.thisisthepy.compose.material3`, then `androidx.compose.material3` |
+| `pythonx.compose.cupertino`, `.fluent`, `.gnome`, `.breeze`, `.deepin`, `.liquidglass`, `.designsystem` | `org.thisisthepy.compose.<same>` |
+
+A row may list several packages: a name comes from the first that declares it, so
+`pythonx.compose.material3` adds the fork's Material 3 design system (`MaterialButton`,
+`materialDesignSystem`) in front of Material 3 itself. The fork's design systems are not on Maven
+Central yet, so until python-multiplatform serves them their modules import but resolve no names.
 
 Each module is a real file whose `__init__.py` calls one re-export rule; names resolve on first use.
 `Column`, `Row` and `Spacer` are importable from `pythonx.compose.material3` as well as

@@ -282,9 +282,11 @@ Current mapping:
 | `pythonx.compose.runtime` | `androidx.compose.runtime` |
 | `pythonx.compose.ui` (+ `.unit`, `.text`, `.graphics`) | `androidx.compose.ui` (+ same) |
 | `pythonx.compose.layout` | `androidx.compose.foundation.layout` |
-| `pythonx.compose.material3` | `androidx.compose.material3` |
+| `pythonx.compose.material3` | `org.thisisthepy.compose.material3`, then `androidx.compose.material3` (§2.1) |
 | `pythonx.compose.material.icons` | `androidx.compose.material.icons` |
 | `pythonx.compose.foundation.text.input` | `androidx.compose.foundation.text.input` (S5.5) |
+| `pythonx.compose.designsystem` | `org.thisisthepy.compose.designsystem` (§2.1) |
+| `pythonx.compose.breeze`, `.cupertino`, `.deepin`, `.fluent`, `.gnome`, `.liquidglass` | `org.thisisthepy.compose.<same>` (§2.1) |
 
 **`[aliases]`** lends a module names from another mapped module, as data. Two forms, both under
 `[aliases."<owner module>"]` keyed by the source module: a list of names lent under the **same**
@@ -304,6 +306,44 @@ Caveat: `test_the_specification_resolves` reads `UI.ipynb` from the checkout it 
 notebook is git-ignored, so in a worktree or CI checkout it is absent, the expected set is empty,
 and **the test passes without checking anything.** It is only meaningful in the maintainer's main
 checkout.
+
+### S2.1 Layered rows and the fork's design systems: `implemented` (served once the binder walks them)
+
+INTENT §5.12 (owner, 2026-11-13; the means are an agent proposal, #152). A row is one Kotlin package
+or a list of them. A name is looked up in each listed package in order and the **first that declares
+it wins**; a listed package the binder does not serve is skipped; if it serves none, reading a name
+is an `AttributeError` that names every package. `dir()` lists every served layer. The stub generator
+merges a listed row the same way: the first layer the `kotlin-stubs` artefact has converts as a
+one-package row always did, and each later layer adds only the declarations the layers before it do
+not define, with the imports they need.
+
+`pythonx.compose.material3` is `["org.thisisthepy.compose.material3", "androidx.compose.material3"]`.
+The design systems are `pythonx.compose.designsystem`, `.breeze`, `.cupertino`, `.deepin`, `.fluent`,
+`.gnome` and `.liquidglass`. None of `extended/design-systems` is on Maven Central (checked
+2026-11-13), so python-multiplatform serves none of them: today every `material3` name comes from
+`androidx.compose.material3`, the design-system modules import but every name read raises
+`AttributeError`, and their stubs are header-only.
+
+**Regression guard.** `tests/fixtures/surfaces/<module>.txt` is the recorded public surface of each of
+those eight modules, read from its committed stub by `scripts/surface.py`: one line per declaration
+(functions and methods with parameter names, `=...` for a default, and return type, one line per
+overload; classes; annotated names; re-exported names). Parameter types are left out, since the
+binder's typing of a parameter improving is not a regression. A regenerated stub may add lines; one
+that drops or changes a recorded line fails unless `tests/fixtures/surfaces/allowlist.toml` lists
+that line with a reason. A module whose snapshot is empty fails as soon as its stub declares
+anything, so its snapshot is recorded the first time the binder serves it.
+
+| Behaviour | Test |
+|---|---|
+| The rows: `material3` lists the design system first; every design system has its row; a row is a package or a non-empty list | `tests/test_design_systems.py::TheRows` |
+| Run time: first layer wins, later layers fill in, unserved layers are skipped, errors name every package, `dir()` lists all | `tests/test_design_systems.py::TheRuntimeSearchesTheLayersInOrder` |
+| The generator merges layers the same way; a one-package list equals a string row | `tests/test_design_systems.py::TheGeneratorMergesTheLayers` |
+| Surface snapshots exist, lose nothing unacknowledged, empty ones stay empty until recorded; the guard fails on a dropped line | `tests/test_design_systems.py::TheSurfaceGuard` |
+| Each design system is a package on disk that imports without a binder | `tests/test_design_systems.py::ThePackagesOnDisk` |
+
+Not done here: publishing `extended/design-systems` (the fork's side, darkpyonix team) and
+python-multiplatform walking it; the design-system `material3` module also declares no
+`macosArm64`/`linuxX64` target (S1.4).
 
 ## 3. `pythonx` is a real package: `implemented` (module level)
 
