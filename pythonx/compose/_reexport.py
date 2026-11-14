@@ -69,7 +69,7 @@ _ValueClasses = TypedDict("_ValueClasses", {"raw-primitive-allowed": list[str]},
 Manifest = TypedDict(
     "Manifest",
     {
-        "modules": dict[str, str],
+        "modules": dict[str, "str | list[str]"],
         "value-classes": _ValueClasses,
         "aliases": dict[str, dict[str, "list[str] | dict[str, str]"]],
     },
@@ -114,13 +114,18 @@ def manifest() -> Manifest:
         return cast(Manifest, tomllib.load(handle))
 
 
-def kotlin_package_of(module_name: str) -> str:
+def kotlin_packages_of(module_name: str) -> tuple[str, ...]:
+    """The Kotlin packages [module_name]'s row names, in the order a name is looked up in them.
+
+    A row is one package or a list of them (SPEC S2.1): the first package that declares a name wins.
+    """
     try:
-        return manifest()["modules"][module_name]
+        row = manifest()["modules"][module_name]
     except KeyError:
         raise LookupError(
             f"{module_name} has no row in pythonx-map.toml; a re-exported module needs one"
         ) from None
+    return (row,) if isinstance(row, str) else tuple(row)
 
 
 def binding_layer() -> BindingLayer:
@@ -163,10 +168,24 @@ def _prime(binding: BindingLayer) -> None:
     _PRIMED.add(binding)
 
 
-def kotlin_module(module_name: str) -> types.ModuleType:
-    """The binder's module for the Kotlin package `module_name` maps to."""
+def kotlin_modules(module_name: str) -> list[types.ModuleType]:
+    """The binder's modules for the Kotlin packages `module_name` maps to, in lookup order.
+
+    A listed package the binder does not serve is skipped: the fork's design systems are listed before
+    the packages they build on and are not served until they are published (#152). An `ImportError`
+    naming every package means the binder serves none of them.
+    """
     _prime(binding_layer())
-    return importlib.import_module(kotlin_package_of(module_name))
+    served: list[types.ModuleType] = []
+    missing: list[str] = []
+    for package in kotlin_packages_of(module_name):
+        try:
+            served.append(importlib.import_module(package))
+        except ImportError:
+            missing.append(package)
+    if not served:
+        raise ImportError(f"the binder serves none of {', '.join(missing)}")
+    return served
 
 
 def _name_table(kotlin: types.ModuleType) -> dict[str, str]:
@@ -439,16 +458,20 @@ def reexport(module_name: str) -> tuple[Callable[[str], object], Callable[[], li
         if borrowed is not None:
             return _borrow(module_name, name, *borrowed)
         try:
-            kotlin = kotlin_module(module_name)
+            layers = kotlin_modules(module_name)
         except ImportError as missing:
             raise AttributeError(
                 f"module {module_name!r} has no attribute {name!r} ({missing})"
             ) from missing
-        resolved = _resolve(kotlin, name)
+        # The first layer that declares the name answers (SPEC S2.1).
+        resolved = next(
+            (found for kotlin in layers if (found := _resolve(kotlin, name)) is not None), None
+        )
         if resolved is None:
+            searched = ", ".join(kotlin.__name__ for kotlin in layers)
             raise AttributeError(
                 f"module {module_name!r} has no attribute {name!r} (nothing in Kotlin package "
-                f"{kotlin.__name__} is spelled that way under pythonx's naming rule)"
+                f"{searched} is spelled that way under pythonx's naming rule)"
             )
         value, cacheable = resolved
         if cacheable:
@@ -458,7 +481,8 @@ def reexport(module_name: str) -> tuple[Callable[[str], object], Callable[[], li
     def __dir__() -> list[str]:
         own = set(cast(Mapping[str, object], vars(sys.modules[module_name]))) | set(_aliases(module_name))
         try:
-            own.update(_name_table(kotlin_module(module_name)))
+            for kotlin in kotlin_modules(module_name):
+                own.update(_name_table(kotlin))
         except (RuntimeError, ImportError):
             pass
         return sorted(own)
