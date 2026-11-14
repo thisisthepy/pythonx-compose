@@ -140,7 +140,7 @@ ButtonDefaults.text_button_colors() -> ButtonColors
 ButtonDefaults.text_button_colors(container_color=..., content_color=..., disabled_container_color=..., disabled_content_color=...) -> ButtonColors
 ButtonDefaults.text_button_colors__0() -> ButtonColors
 ButtonDefaults.text_button_colors__Color_Color_Color_Color(container_color=..., content_color=..., disabled_container_color=..., disabled_content_color=...) -> ButtonColors
-ButtonDefaults.text_style_for(button_height) -> _t.Any
+ButtonDefaults.text_style_for(button_height) -> pythonx.compose.ui.text.TextStyle
 ButtonGroup(modifier=..., expanded_ratio=..., horizontal_arrangement=..., *, content) -> None
 ButtonGroup(overflow_indicator, modifier=..., expanded_ratio=..., horizontal_arrangement=..., vertical_alignment=..., *, content) -> None
 ButtonGroupDefaults.ConnectedSpaceBetween: _t.ClassVar[float]
@@ -777,6 +777,38 @@ LoadingIndicatorDefaults.ContainerWidth: _t.ClassVar[float]
 LoadingIndicatorDefaults.IndicatorSize: _t.ClassVar[float]
 LoadingIndicator__Float_Modifier_Color_List(progress, modifier=..., color=..., polygons=...) -> None
 LoadingIndicator__Modifier_Color_List(modifier=..., color=..., polygons=...) -> None
+LocalAbsoluteTonalElevation: pythonx.compose.runtime.ProvidableCompositionLocal
+LocalBasicAlertDialogOverride: pythonx.compose.runtime.ProvidableCompositionLocal
+LocalContentColor: pythonx.compose.runtime.ProvidableCompositionLocal
+LocalHorizontalFloatingToolbarOverride: pythonx.compose.runtime.ProvidableCompositionLocal
+LocalHorizontalFloatingToolbarWithFabOverride: pythonx.compose.runtime.ProvidableCompositionLocal
+LocalMinimumInteractiveComponentSize: pythonx.compose.runtime.ProvidableCompositionLocal
+LocalModalWideNavigationRailOverride: pythonx.compose.runtime.ProvidableCompositionLocal
+LocalNavigationBarOverride: pythonx.compose.runtime.ProvidableCompositionLocal
+LocalNavigationRailOverride: pythonx.compose.runtime.ProvidableCompositionLocal
+LocalRippleConfiguration: pythonx.compose.runtime.ProvidableCompositionLocal
+LocalShortNavigationBarOverride: pythonx.compose.runtime.ProvidableCompositionLocal
+LocalSingleRowTopAppBarOverride: pythonx.compose.runtime.ProvidableCompositionLocal
+LocalTextStyle: pythonx.compose.runtime.ProvidableCompositionLocal
+LocalTwoRowsTopAppBarOverride: pythonx.compose.runtime.ProvidableCompositionLocal
+LocalVerticalToolbarOverride: pythonx.compose.runtime.ProvidableCompositionLocal
+LocalVerticalToolbarWithFabOverride: pythonx.compose.runtime.ProvidableCompositionLocal
+LocalWideNavigationRailOverride: pythonx.compose.runtime.ProvidableCompositionLocal
+Material3DesignSystem.Dark: Material3DesignSystem
+Material3DesignSystem.Light: Material3DesignSystem
+Material3DesignSystem.badge(self) -> pythonx.compose.designsystem.BadgeStyle
+Material3DesignSystem.button(self, variant) -> pythonx.compose.designsystem.ButtonStyle
+Material3DesignSystem.code_editor(self) -> pythonx.compose.designsystem.CodeEditorStyle
+Material3DesignSystem.color(self, role) -> _t.Any
+Material3DesignSystem.elevation(self, elevation, base) -> pythonx.compose.designsystem.ElevationStyle
+Material3DesignSystem.id(self) -> pythonx.compose.designsystem.DesignSystemId
+Material3DesignSystem.is_dark(self) -> bool
+Material3DesignSystem.motion(self) -> pythonx.compose.designsystem.Motion
+Material3DesignSystem.shape(self, role) -> pythonx.compose.ui.graphics.Shape
+Material3DesignSystem.space(self, role) -> float
+Material3DesignSystem.split_pane(self, width) -> pythonx.compose.designsystem.SplitPaneStyle
+Material3DesignSystem.type(self, role) -> pythonx.compose.ui.text.TextStyle
+MaterialButton(variant, on_click, modifier=..., enabled=..., *, content) -> None
 MaterialExpressiveTheme(color_scheme=..., motion_scheme=..., shapes=..., typography=..., *, content) -> None
 MaterialShapes.Arch: _t.ClassVar[_t.Any]
 MaterialShapes.Arrow: _t.ClassVar[_t.Any]
@@ -877,6 +909,8 @@ MenuItemColors__Color_Color_Color_Color_Color_Color_Color_Color_Color_Color_Colo
 MenuItemShapes.copy(self, shape, selected_shape) -> MenuItemShapes
 MenuItemShapes.selected_shape(self) -> pythonx.compose.ui.graphics.Shape
 MenuItemShapes.shape(self) -> pythonx.compose.ui.graphics.Shape
+MinimumInteractiveLeftAlignmentLine: _t.Any
+MinimumInteractiveTopAlignmentLine: _t.Any
 ModalBottomSheet(on_dismiss_request, modifier=..., sheet_state=..., sheet_max_width=..., sheet_gestures_enabled=..., shape=..., container_color=..., content_color=..., tonal_elevation=..., scrim_color=..., drag_handle=..., content_window_insets=..., properties=..., *, content) -> None
 ModalBottomSheetDefaults.properties: _t.ClassVar[ModalBottomSheetProperties]
 ModalBottomSheetProperties.should_dismiss_on_back_press(self) -> bool
@@ -1182,9 +1216,9 @@ SingleRowTopAppBarOverrideScope.content_padding(self) -> _t.Any
 SingleRowTopAppBarOverrideScope.expanded_height(self) -> float
 SingleRowTopAppBarOverrideScope.modifier(self) -> pythonx.compose.ui.Modifier
 SingleRowTopAppBarOverrideScope.scroll_behavior(self) -> TopAppBarScrollBehavior | None
-SingleRowTopAppBarOverrideScope.subtitle_text_style(self) -> _t.Any
+SingleRowTopAppBarOverrideScope.subtitle_text_style(self) -> pythonx.compose.ui.text.TextStyle
 SingleRowTopAppBarOverrideScope.title_horizontal_alignment(self) -> pythonx.compose.ui.Alignment.Horizontal
-SingleRowTopAppBarOverrideScope.title_text_style(self) -> _t.Any
+SingleRowTopAppBarOverrideScope.title_text_style(self) -> pythonx.compose.ui.text.TextStyle
 SingleRowTopAppBarOverrideScope.window_insets(self) -> pythonx.compose.layout._WindowInsets
 Slider(state, modifier=..., enabled=..., colors=..., interaction_source=..., thumb=..., track=...) -> None
 Slider(value, on_value_change, modifier=..., enabled=..., on_value_change_finished=..., colors=..., interaction_source=..., steps=..., thumb=..., track=..., value_range=...) -> None
@@ -1494,8 +1528,9 @@ TimePickerDisplayMode.Input: _t.ClassVar[_t.Any]
 TimePickerDisplayMode.Picker: _t.ClassVar[_t.Any]
 TimePickerLayoutType.Horizontal: _t.ClassVar[_t.Any]
 TimePickerLayoutType.Vertical: _t.ClassVar[_t.Any]
-TimePickerSelectionMode.Hour: _t.ClassVar[int]
-TimePickerSelectionMode.Minute: _t.ClassVar[int]
+TimePickerSelectionMode.Hour: int
+TimePickerSelectionMode.Minute: int
+TimePickerSelectionMode.value(self) -> int
 TimePickerState(initial_hour, initial_minute, is24_hour) -> _TimePickerState
 ToggleButton(checked, on_checked_change, modifier=..., enabled=..., shapes=..., colors=..., elevation=..., border=..., content_padding=..., interaction_source=..., *, content) -> None
 ToggleButtonColors.checked_container_color(self) -> _t.Any
@@ -1625,8 +1660,16 @@ TopAppBarDefaults.top_app_bar_colors__0() -> TopAppBarColors
 TopAppBarDefaults.top_app_bar_colors__Color_Color_Color_Color_Color_Color(container_color=..., scrolled_container_color=..., navigation_icon_content_color=..., title_content_color=..., action_icon_content_color=..., subtitle_content_color=...) -> TopAppBarColors
 TopAppBarScrollBehavior.is_pinned(self) -> bool
 TopAppBarScrollBehavior.nested_scroll_connection(self) -> _t.Any
-TopAppBarScrollBehavior.state(self) -> _t.Any
-TopAppBarState.Saver: _t.ClassVar[_t.Any]
+TopAppBarScrollBehavior.state(self) -> TopAppBarState
+TopAppBarState.Saver: _t.Any
+TopAppBarState.collapsed_fraction(self) -> float
+TopAppBarState.content_offset(self) -> float
+TopAppBarState.content_offset(self, value) -> None
+TopAppBarState.height_offset(self) -> float
+TopAppBarState.height_offset(self, value) -> None
+TopAppBarState.height_offset_limit(self) -> float
+TopAppBarState.height_offset_limit(self, value) -> None
+TopAppBarState.overlapped_fraction(self) -> float
 TopAppBar__Unit_Modifier_Unit_Unit_Dp_WindowInsets_TopAppBarColors_TopAppBarScrollBehavior_PaddingValues(title, modifier=..., navigation_icon=..., actions=..., expanded_height=..., window_insets=..., colors=..., scroll_behavior=..., content_padding=...) -> None
 TopAppBar__Unit_Unit_Modifier_Unit_Unit_Horizontal_Dp_WindowInsets_TopAppBarColors_TopAppBarScrollBehavior_PaddingValues(title, subtitle, modifier=..., navigation_icon=..., actions=..., title_horizontal_alignment=..., expanded_height=..., window_insets=..., colors=..., scroll_behavior=..., content_padding=...) -> None
 TopSearchBar(state, input_field, modifier=..., shape=..., colors=..., tonal_elevation=..., shadow_elevation=..., window_insets=..., scroll_behavior=...) -> None
@@ -1640,47 +1683,47 @@ TwoRowsTopAppBarOverrideScope.colors(self) -> TopAppBarColors
 TwoRowsTopAppBarOverrideScope.expanded_height(self) -> float
 TwoRowsTopAppBarOverrideScope.modifier(self) -> pythonx.compose.ui.Modifier
 TwoRowsTopAppBarOverrideScope.scroll_behavior(self) -> TopAppBarScrollBehavior | None
-TwoRowsTopAppBarOverrideScope.small_subtitle_text_style(self) -> _t.Any
-TwoRowsTopAppBarOverrideScope.small_title_text_style(self) -> _t.Any
-TwoRowsTopAppBarOverrideScope.subtitle_text_style(self) -> _t.Any
+TwoRowsTopAppBarOverrideScope.small_subtitle_text_style(self) -> pythonx.compose.ui.text.TextStyle
+TwoRowsTopAppBarOverrideScope.small_title_text_style(self) -> pythonx.compose.ui.text.TextStyle
+TwoRowsTopAppBarOverrideScope.subtitle_text_style(self) -> pythonx.compose.ui.text.TextStyle
 TwoRowsTopAppBarOverrideScope.title_bottom_padding(self) -> float
 TwoRowsTopAppBarOverrideScope.title_horizontal_alignment(self) -> pythonx.compose.ui.Alignment.Horizontal
-TwoRowsTopAppBarOverrideScope.title_text_style(self) -> _t.Any
+TwoRowsTopAppBarOverrideScope.title_text_style(self) -> pythonx.compose.ui.text.TextStyle
 TwoRowsTopAppBarOverrideScope.window_insets(self) -> pythonx.compose.layout._WindowInsets
-Typography.body_large(self) -> _t.Any
-Typography.body_large_emphasized(self) -> _t.Any
-Typography.body_medium(self) -> _t.Any
-Typography.body_medium_emphasized(self) -> _t.Any
-Typography.body_small(self) -> _t.Any
-Typography.body_small_emphasized(self) -> _t.Any
+Typography.body_large(self) -> pythonx.compose.ui.text.TextStyle
+Typography.body_large_emphasized(self) -> pythonx.compose.ui.text.TextStyle
+Typography.body_medium(self) -> pythonx.compose.ui.text.TextStyle
+Typography.body_medium_emphasized(self) -> pythonx.compose.ui.text.TextStyle
+Typography.body_small(self) -> pythonx.compose.ui.text.TextStyle
+Typography.body_small_emphasized(self) -> pythonx.compose.ui.text.TextStyle
 Typography.copy(self, display_large, display_medium, display_small, headline_large, headline_medium, headline_small, title_large, title_medium, title_small, body_large, body_medium, body_small, label_large, label_medium, label_small) -> Typography
 Typography.copy(self, display_large, display_medium, display_small, headline_large, headline_medium, headline_small, title_large, title_medium, title_small, body_large, body_medium, body_small, label_large, label_medium, label_small, display_large_emphasized, display_medium_emphasized, display_small_emphasized, headline_large_emphasized, headline_medium_emphasized, headline_small_emphasized, title_large_emphasized, title_medium_emphasized, title_small_emphasized, body_large_emphasized, body_medium_emphasized, body_small_emphasized, label_large_emphasized, label_medium_emphasized, label_small_emphasized) -> Typography
 Typography.copy__TextStyle_TextStyle_TextStyle_TextStyle_TextStyle_TextStyle_TextStyle_TextStyle_TextStyle_TextStyle_TextStyle_TextStyle_TextStyle_TextStyle_TextStyle(self, display_large, display_medium, display_small, headline_large, headline_medium, headline_small, title_large, title_medium, title_small, body_large, body_medium, body_small, label_large, label_medium, label_small) -> Typography
 Typography.copy__TextStyle_TextStyle_TextStyle_TextStyle_TextStyle_TextStyle_TextStyle_TextStyle_TextStyle_TextStyle_TextStyle_TextStyle_TextStyle_TextStyle_TextStyle_TextStyle_TextStyle_TextStyle_TextStyle_TextStyle_TextStyle_TextStyle_TextStyle_TextStyle_TextStyle_TextStyle_TextStyle_TextStyle_TextStyle_TextStyle(self, display_large, display_medium, display_small, headline_large, headline_medium, headline_small, title_large, title_medium, title_small, body_large, body_medium, body_small, label_large, label_medium, label_small, display_large_emphasized, display_medium_emphasized, display_small_emphasized, headline_large_emphasized, headline_medium_emphasized, headline_small_emphasized, title_large_emphasized, title_medium_emphasized, title_small_emphasized, body_large_emphasized, body_medium_emphasized, body_small_emphasized, label_large_emphasized, label_medium_emphasized, label_small_emphasized) -> Typography
-Typography.display_large(self) -> _t.Any
-Typography.display_large_emphasized(self) -> _t.Any
-Typography.display_medium(self) -> _t.Any
-Typography.display_medium_emphasized(self) -> _t.Any
-Typography.display_small(self) -> _t.Any
-Typography.display_small_emphasized(self) -> _t.Any
-Typography.headline_large(self) -> _t.Any
-Typography.headline_large_emphasized(self) -> _t.Any
-Typography.headline_medium(self) -> _t.Any
-Typography.headline_medium_emphasized(self) -> _t.Any
-Typography.headline_small(self) -> _t.Any
-Typography.headline_small_emphasized(self) -> _t.Any
-Typography.label_large(self) -> _t.Any
-Typography.label_large_emphasized(self) -> _t.Any
-Typography.label_medium(self) -> _t.Any
-Typography.label_medium_emphasized(self) -> _t.Any
-Typography.label_small(self) -> _t.Any
-Typography.label_small_emphasized(self) -> _t.Any
-Typography.title_large(self) -> _t.Any
-Typography.title_large_emphasized(self) -> _t.Any
-Typography.title_medium(self) -> _t.Any
-Typography.title_medium_emphasized(self) -> _t.Any
-Typography.title_small(self) -> _t.Any
-Typography.title_small_emphasized(self) -> _t.Any
+Typography.display_large(self) -> pythonx.compose.ui.text.TextStyle
+Typography.display_large_emphasized(self) -> pythonx.compose.ui.text.TextStyle
+Typography.display_medium(self) -> pythonx.compose.ui.text.TextStyle
+Typography.display_medium_emphasized(self) -> pythonx.compose.ui.text.TextStyle
+Typography.display_small(self) -> pythonx.compose.ui.text.TextStyle
+Typography.display_small_emphasized(self) -> pythonx.compose.ui.text.TextStyle
+Typography.headline_large(self) -> pythonx.compose.ui.text.TextStyle
+Typography.headline_large_emphasized(self) -> pythonx.compose.ui.text.TextStyle
+Typography.headline_medium(self) -> pythonx.compose.ui.text.TextStyle
+Typography.headline_medium_emphasized(self) -> pythonx.compose.ui.text.TextStyle
+Typography.headline_small(self) -> pythonx.compose.ui.text.TextStyle
+Typography.headline_small_emphasized(self) -> pythonx.compose.ui.text.TextStyle
+Typography.label_large(self) -> pythonx.compose.ui.text.TextStyle
+Typography.label_large_emphasized(self) -> pythonx.compose.ui.text.TextStyle
+Typography.label_medium(self) -> pythonx.compose.ui.text.TextStyle
+Typography.label_medium_emphasized(self) -> pythonx.compose.ui.text.TextStyle
+Typography.label_small(self) -> pythonx.compose.ui.text.TextStyle
+Typography.label_small_emphasized(self) -> pythonx.compose.ui.text.TextStyle
+Typography.title_large(self) -> pythonx.compose.ui.text.TextStyle
+Typography.title_large_emphasized(self) -> pythonx.compose.ui.text.TextStyle
+Typography.title_medium(self) -> pythonx.compose.ui.text.TextStyle
+Typography.title_medium_emphasized(self) -> pythonx.compose.ui.text.TextStyle
+Typography.title_small(self) -> pythonx.compose.ui.text.TextStyle
+Typography.title_small_emphasized(self) -> pythonx.compose.ui.text.TextStyle
 Typography__FontFamily_TextStyle_TextStyle_TextStyle_TextStyle_TextStyle_TextStyle_TextStyle_TextStyle_TextStyle_TextStyle_TextStyle_TextStyle_TextStyle_TextStyle_TextStyle_TextStyle_TextStyle_TextStyle_TextStyle_TextStyle_TextStyle_TextStyle_TextStyle_TextStyle_TextStyle_TextStyle_TextStyle_TextStyle_TextStyle_TextStyle(font_family, display_large, display_medium, display_small, headline_large, headline_medium, headline_small, title_large, title_medium, title_small, body_large, body_medium, body_small, label_large, label_medium, label_small, display_large_emphasized, display_medium_emphasized, display_small_emphasized, headline_large_emphasized, headline_medium_emphasized, headline_small_emphasized, title_large_emphasized, title_medium_emphasized, title_small_emphasized, body_large_emphasized, body_medium_emphasized, body_small_emphasized, label_large_emphasized, label_medium_emphasized, label_small_emphasized) -> Typography
 Typography__TextStyle_TextStyle_TextStyle_TextStyle_TextStyle_TextStyle_TextStyle_TextStyle_TextStyle_TextStyle_TextStyle_TextStyle_TextStyle_TextStyle_TextStyle(display_large, display_medium, display_small, headline_large, headline_medium, headline_small, title_large, title_medium, title_small, body_large, body_medium, body_small, label_large, label_medium, label_small) -> Typography
 Typography__TextStyle_TextStyle_TextStyle_TextStyle_TextStyle_TextStyle_TextStyle_TextStyle_TextStyle_TextStyle_TextStyle_TextStyle_TextStyle_TextStyle_TextStyle_TextStyle_TextStyle_TextStyle_TextStyle_TextStyle_TextStyle_TextStyle_TextStyle_TextStyle_TextStyle_TextStyle_TextStyle_TextStyle_TextStyle_TextStyle(display_large, display_medium, display_small, headline_large, headline_medium, headline_small, title_large, title_medium, title_small, body_large, body_medium, body_small, label_large, label_medium, label_small, display_large_emphasized, display_medium_emphasized, display_small_emphasized, headline_large_emphasized, headline_medium_emphasized, headline_small_emphasized, title_large_emphasized, title_medium_emphasized, title_small_emphasized, body_large_emphasized, body_medium_emphasized, body_small_emphasized, label_large_emphasized, label_medium_emphasized, label_small_emphasized) -> Typography
@@ -1865,6 +1908,7 @@ class ListItemDefaults
 class ListItemElevation
 class ListItemShapes
 class LoadingIndicatorDefaults
+class Material3DesignSystem
 class MaterialShapes
 class MenuDefaults
 class MenuGroupShapes
@@ -1990,6 +2034,7 @@ content_color_for__ColorScheme_Color(receiver, /, background_color) -> _t.Any
 dark_color_scheme(primary=..., on_primary=..., primary_container=..., on_primary_container=..., inverse_primary=..., secondary=..., on_secondary=..., secondary_container=..., on_secondary_container=..., tertiary=..., on_tertiary=..., tertiary_container=..., on_tertiary_container=..., background=..., on_background=..., surface=..., on_surface=..., surface_variant=..., on_surface_variant=..., surface_tint=..., inverse_surface=..., inverse_on_surface=..., error=..., on_error=..., error_container=..., on_error_container=..., outline=..., outline_variant=..., scrim=..., surface_bright=..., surface_container=..., surface_container_high=..., surface_container_highest=..., surface_container_low=..., surface_container_lowest=..., surface_dim=..., primary_fixed=..., primary_fixed_dim=..., on_primary_fixed=..., on_primary_fixed_variant=..., secondary_fixed=..., secondary_fixed_dim=..., on_secondary_fixed=..., on_secondary_fixed_variant=..., tertiary_fixed=..., tertiary_fixed_dim=..., on_tertiary_fixed=..., on_tertiary_fixed_variant=...) -> ColorScheme
 expressive_light_color_scheme() -> ColorScheme
 light_color_scheme(primary=..., on_primary=..., primary_container=..., on_primary_container=..., inverse_primary=..., secondary=..., on_secondary=..., secondary_container=..., on_secondary_container=..., tertiary=..., on_tertiary=..., tertiary_container=..., on_tertiary_container=..., background=..., on_background=..., surface=..., on_surface=..., surface_variant=..., on_surface_variant=..., surface_tint=..., inverse_surface=..., inverse_on_surface=..., error=..., on_error=..., error_container=..., on_error_container=..., outline=..., outline_variant=..., scrim=..., surface_bright=..., surface_container=..., surface_container_high=..., surface_container_highest=..., surface_container_low=..., surface_container_lowest=..., surface_dim=..., primary_fixed=..., primary_fixed_dim=..., on_primary_fixed=..., on_primary_fixed_variant=..., secondary_fixed=..., secondary_fixed_dim=..., on_secondary_fixed=..., on_secondary_fixed_variant=..., tertiary_fixed=..., tertiary_fixed_dim=..., on_tertiary_fixed=..., on_tertiary_fixed_variant=...) -> ColorScheme
+material_design_system(is_dark) -> Material3DesignSystem
 minimum_interactive_component_size(receiver, /) -> pythonx.compose.ui.Modifier
 remember_bottom_app_bar_state(initial_height_offset_limit=..., initial_height_offset=..., initial_content_offset=...) -> _t.Any
 remember_bottom_sheet_scaffold_state(bottom_sheet_state=..., snackbar_host_state=...) -> BottomSheetScaffoldState
@@ -2015,7 +2060,7 @@ remember_swipe_to_dismiss_box_state__SwipeToDismissBoxValue_Boolean_Float(initia
 remember_swipe_to_dismiss_box_state__SwipeToDismissBoxValue_Float(initial_value=..., positional_threshold=...) -> SwipeToDismissBoxState
 remember_time_picker_state(initial_hour=..., initial_minute=..., is24_hour=...) -> _TimePickerState
 remember_tooltip_state(initial_is_visible=..., is_persistent=..., mutator_mutex=...) -> _TooltipState
-remember_top_app_bar_state(initial_height_offset_limit=..., initial_height_offset=..., initial_content_offset=...) -> _t.Any
+remember_top_app_bar_state(initial_height_offset_limit=..., initial_height_offset=..., initial_content_offset=...) -> TopAppBarState
 remember_wide_navigation_rail_state(initial_value=...) -> WideNavigationRailState
 remember_with_gap_search_bar_state(initial_value=..., animation_spec_for_expand=..., animation_spec_for_collapse=..., animation_spec_for_content_fade_in=..., animation_spec_for_content_fade_out=...) -> SearchBarState
 ripple(bounded=..., radius=..., color=...) -> pythonx.compose.foundation.IndicationNodeFactory

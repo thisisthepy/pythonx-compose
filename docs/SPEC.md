@@ -85,13 +85,14 @@ and the name the interpreter resolves cannot drift.
 - **What is generated.** `pythonx/compose/**/__init__.pyi` for every module in `pythonx-map.toml`,
   beside its `__init__.py`, and an empty `pythonx/compose/py.typed`. The stubs are committed;
   regenerating them from the same input produces no diff.
-- **From what.** python-multiplatform's CI artefact `kotlin-stubs` (workflow run 42402779166,
-  commit `9507e6dd`, regenerated in #130 and again for 0.1.0a3 in #148): Kotlin-named stubs for Compose 1.11.1-ext.2
-  (`org.thisisthepy.compose.*:1.11.1-ext.2` libraries and `org.thisisthepy.compose:1.11.1-ext.3`
+- **From what.** python-multiplatform's Kotlin-named stubs for Compose 1.11.1-ext.4 (python-multiplatform
+  #408/#410, commit `b6baf357`, replacing the 1.11.1-ext.2 stubs from workflow run 42402779166 /
+  commit `9507e6dd` in #130 and #148): `org.thisisthepy.compose.*:1.11.1-ext.4` and
+  `org.thisisthepy.compose.designsystem:designsystem*:1.11.1-ext.4` libraries, and `org.thisisthepy.compose:1.11.1-ext.3`
   Gradle plugin from Maven Central, with `mavenCentral()` in `pluginManagement`, alongside
-  `org.thisisthepy.compose.androidx.*:1.11.1-ext.2` for apps using lifecycle or navigation, and
-  `org.jetbrains.compose.material:material-icons-core:1.7.3` kept upstream; #132), one `androidx/compose/.../__init__.pyi`
-  per Kotlin package. Since `8acb3475` (#125) they carry member functions of classes and interfaces as
+  `org.thisisthepy.compose.androidx.*:1.11.1-ext.4` for apps using lifecycle or navigation, and
+  `org.jetbrains.compose.material:material-icons-core:1.7.3` kept upstream (#132, #54), one `androidx/compose/.../__init__.pyi`
+  or `org/thisisthepy/compose/.../__init__.pyi` per Kotlin package. Since `8acb3475` (#125) they carry member functions of classes and interfaces as
   methods (python-multiplatform #215), a type whose name a same-named factory function takes as the
   stub-private class `_Name` instead of `Any` (#217; `PaddingValues(...)` returns a `_PaddingValues`),
   and functional-interface parameters as `Callable` (#216); the converted stubs keep all three, with
@@ -236,9 +237,9 @@ and Kotlin/Native have no reflection").
   (`jclass`, `jpype`, `java`, `javax`, `awt`, `swing`, `ctypes`, `cffi`). Pinned across every `.py`
   file in `pythonx/` by `tests/test_legacy_modules.py::TestNoJvmOrAwtDependenciesInPackage`.
 - **Same `material3` mapping across paths.** Both the upstream Compose JVM build and the extended
-  fork (`org.thisisthepy.compose.*:1.11.1-ext.2`, plugin `org.thisisthepy.compose:1.11.1-ext.3`)
+  fork (`org.thisisthepy.compose.*:1.11.1-ext.4`, plugin `org.thisisthepy.compose:1.11.1-ext.3`)
   publish Material 3 under the Kotlin package `androidx.compose.material3`, which `pythonx-map.toml`
-  maps to `pythonx.compose.material3` (§2, S5.2, S5.3).
+  maps to `pythonx.compose.material3` behind `org.thisisthepy.compose.material3` (§2, S2.1, S5.2, S5.3).
 - **Three runtime paths in `python-multiplatform`:**
   1. **Default / upstream Compose JVM:** `:python-multiplatform-compose:fixtures:notebook-e2e:desktopTest`
      runs all 20 `UI.ipynb` scenarios against the installed `pythonx-compose` wheel on the JVM
@@ -253,14 +254,12 @@ and Kotlin/Native have no reflection").
      (`python-multiplatform` #249, #251; run in CI `.github/workflows/desktop.yml` job
      `notebook-e2e-native-image`).
   3. **Extended Kotlin/Native desktop (`org.thisisthepy.kotlin.native.desktop`, `macosArm64`,
-     `linuxX64`):** `:python-multiplatform` supports `macosArm64` and `linuxX64` (`#370`, `decc90e7`;
-     `PackagedPythonHome.desktopNative.kt`, `PythonPayload.desktopNative.kt`, 496/496 interpreter and
-     binder tests passing on both targets in CI). Because `pythonx-compose` depends only on that
-     binder contract, the Python package itself needs no change for Kotlin/Native. Status is
-     `partial` because `:python-multiplatform-compose` and its `notebook-e2e` fixture currently
-     declare `androidTarget` and `jvm("desktop")` only; running the 20 Compose `notebook-e2e`
-     scenarios on a Kotlin/Native host awaits `:python-multiplatform-compose` adding `macosArm64` and
-     `linuxX64` targets (`python-multiplatform` #191 Phase B).
+     `linuxX64`):** `:python-multiplatform` (#370, `decc90e7`, 496/496 interpreter and binder tests)
+     and `:python-multiplatform-compose` (#386, #393) declare `macosArm64` and `linuxX64` targets.
+     Because `pythonx-compose` depends only on that binder contract, the Python package itself needs
+     no change for Kotlin/Native. Status is `partial` because running the 20 Compose `notebook-e2e`
+     scenarios on a Kotlin/Native host awaits `KlibScanner` coverage for `@Composable` declarations,
+     parameter names, extension receivers and value classes (`python-multiplatform` #191 Phase B).
 - **Guide page.** `docs/guide/guide-runtimes.html` documents choosing between the three paths, with
   `uv`, `ppp` and `tcl` install examples and the host Gradle configuration for each path, checked by
   `tests/test_guide.py::TestGuide::test_runtime_paths_guide_page_covers_all_three_paths`.
@@ -309,7 +308,7 @@ notebook is git-ignored, so in a worktree or CI checkout it is absent, the expec
 and **the test passes without checking anything.** It is only meaningful in the maintainer's main
 checkout.
 
-### S2.1 Layered rows and the fork's design systems: `implemented` (served once the binder walks them)
+### S2.1 Layered rows and the fork's design systems: `implemented`
 
 INTENT §5.12 (owner, 2026-11-13; the means are the leader's decisions, 2026-11-13, #54). A row is one Kotlin package
 or a list of them. A name is looked up in each listed package in order and the **first that declares
@@ -321,10 +320,12 @@ not define, with the imports they need.
 
 `pythonx.compose.material3` is `["org.thisisthepy.compose.material3", "androidx.compose.material3"]`.
 The design systems are `pythonx.compose.designsystem`, `.breeze`, `.cupertino`, `.deepin`, `.fluent`,
-`.gnome` and `.liquidglass`. None of `extended/design-systems` is on Maven Central (checked
-2026-11-13), so python-multiplatform serves none of them: today every `material3` name comes from
-`androidx.compose.material3`, the design-system modules import but every name read raises
-`AttributeError`, and their stubs are header-only.
+`.gnome` and `.liquidglass`. All eight `org.thisisthepy.compose.designsystem:designsystem*` libraries
+are published on Maven Central at `1.11.1-ext.4` (classfile major 55, Java 11; `jvm`, `android`, `ios`,
+`macosArm64`, `linuxX64`, `wasmJs`) and walked by `python-multiplatform` (#408/#410), so every mapped
+design-system module carries its generated `.pyi` stub and recorded surface snapshot, and `material3`
+merges `Material3DesignSystem`, `material_design_system` and `MaterialButton` in front of
+`androidx.compose.material3`.
 
 **Regression guard.** `tests/fixtures/surfaces/<module>.txt` is the recorded public surface of each of
 those eight modules, read from its committed stub by `scripts/surface.py`: one line per declaration
@@ -342,11 +343,7 @@ anything, so its snapshot is recorded the first time the binder serves it.
 | The generator merges layers the same way; a one-package list equals a string row | `tests/test_design_systems.py::TheGeneratorMergesTheLayers` |
 | Surface snapshots exist, lose nothing unacknowledged, empty ones stay empty until recorded; the guard fails on a dropped line | `tests/test_design_systems.py::TheSurfaceGuard` |
 | Each design system is a package on disk that imports without a binder | `tests/test_design_systems.py::ThePackagesOnDisk` |
-
-Not done here: publishing `extended/design-systems` (the fork's side, darkpyonix team; the leader
-asks for it, 2026-11-13) and then adding it as a python-multiplatform dependency so the binder walks
-it; the design-system `material3` module also declares no
-`macosArm64`/`linuxX64` target (S1.4).
+| Type-checking across `material3` (`Material3DesignSystem`, `material_design_system`, `MaterialButton` + `androidx.compose.material3.Text`) and the design-system modules (`designsystem`, `breeze`, `cupertino`, `deepin`, `fluent`, `gnome`, `liquidglass`) | `tests/test_typing.py::TheStubsTypeCheck::test_design_systems_and_layered_material3_type_check` |
 
 ## 3. `pythonx` is a real package: `implemented` (module level)
 
@@ -501,7 +498,7 @@ python-multiplatform's render test and its notebook E2E (cells 28 to 30). Tests:
 `pythonx/compose/material3/__init__.py` on top of the bound 48-argument `ColorScheme` constructor
 (python-multiplatform #309, `8ed68d93`).
 
-- Why here: in Compose Material 3 (`org.thisisthepy.compose.material3:1.11.1-ext.2`),
+- Why here: in Compose Material 3 (`org.thisisthepy.compose.material3:1.11.1-ext.4`),
   `lightColorScheme` and `darkColorScheme` each declare 48 defaulted `Color` parameters, past the
   binder's omission cap (`MAX_OMITTABLE_PARAMETERS = 6`), so the binder exposes them with every
   parameter required, and their defaults depend on each other (`surfaceTint: Color = primary`),

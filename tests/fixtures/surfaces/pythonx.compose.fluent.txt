@@ -1,1 +1,17 @@
 # Public surface of pythonx.compose.fluent, recorded by scripts/surface.py from its committed stub.
+FluentDesignSystem.Dark: FluentDesignSystem
+FluentDesignSystem.Light: FluentDesignSystem
+FluentDesignSystem.badge(self) -> pythonx.compose.designsystem.BadgeStyle
+FluentDesignSystem.button(self, variant) -> pythonx.compose.designsystem.ButtonStyle
+FluentDesignSystem.code_editor(self) -> pythonx.compose.designsystem.CodeEditorStyle
+FluentDesignSystem.color(self, role) -> _t.Any
+FluentDesignSystem.elevation(self, elevation, base) -> pythonx.compose.designsystem.ElevationStyle
+FluentDesignSystem.id(self) -> pythonx.compose.designsystem.DesignSystemId
+FluentDesignSystem.is_dark(self) -> bool
+FluentDesignSystem.motion(self) -> pythonx.compose.designsystem.Motion
+FluentDesignSystem.shape(self, role) -> pythonx.compose.ui.graphics.Shape
+FluentDesignSystem.space(self, role) -> float
+FluentDesignSystem.split_pane(self, width) -> pythonx.compose.designsystem.SplitPaneStyle
+FluentDesignSystem.type(self, role) -> pythonx.compose.ui.text.TextStyle
+class FluentDesignSystem
+fluent_surface(receiver, /, style, shape) -> pythonx.compose.ui.Modifier

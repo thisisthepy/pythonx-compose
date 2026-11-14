@@ -392,6 +392,47 @@ class TheStubsTypeCheck(unittest.TestCase):
             n: int = light_color_scheme()
         """, "ColorScheme", "[assignment]")
 
+    def test_design_systems_and_layered_material3_type_check(self):
+        """Issue #54: `pythonx.compose.material3` merges `org.thisisthepy.compose.material3`
+        (`Material3DesignSystem`, `material_design_system`, `MaterialButton`) in front of
+        `androidx.compose.material3`, and the other design systems (`designsystem`, `breeze`,
+        `cupertino`, `deepin`, `fluent`, `gnome`, `liquidglass`) carry their `1.11.1-ext.4` stubs."""
+        self.assertPasses("""
+            from pythonx.compose.breeze import BreezeDesignSystem
+            from pythonx.compose.cupertino import CupertinoDesignSystem, CupertinoSurface
+            from pythonx.compose.deepin import DeepinDesignSystem
+            from pythonx.compose.designsystem import ButtonVariant, ColorRole, DesignSystem, ShapeRole
+            from pythonx.compose.fluent import FluentDesignSystem
+            from pythonx.compose.gnome import GnomeDesignSystem
+            from pythonx.compose.liquidglass import CapsuleShape, ContinuousCornerShape, GlassLayer, LiquidGlass
+            from pythonx.compose.material3 import (
+                Material3DesignSystem,
+                MaterialButton,
+                Text,
+                material_design_system,
+            )
+
+            def check(variant: ButtonVariant, shape_role: ShapeRole, color_role: ColorRole) -> None:
+                m3: Material3DesignSystem = Material3DesignSystem.Dark
+                m3_custom: Material3DesignSystem = material_design_system(is_dark=True)
+                breeze: DesignSystem = BreezeDesignSystem.Light
+                cupertino: CupertinoDesignSystem = CupertinoDesignSystem.Dark
+                deepin: DeepinDesignSystem = DeepinDesignSystem.Light
+                fluent: FluentDesignSystem = FluentDesignSystem.Dark
+                gnome: GnomeDesignSystem = GnomeDesignSystem.Light
+                shape: ContinuousCornerShape = CapsuleShape
+                other_shape: ContinuousCornerShape = ContinuousCornerShape(12.0).inset(2.0)
+                lift: float = LiquidGlass.LIFT
+                MaterialButton(variant=variant, on_click=lambda: None, content=lambda s: Text("hi"))
+                CupertinoSurface(system=cupertino, shape=shape, content=lambda s: Text("cupertino"))
+                GlassLayer(material=cupertino.material(color_role), shape=cupertino.shape(shape_role), content=lambda s: Text("glass"))
+        """)
+        self.assertFails("""
+            from pythonx.compose.breeze import BreezeDesignSystem
+
+            n: int = BreezeDesignSystem.Dark
+        """, "BreezeDesignSystem", "[assignment]")
+
 
 if __name__ == "__main__":
     unittest.main()
