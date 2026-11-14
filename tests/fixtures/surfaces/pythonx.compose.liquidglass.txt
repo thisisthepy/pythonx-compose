@@ -1,1 +1,42 @@
 # Public surface of pythonx.compose.liquidglass, recorded by scripts/surface.py from its committed stub.
+CapsuleShape: ContinuousCornerShape
+ContinuousCornerShape.bottom_end(self) -> float
+ContinuousCornerShape.bottom_start(self) -> float
+ContinuousCornerShape.create_outline(self, size, layout_direction, density) -> pythonx.compose.ui.graphics.Outline
+ContinuousCornerShape.inset: _t.ClassVar[_ContinuousCornerShape_inset]
+ContinuousCornerShape.top_end(self) -> float
+ContinuousCornerShape.top_start(self) -> float
+ContinuousCornerShape__Dp(all) -> ContinuousCornerShape
+ContinuousCornerShape__Dp_Dp_Dp_Dp(top_start, top_end, bottom_end, bottom_start) -> ContinuousCornerShape
+GLASS_EDGE_WIDTH: float
+GlassLayer(material, shape, modifier=..., backdrop=..., *, content) -> None
+LiquidGlass.DARK_TINT: _t.ClassVar[_t.Any]
+LiquidGlass.DEPTH_TINT_STEP: _t.ClassVar[float]
+LiquidGlass.LIFT: _t.ClassVar[float]
+LiquidGlass.LIFT_ALPHA: _t.ClassVar[float]
+LiquidGlass.LIGHT_TINT: _t.ClassVar[_t.Any]
+LiquidGlass.MIN_CONTRAST_BODY: _t.ClassVar[float]
+LiquidGlass.WINDOW_TINT_ALPHA_DARK: _t.ClassVar[float]
+LiquidGlass.WINDOW_TINT_ALPHA_LIGHT: _t.ClassVar[float]
+LiquidGlass.depth_shadow(depth) -> float
+LiquidGlass.material(dark, prominence=..., *, backdrop, content, min_contrast=...) -> pythonx.compose.designsystem.SurfaceMaterial.Glass
+LiquidGlass.window_material(dark, backdrop, content, min_contrast=...) -> pythonx.compose.designsystem.SurfaceMaterial.Glass
+at_depth(receiver, /, depth) -> pythonx.compose.designsystem.SurfaceMaterial.Glass
+class ContinuousCornerShape
+class GlassProminence
+class LiquidGlass
+class _ContinuousCornerShape_inset
+composite_over(top, bottom) -> _t.Any
+concentric_radius(outer, inset) -> float
+contrast_ratio(a, b) -> float
+draws_as_glass(reduce_transparency, blur_available) -> bool
+ensure_contrast(color, against, min_ratio) -> _t.Any
+glass_backdrop(receiver, /, radius) -> pythonx.compose.ui.Modifier
+glass_blur_radius(material, reduce_transparency, blur_available) -> float
+glass_fill(material, reduce_transparency, blur_available, depth=...) -> _t.Any
+glass_lift(receiver, /, material, shape) -> pythonx.compose.ui.Modifier
+glass_surface(receiver, /, material, shape, border_width=...) -> pythonx.compose.ui.Modifier
+inset(receiver, /, inset) -> ContinuousCornerShape
+is_glass_drawn() -> bool
+lit_edge(highlight, shade) -> pythonx.compose.ui.graphics.Brush
+relative_luminance(color) -> float

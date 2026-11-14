@@ -1,1 +1,20 @@
 # Public surface of pythonx.compose.cupertino, recorded by scripts/surface.py from its committed stub.
+CupertinoDesignSystem.Dark: CupertinoDesignSystem
+CupertinoDesignSystem.Light: CupertinoDesignSystem
+CupertinoDesignSystem.badge(self) -> pythonx.compose.designsystem.BadgeStyle
+CupertinoDesignSystem.button(self, variant) -> pythonx.compose.designsystem.ButtonStyle
+CupertinoDesignSystem.code_editor(self) -> pythonx.compose.designsystem.CodeEditorStyle
+CupertinoDesignSystem.color(self, role) -> _t.Any
+CupertinoDesignSystem.elevation(self, elevation, base) -> pythonx.compose.designsystem.ElevationStyle
+CupertinoDesignSystem.id(self) -> pythonx.compose.designsystem.DesignSystemId
+CupertinoDesignSystem.is_dark(self) -> bool
+CupertinoDesignSystem.material(self, role) -> pythonx.compose.designsystem.SurfaceMaterial
+CupertinoDesignSystem.motion(self) -> pythonx.compose.designsystem.Motion
+CupertinoDesignSystem.shape(self, role) -> pythonx.compose.ui.graphics.Shape
+CupertinoDesignSystem.space(self, role) -> float
+CupertinoDesignSystem.split_pane(self, width) -> pythonx.compose.designsystem.SplitPaneStyle
+CupertinoDesignSystem.type(self, role) -> pythonx.compose.ui.text.TextStyle
+CupertinoSurface(system, shape, modifier=..., role=..., elevation=..., backdrop=..., *, content) -> None
+class CupertinoDesignSystem
+cupertino_inset_surface(receiver, /, material, shape, inset) -> pythonx.compose.ui.Modifier
+cupertino_shadow(receiver, /, style, shape) -> pythonx.compose.ui.Modifier

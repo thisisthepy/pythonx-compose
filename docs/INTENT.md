@@ -218,9 +218,9 @@ them.
    `androidx.compose.material3` declares them (the design-system package declares
    `Material3DesignSystem`, `materialDesignSystem` and `MaterialButton`). The regression guard is a
    per-module public-surface diff between fork releases with a reviewed allowlist (SPEC §2.1). The
-   leader asks the fork's maintainers (the darkpyonix team) to publish `extended/design-systems` to
-   Maven Central with `macosArm64` and `linuxX64`; once published, they become a python-multiplatform
-   dependency so the binder serves them.
+   `extended/design-systems` modules are published to Maven Central at `1.11.1-ext.4` (classfile major
+   55, Java 11; `jvm`, `android`, `ios`, `macosArm64`, `linuxX64`, `wasmJs`) and walked by
+   `python-multiplatform` (#408/#410) so the binder serves them.
 
    > Agent proposal, not confirmed by the owner (#152): the module names. The shared contract is
    > exposed as `pythonx.compose.designsystem`, and Liquid Glass as `pythonx.compose.liquidglass`

@@ -10,8 +10,8 @@ The means below are an agent proposal, not confirmed by the owner (SPEC S2.1):
 - A manifest row may list several Kotlin packages, searched in order, first match wins. `UI.ipynb`
   imports `Text`, `Button`, `Card`, `TextField` from `pythonx.compose.material3`, which only
   `androidx.compose.material3` declares, so that package stays as the second layer.
-- A listed package the binder does not serve is skipped (none of the design systems is on Maven
-  Central yet).
+- A listed package the binder does not serve is skipped (a host that omits a design system still
+  imports its module cleanly).
 - The surface guard: a committed snapshot of each guarded module's public surface.
 """
 

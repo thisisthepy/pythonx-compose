@@ -84,8 +84,10 @@ flowchart LR
 
 A row may list several packages: a name comes from the first that declares it, so
 `pythonx.compose.material3` adds the fork's Material 3 design system (`MaterialButton`,
-`materialDesignSystem`) in front of Material 3 itself. The fork's design systems are not on Maven
-Central yet, so until python-multiplatform serves them their modules import but resolve no names.
+`material_design_system`, `Material3DesignSystem`) in front of Material 3 itself. Each design system
+(`org.thisisthepy.compose.designsystem:designsystem*:1.11.1-ext.4` on Maven Central) has its own
+module and `.pyi` stub; if a host app does not include a design-system library, its module still
+imports and skips the unserved package.
 
 Each module is a real file whose `__init__.py` calls one re-export rule; names resolve on first use.
 `Column`, `Row` and `Spacer` are importable from `pythonx.compose.material3` as well as
@@ -158,7 +160,8 @@ from a sibling [python-multiplatform](https://github.com/thisisthepy/python-mult
 
 Distributed as the pip package **`pythonx-compose`** (Python 3.11 or later), providing the import
 package `pythonx.compose`, with the manifest inside the wheel, and typed: `.pyi` stubs generated from
-real Compose 1.11.1-ext.2 (`org.thisisthepy.compose.*:1.11.1-ext.2` libraries, Gradle plugin
+real Compose 1.11.1-ext.4 (`org.thisisthepy.compose.*:1.11.1-ext.4` and
+`org.thisisthepy.compose.designsystem:designsystem*:1.11.1-ext.4` libraries, Gradle plugin
 `org.thisisthepy.compose:1.11.1-ext.3` on Maven Central) and `py.typed` ship with it. It runs inside
 an app that embeds CPython through [python-multiplatform](https://github.com/thisisthepy/python-multiplatform);
 it is not a standalone desktop toolkit.
@@ -176,7 +179,8 @@ it is not a standalone desktop toolkit.
 | The empty `Modifier` | ✅ implemented and tested: `Modifier.padding(16)` and `Card(modifier=Modifier)` from the class evaluate `Modifier.Companion` through `register_empty(Modifier, lambda: Modifier.Companion)` (#134, #138) |
 | `Alignment` / `Arrangement` | ✅ implemented and tested: `Alignment.Center`, `Arrangement.spaced_by(8)`, and grouped `Alignment.Horizontal.End` beside `Alignment.End` |
 | Material 3 widgets (`Text`, `Button`, `Card`, `TextField`, …) | 🟡 partial: re-exported by rule; render proofs per widget pending (#9) |
-| Type stubs (`.pyi`) from real Compose 1.11.1-ext.2, `py.typed` | ✅ implemented and checked with mypy; many types are still `Any` (#12) |
+| Layered `material3` and the fork's design systems (`designsystem`, `breeze`, `cupertino`, `deepin`, `fluent`, `gnome`, `liquidglass`) | ✅ implemented and tested: `1.11.1-ext.4` stubs, surface snapshots and regression guard (#54, #152) |
+| Type stubs (`.pyi`) from real Compose 1.11.1-ext.4, `py.typed` | ✅ implemented and checked with mypy; many types are still `Any` (#12, #54) |
 | Distribution (`pythonx-compose`) | 🟡 partial: the wheel carries the manifest, the re-export rule, the stubs and `py.typed` |
 | Declared app root (`@app`), no update call; state through Kotlin's `mutable_state_of` | 🟡 partial: binder path tested against a fake host shaped after python-multiplatform #38; against real Compose, python-multiplatform's notebook E2E passes (#11, #19); numbers and strings round-trip |
 | `TextField(state=...)` with `TextFieldState` (`pythonx.compose.foundation.text.input`) | 🟡 partial: tested against a fake host shaped after python-multiplatform #73; the input-method (IME) composing proof is python-multiplatform E2E #26 (#10) |
