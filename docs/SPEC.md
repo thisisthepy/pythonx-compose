@@ -255,11 +255,16 @@ and Kotlin/Native have no reflection").
      `notebook-e2e-native-image`).
   3. **Extended Kotlin/Native desktop (`org.thisisthepy.kotlin.native.desktop`, `macosArm64`,
      `linuxX64`):** `:python-multiplatform` (#370, `decc90e7`, 496/496 interpreter and binder tests)
-     and `:python-multiplatform-compose` (#386, #393) declare `macosArm64` and `linuxX64` targets.
-     Because `pythonx-compose` depends only on that binder contract, the Python package itself needs
-     no change for Kotlin/Native. Status is `partial` because running the 20 Compose `notebook-e2e`
-     scenarios on a Kotlin/Native host awaits `KlibScanner` coverage for `@Composable` declarations,
-     parameter names, extension receivers and value classes (`python-multiplatform` #191 Phase B).
+     and `:python-multiplatform-compose` (#386, #393) declare `macosArm64` and `linuxX64` targets, and
+     `KlibKnmScanner` (`python-multiplatform` #422, #423, #435) reads `.knm` metadata to bind
+     constructors, `object` and `Companion` handles/constants/functions, member functions and properties,
+     parameter names, extension functions and properties, `@JvmInline value class` unboxing/handles, and
+     pure-source `@Composable` functions with at most 6 defaulted parameters (B1). Because
+     `pythonx-compose` depends only on that binder contract, the Python package itself needs no change for
+     Kotlin/Native. Status is `partial` because two host-side items remain in `python-multiplatform` #191
+     Phase B: binding klib `@Composable` functions with more than 6 defaulted parameters (`Button` 8,
+     `Text` 16, `TextField` 23; B3: owner decision 2026-11-19, consumer-side compiler plugin, in
+     progress) and running the 20 Compose `notebook-e2e` scenarios on a Kotlin/Native desktop target.
 - **Guide page.** `docs/guide/guide-runtimes.html` documents choosing between the three paths, with
   `uv`, `ppp` and `tcl` install examples and the host Gradle configuration for each path, checked by
   `tests/test_guide.py::TestGuide::test_runtime_paths_guide_page_covers_all_three_paths`.
