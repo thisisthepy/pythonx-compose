@@ -436,8 +436,9 @@ class Converter:
         self.stubs = stubs
         self.notes: list[str] = []
         self.first_module: dict[str, str] = {}
-        for module_name, kotlin_package in manifest()["modules"].items():
-            self.first_module.setdefault(kotlin_package, module_name)
+        for module_name, row in manifest()["modules"].items():
+            for kotlin_package in _packages_of(row):
+                self.first_module.setdefault(kotlin_package, module_name)
         self._declared: dict[str, set[str]] = {}
 
     # What a Kotlin package's stub declares as a class (what a reference may name).
@@ -813,6 +814,46 @@ def _own_class(node: ast.ClassDef) -> str:
     return text + "\n"
 
 
+def _packages_of(row: str | list[str]) -> tuple[str, ...]:
+    """A manifest row's Kotlin packages in lookup order (SPEC S2.1): one package, or a list."""
+    return (row,) if isinstance(row, str) else tuple(row)
+
+
+def _top_level_names(tree: ast.Module) -> set[str]:
+    return {name for node in tree.body if (name := _name_of(node)) is not None}
+
+
+def _merge_layer(text: str, later: str) -> str:
+    """[text] with what the later layer's converted stub [later] adds: the declarations [text] does
+    not define (an earlier layer's name shadows a later one's at run time) and the imports they need."""
+    tree = ast.parse(text)
+    defined = _top_level_names(tree)
+    imports = {ast.unparse(node) for node in tree.body if isinstance(node, (ast.Import, ast.ImportFrom))}
+    later_lines = later.splitlines(keepends=True)
+    added_imports: list[str] = []
+    added: list[str] = []
+    for node in ast.parse(later).body:
+        if isinstance(node, (ast.Import, ast.ImportFrom)):
+            spelled = ast.unparse(node)
+            if spelled not in imports:
+                imports.add(spelled)
+                added_imports.append(spelled + "\n")
+            continue
+        name = _name_of(node)
+        if name is None or name in defined:
+            continue
+        decorators = getattr(node, "decorator_list", [])
+        start = min([node.lineno, *(d.lineno for d in decorators)])
+        added.append("".join(later_lines[start - 1:node.end_lineno]))
+    if added_imports:
+        anchor = "import typing as _t\n"
+        at = text.index(anchor) + len(anchor) if anchor in text else 0
+        text = text[:at] + "".join(added_imports) + text[at:]
+    if added:
+        text = text.rstrip("\n") + "\n\n" + "\n".join(chunk.rstrip("\n") + "\n" for chunk in added)
+    return text
+
+
 def generate(kotlin_stubs: Path, package_root: Path, notes: list[str] | None = None) -> dict[Path, str]:
     """Every stub this manifest yields: output path -> text. Writes nothing.
 
@@ -821,20 +862,27 @@ def generate(kotlin_stubs: Path, package_root: Path, notes: list[str] | None = N
     stubs = KotlinStubs(kotlin_stubs)
     converter = Converter(stubs)
     out: dict[Path, str] = {}
-    for module_name, kotlin_package in manifest()["modules"].items():
+    for module_name, row in manifest()["modules"].items():
+        packages = _packages_of(row)
         module_dir = package_root.joinpath(*module_name.split(".")[1:])
         own = own_definitions(module_dir / "__init__.py")
         own_names = frozenset(
             name for snippet in own for node in ast.parse(snippet).body
             if (name := _name_of(node)) is not None
         )
-        first = converter.first_module[kotlin_package]
-        source = stubs.stub(kotlin_package)
-        if first != module_name:
+        firsts = {converter.first_module[package] for package in packages}
+        first = next(iter(firsts))
+        layers = [(package, source) for package in packages if (source := stubs.stub(package)) is not None]
+        if len(firsts) == 1 and first != module_name:
             # The same Kotlin package under a second name: at run time, the same objects.
             text = header(stubs.provenance) + f"from {first} import *\n"
-        elif source is not None:
-            text = converter.convert(source, kotlin_package, module_name, own_names)
+        elif layers:
+            # The first layer the artefact has converts as a one-package row always did; each later
+            # one adds only what the layers before it do not define, as the runtime looks names up.
+            package, source = layers[0]
+            text = converter.convert(source, package, module_name, own_names)
+            for package, source in layers[1:]:
+                text = _merge_layer(text, converter.convert(source, package, "", own_names))
         else:
             text = header(stubs.provenance)
         if own:

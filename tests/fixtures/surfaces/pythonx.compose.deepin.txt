@@ -1,0 +1,16 @@
+# Public surface of pythonx.compose.deepin, recorded by scripts/surface.py from its committed stub.
+DeepinDesignSystem.Dark: DeepinDesignSystem
+DeepinDesignSystem.Light: DeepinDesignSystem
+DeepinDesignSystem.badge(self) -> pythonx.compose.designsystem.BadgeStyle
+DeepinDesignSystem.button(self, variant) -> pythonx.compose.designsystem.ButtonStyle
+DeepinDesignSystem.code_editor(self) -> pythonx.compose.designsystem.CodeEditorStyle
+DeepinDesignSystem.color(self, role) -> _t.Any
+DeepinDesignSystem.elevation(self, elevation, base) -> pythonx.compose.designsystem.ElevationStyle
+DeepinDesignSystem.id(self) -> pythonx.compose.designsystem.DesignSystemId
+DeepinDesignSystem.is_dark(self) -> bool
+DeepinDesignSystem.motion(self) -> pythonx.compose.designsystem.Motion
+DeepinDesignSystem.shape(self, role) -> pythonx.compose.ui.graphics.Shape
+DeepinDesignSystem.space(self, role) -> float
+DeepinDesignSystem.split_pane(self, width) -> pythonx.compose.designsystem.SplitPaneStyle
+DeepinDesignSystem.type(self, role) -> pythonx.compose.ui.text.TextStyle
+class DeepinDesignSystem

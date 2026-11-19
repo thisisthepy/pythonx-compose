@@ -1,0 +1,186 @@
+# Public surface of pythonx.compose.designsystem, recorded by scripts/surface.py from its committed stub.
+BadgeStyle.container(self) -> _t.Any
+BadgeStyle.content(self) -> _t.Any
+BadgeStyle.dot_size(self) -> float
+BadgeStyle.height(self) -> float
+BadgeStyle.horizontal_padding(self) -> float
+BadgeStyle.label(self, count) -> str
+BadgeStyle.label_size(self) -> _t.Any
+BadgeStyle.placement(self) -> BadgePlacement
+BadgeStyle.ring(self) -> _t.Any | None
+BadgeStyle.ring_width(self) -> float
+BadgeStyle.shape(self) -> ShapeRole
+ButtonStyle.border(self) -> _t.Any | None
+ButtonStyle.border_width(self) -> float
+ButtonStyle.container(self) -> _t.Any
+ButtonStyle.content(self) -> _t.Any
+ButtonStyle.pressed_border(self) -> _t.Any | None
+ButtonStyle.pressed_container(self) -> _t.Any
+ButtonStyle.pressed_content(self) -> _t.Any
+ButtonStyle.ripple(self) -> bool
+ButtonStyle.shape(self) -> ShapeRole
+CodeEditorStyle.container(self) -> _t.Any
+CodeEditorStyle.current_line(self) -> _t.Any
+CodeEditorStyle.current_line_border(self) -> _t.Any
+CodeEditorStyle.current_line_number(self) -> _t.Any
+CodeEditorStyle.error_color(self) -> _t.Any
+CodeEditorStyle.ghost_text_alpha(self) -> float
+CodeEditorStyle.gutter(self) -> _t.Any
+CodeEditorStyle.gutter_divider(self) -> _t.Any
+CodeEditorStyle.hint_color(self) -> _t.Any
+CodeEditorStyle.hint_underline(self) -> UnderlineShape
+CodeEditorStyle.information_color(self) -> _t.Any
+CodeEditorStyle.line_number(self) -> _t.Any
+CodeEditorStyle.tab_width(self) -> int
+CodeEditorStyle.text(self) -> _t.Any
+CodeEditorStyle.underline(self) -> UnderlineShape
+CodeEditorStyle.underline_width(self) -> float
+CodeEditorStyle.warning_color(self) -> _t.Any
+ControlStyle.border(self) -> _t.Any | None
+ControlStyle.border_width(self) -> float
+ControlStyle.container(self) -> _t.Any
+ControlStyle.container_selected(self) -> _t.Any
+ControlStyle.disabled_alpha(self) -> float
+ControlStyle.indicator(self) -> _t.Any
+ControlStyle.indicator_selected(self) -> _t.Any
+ControlStyle.ripple(self) -> bool
+ControlStyle.shape(self) -> ShapeRole
+ControlStyle.size(self) -> float
+ControlStyle.thumb_size(self) -> float
+ControlStyle.track_height(self) -> float
+DesignSystem.badge(self) -> BadgeStyle
+DesignSystem.button(self, variant) -> ButtonStyle
+DesignSystem.code_editor(self) -> CodeEditorStyle
+DesignSystem.color(self, role) -> _t.Any
+DesignSystem.control(self, kind) -> ControlStyle
+DesignSystem.divider(self) -> DividerStyle
+DesignSystem.elevation(self, elevation, base) -> ElevationStyle
+DesignSystem.field(self) -> FieldStyle
+DesignSystem.icons(self) -> IconStyle
+DesignSystem.id(self) -> DesignSystemId
+DesignSystem.is_dark(self) -> bool
+DesignSystem.material(self, role) -> SurfaceMaterial
+DesignSystem.motion(self) -> Motion
+DesignSystem.navigation(self, kind) -> NavigationStyle
+DesignSystem.overlay(self, kind) -> OverlayStyle
+DesignSystem.picker(self, kind) -> PickerStyle
+DesignSystem.progress(self, circular) -> ProgressStyle
+DesignSystem.scroll(self) -> ScrollStyle
+DesignSystem.shape(self, role) -> pythonx.compose.ui.graphics.Shape
+DesignSystem.space(self, role) -> float
+DesignSystem.split_pane(self, width) -> SplitPaneStyle
+DesignSystem.type(self, role) -> pythonx.compose.ui.text.TextStyle
+DividerStyle.color(self) -> _t.Any
+DividerStyle.inset(self) -> float
+DividerStyle.thickness(self) -> float
+ElevationStyle.shadow_color(self) -> _t.Any
+ElevationStyle.shadow_elevation(self) -> float
+ElevationStyle.stroke_top(self) -> _t.Any | None
+ElevationStyle.surface(self) -> _t.Any
+FieldStyle.border(self) -> _t.Any | None
+FieldStyle.border_focused(self) -> _t.Any | None
+FieldStyle.border_width(self) -> float
+FieldStyle.border_width_focused(self) -> float
+FieldStyle.container(self) -> _t.Any
+FieldStyle.container_focused(self) -> _t.Any
+FieldStyle.content(self) -> _t.Any
+FieldStyle.content_padding(self) -> SpaceRole
+FieldStyle.cursor(self) -> _t.Any
+FieldStyle.placeholder(self) -> _t.Any
+FieldStyle.shape(self) -> ShapeRole
+FieldStyle.underline(self) -> bool
+IconStyle.filled(self) -> bool
+IconStyle.size(self) -> float
+IconStyle.stroke_width(self) -> float
+LocalDesignSystem: pythonx.compose.runtime.ProvidableCompositionLocal
+Motion.easing(self) -> _t.Any
+Motion.press_millis(self) -> int
+Motion.release_millis(self) -> int
+NavigationStyle.content(self) -> _t.Any
+NavigationStyle.content_selected(self) -> _t.Any
+NavigationStyle.elevation_on_scroll(self) -> float
+NavigationStyle.height(self) -> float
+NavigationStyle.indicator(self) -> TabIndicator
+NavigationStyle.indicator_thickness(self) -> float
+NavigationStyle.surface(self) -> _t.Any
+NavigationStyle.title_alignment(self) -> TitleAlignment
+OverlayStyle.elevation(self) -> float
+OverlayStyle.enter_millis(self) -> int
+OverlayStyle.exit_millis(self) -> int
+OverlayStyle.padding(self) -> SpaceRole
+OverlayStyle.presentation(self) -> OverlayPresentation
+OverlayStyle.scrim(self) -> _t.Any | None
+OverlayStyle.shape(self) -> ShapeRole
+OverlayStyle.surface(self) -> _t.Any
+PickerStyle.elevation(self) -> float
+PickerStyle.item_extent(self) -> float
+PickerStyle.presentation(self) -> PickerPresentation
+PickerStyle.shape(self) -> ShapeRole
+PickerStyle.surface(self) -> _t.Any
+PickerStyle.visible_items(self) -> int
+ProgressStyle.indeterminate_period_millis(self) -> int
+ProgressStyle.indicator(self) -> _t.Any
+ProgressStyle.rounded(self) -> bool
+ProgressStyle.size(self) -> float
+ProgressStyle.thickness(self) -> float
+ProgressStyle.track(self) -> _t.Any
+ScrollStyle.overscroll(self) -> OverscrollBehaviour
+ScrollStyle.persistent_scrollbar(self) -> bool
+ScrollStyle.scrollbar_color(self) -> _t.Any
+ScrollStyle.scrollbar_thickness(self) -> float
+SplitHandleStyle.color(self) -> _t.Any
+SplitHandleStyle.length(self) -> float
+SplitHandleStyle.shape(self) -> ShapeRole
+SplitHandleStyle.thickness(self) -> float
+SplitPaneStyle.body_min_width(self) -> float
+SplitPaneStyle.collapse_distance(self) -> float
+SplitPaneStyle.default_width(self) -> float
+SplitPaneStyle.grab_width(self) -> float
+SplitPaneStyle.handle(self) -> SplitHandleStyle | None
+SplitPaneStyle.key_step(self) -> float
+SplitPaneStyle.line_color(self) -> _t.Any
+SplitPaneStyle.line_width(self) -> float
+SplitPaneStyle.max_width(self) -> float
+SplitPaneStyle.min_width(self) -> float
+SplitPaneStyle.presentation(self) -> SplitPanePresentation
+SplitPaneStyle.side_background(self) -> _t.Any
+SurfaceMaterial.Glass.at_depth: _t.ClassVar[_SurfaceMaterial_Glass_atDepth]
+class BadgePlacement
+class BadgeStyle
+class ButtonStyle
+class ButtonVariant
+class CodeEditorStyle
+class ColorRole
+class ControlKind
+class ControlStyle
+class DesignSystem
+class DesignSystemId
+class DividerStyle
+class ElevationStyle
+class FieldStyle
+class IconStyle
+class Motion
+class NavigationKind
+class NavigationStyle
+class OverlayKind
+class OverlayPresentation
+class OverlayStyle
+class OverscrollBehaviour
+class PickerKind
+class PickerPresentation
+class PickerStyle
+class ProgressStyle
+class ScrollStyle
+class ShapeRole
+class SpaceRole
+class SplitHandleStyle
+class SplitPanePresentation
+class SplitPaneStyle
+class SurfaceMaterial
+class SurfaceMaterial.Glass
+class TabIndicator
+class TitleAlignment
+class TypeRole
+class UnderlineShape
+class WidthClass
+class _SurfaceMaterial_Glass_atDepth

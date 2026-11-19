@@ -1,0 +1,16 @@
+# Public surface of pythonx.compose.breeze, recorded by scripts/surface.py from its committed stub.
+BreezeDesignSystem.Dark: BreezeDesignSystem
+BreezeDesignSystem.Light: BreezeDesignSystem
+BreezeDesignSystem.badge(self) -> pythonx.compose.designsystem.BadgeStyle
+BreezeDesignSystem.button(self, variant) -> pythonx.compose.designsystem.ButtonStyle
+BreezeDesignSystem.code_editor(self) -> pythonx.compose.designsystem.CodeEditorStyle
+BreezeDesignSystem.color(self, role) -> _t.Any
+BreezeDesignSystem.elevation(self, elevation, base) -> pythonx.compose.designsystem.ElevationStyle
+BreezeDesignSystem.id(self) -> pythonx.compose.designsystem.DesignSystemId
+BreezeDesignSystem.is_dark(self) -> bool
+BreezeDesignSystem.motion(self) -> pythonx.compose.designsystem.Motion
+BreezeDesignSystem.shape(self, role) -> pythonx.compose.ui.graphics.Shape
+BreezeDesignSystem.space(self, role) -> float
+BreezeDesignSystem.split_pane(self, width) -> pythonx.compose.designsystem.SplitPaneStyle
+BreezeDesignSystem.type(self, role) -> pythonx.compose.ui.text.TextStyle
+class BreezeDesignSystem

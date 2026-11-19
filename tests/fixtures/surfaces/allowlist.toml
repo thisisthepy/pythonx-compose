@@ -1,0 +1,11 @@
+# Snapshot lines a reviewer has acknowledged as lost (#152). The surface guard in
+# tests/test_design_systems.py fails when a regenerated stub drops or changes a line recorded in
+# tests/fixtures/surfaces/<module>.txt, unless that line is listed here with the reason it may go:
+#
+#   [[lost]]
+#   module = "pythonx.compose.material3"
+#   line   = "Text(text, modifier=..., ...) -> None"
+#   reason = "renamed upstream in <version>; the new spelling is ..."
+#
+# Empty: nothing lost so far.
+lost = []

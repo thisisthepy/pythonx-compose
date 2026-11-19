@@ -1,0 +1,16 @@
+# Public surface of pythonx.compose.gnome, recorded by scripts/surface.py from its committed stub.
+GnomeDesignSystem.Dark: GnomeDesignSystem
+GnomeDesignSystem.Light: GnomeDesignSystem
+GnomeDesignSystem.badge(self) -> pythonx.compose.designsystem.BadgeStyle
+GnomeDesignSystem.button(self, variant) -> pythonx.compose.designsystem.ButtonStyle
+GnomeDesignSystem.code_editor(self) -> pythonx.compose.designsystem.CodeEditorStyle
+GnomeDesignSystem.color(self, role) -> _t.Any
+GnomeDesignSystem.elevation(self, elevation, base) -> pythonx.compose.designsystem.ElevationStyle
+GnomeDesignSystem.id(self) -> pythonx.compose.designsystem.DesignSystemId
+GnomeDesignSystem.is_dark(self) -> bool
+GnomeDesignSystem.motion(self) -> pythonx.compose.designsystem.Motion
+GnomeDesignSystem.shape(self, role) -> pythonx.compose.ui.graphics.Shape
+GnomeDesignSystem.space(self, role) -> float
+GnomeDesignSystem.split_pane(self, width) -> pythonx.compose.designsystem.SplitPaneStyle
+GnomeDesignSystem.type(self, role) -> pythonx.compose.ui.text.TextStyle
+class GnomeDesignSystem

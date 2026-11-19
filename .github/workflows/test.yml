@@ -4,21 +4,17 @@ name: Tests
 # python-multiplatform develop beside it. The tests only read three Kotlin
 # source files from it, so no JVM or Gradle is needed.
 on:
-  # Checked on develop after merging, not on every pull request (user decision,
-  # 2026-10-17). A red develop is fixed forward by its own pull request.
-  push:
-    branches: [develop]
+  # Development runs are started by hand only (owner, 2026-11-14: "개발 테스트 ci는
+  # 명시적으로 실행하기").
   workflow_dispatch:
-  # Daily against python-multiplatform develop as it is that day: the binder's contract moves under
-  # this package without a pull request here, and #41 found out only at the next PR.
-  schedule:
-    - cron: '17 3 * * *'
 
 permissions:
   contents: read
 
 concurrency:
-  group: test-${{ github.ref }}
+  # One development run per repository: a run in progress finishes, and a newer dispatch replaces
+  # the waiting one (owner, 2026-11-14: "제일 최신꺼만 도는게 맞지").
+  group: dev-ci
   cancel-in-progress: false
 
 jobs:

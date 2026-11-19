@@ -17,7 +17,12 @@
 [modules]
 # The four `UI.ipynb` imports by name.
 "pythonx.compose.layout"    = "androidx.compose.foundation.layout"
-"pythonx.compose.material3" = "androidx.compose.material3"
+# A row may list several Kotlin packages: a name is looked up in each, in order, and the first that
+# declares it wins; a package the binder does not serve is skipped (SPEC S2.1, #152). `material3` is
+# the fork's design-system package over Material 3 itself (owner, 2026-11-13, #54): the design system
+# adds `Material3DesignSystem`, `materialDesignSystem` and `MaterialButton`, and everything the notebook
+# imports (`Text`, `Button`, `Card`, `TextField`) is Material 3's.
+"pythonx.compose.material3" = ["org.thisisthepy.compose.material3", "androidx.compose.material3"]
 "pythonx.compose.runtime"   = "androidx.compose.runtime"
 "pythonx.compose.ui"        = "androidx.compose.ui"
 
@@ -45,6 +50,18 @@
 "pythonx.compose.foundation.layout" = "androidx.compose.foundation.layout"
 "pythonx.compose.foundation"        = "androidx.compose.foundation"
 "pythonx.compose"                   = "androidx.compose"
+
+# The fork's design systems (`compose-multiplatform-core-extended`, `extended/design-systems`), one
+# module each under its Kotlin package's last segment (owner, 2026-11-13, #54), on the shared contract
+# `designsystem` (`DesignSystem`, `LocalDesignSystem`, the role enums). Not on Maven Central yet, so the
+# binder serves none of them and their stubs are empty until it does.
+"pythonx.compose.designsystem" = "org.thisisthepy.compose.designsystem"
+"pythonx.compose.breeze"       = "org.thisisthepy.compose.breeze"
+"pythonx.compose.cupertino"    = "org.thisisthepy.compose.cupertino"
+"pythonx.compose.deepin"       = "org.thisisthepy.compose.deepin"
+"pythonx.compose.fluent"       = "org.thisisthepy.compose.fluent"
+"pythonx.compose.gnome"        = "org.thisisthepy.compose.gnome"
+"pythonx.compose.liquidglass"  = "org.thisisthepy.compose.liquidglass"
 
 [value-classes]
 # A value class here may be written as the primitive it wraps: `padding(16)` for `padding(Dp(16f))`.
